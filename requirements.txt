@@ -2,3 +2,13 @@ streamlit
 pandas
 numpy
 matplotlib
+beautifulsoup4
+requests
+ipyvuetify
+ipyvue
+traitlets
+datetime
+time
+bs4
+lxml
+

@@ -121,7 +121,7 @@ relative_contact_rate = st.sidebar.number_input(
 )/100.0
 
 hosp_rate = (
-    st.sidebar.number_input("Hospitalization %", 0, 100, value=5, step=1, format="%i")
+    st.sidebar.number_input("Hospitalization %", 0, 100, value=8, step=1, format="%i")
     / 100.0
 )
 
@@ -134,9 +134,10 @@ vent_rate = (
     / 100.0
 )
 
-hosp_los = st.sidebar.number_input("Hospital LOS", value=7, step=1, format="%i")
+hosp_los = st.sidebar.number_input("Hospital LOS", value=12, step=1, format="%i")
 icu_los = st.sidebar.number_input("ICU LOS", value=9, step=1, format="%i")
-vent_los = st.sidebar.number_input("Vent LOS", value=10, step=1, format="%i")
+vent_los = st.sidebar.number_input("Vent LOS", value=7, step=1, format="%i")
+
 BGH_market_share = (
     st.sidebar.number_input(
         "Hospital Market Share (%)", 0.0, 100.0, value=15.0, step=1.0, format="%f"

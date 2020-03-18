@@ -85,6 +85,7 @@ for i in range(0, len(df), 2):
 # NY state Modification for Counties and State Tables
 nys = counties[-3:]
 counties_cases = counties[0:-3]
+counties['Cases'] = counties['Cases'].str.replace(',', '')
 counties_cases['Cases'] = pd.to_numeric(counties_cases['Cases'])
 # Total state cases for print
 cases_nys = pd.to_numeric(counties.iloc[-1,1].replace(',', ''))
@@ -141,6 +142,13 @@ vent_los = st.sidebar.number_input("Vent LOS", value=7, step=1, format="%i")
 BGH_market_share = (
     st.sidebar.number_input(
         "Hospital Market Share (%)", 0.0, 100.0, value=15.0, step=1.0, format="%f"
+    )
+    / 100.0
+)
+
+BGH_bed_share = (
+    st.sidebar.number_input(
+        "BGH Bed Share (%)", 0.0, 100.0, value=15.0, step=1.0, format="%f"
     )
     / 100.0
 )

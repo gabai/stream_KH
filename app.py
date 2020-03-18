@@ -110,6 +110,10 @@ current_hosp = st.sidebar.number_input(
 doubling_time = st.sidebar.number_input(
     "Doubling Time (days)", value=6, step=1, format="%i"
 )
+relative_contact_rate = st.sidebar.number_input(
+    "Social distancing (% reduction in social contact)", 0, 100, value=0, step=5, format="%i"
+)/100.0
+
 hosp_rate = (
     st.sidebar.number_input("Hospitalization %", 0, 100, value=5, step=1, format="%i")
     / 100.0
@@ -137,6 +141,23 @@ S = st.sidebar.number_input(
 total_infections = current_hosp / BGH_market_share / hosp_rate
 detection_prob = initial_infections / total_infections
 
+S, I, R = S, initial_infections / detection_prob, 0
+
+intrinsic_growth_rate = 2 ** (1 / doubling_time) - 1
+
+recovery_days = 14.0
+# mean recovery rate, gamma, (in 1/days).
+gamma = 1 / recovery_days
+
+# Contact rate, beta
+beta = (
+    intrinsic_growth_rate + gamma
+) / S * (1-relative_contact_rate) # {rate based on doubling time} / {initial S}
+
+r_t = beta / gamma * S # r_t is r_0 after distancing
+r_naught = r_t / (1-relative_contact_rate)
+doubling_time_t = 1/np.log2(beta*S - gamma +1) # doubling time after distancing
+
 st.title("COVID-19 Hospital Impact Model for Epidemics - Modified for Erie County")
 st.markdown(
     """*This tool was developed by the [Predictive Healthcare team](http://predictivehealthcare.pennmedicine.org/) at
@@ -152,7 +173,13 @@ st.markdown(
     """The estimated number of currently infected individuals is **{total_infections:.0f}**. The **{initial_infections}** 
 confirmed cases in the region imply a **{detection_prob:.0%}** rate of detection. This is based on current inputs for 
 Hospitalizations (**{current_hosp}**), Hospitalization rate (**{hosp_rate:.0%}**), Region size (**{S}**), 
-and Hospital market share (**{BGH_market_share:.0%}**).""".format(
+and Hospital market share (**{BGH_market_share:.0%}**).
+
+An initial doubling time of **{doubling_time}** days and a recovery time of **{recovery_days}** days imply an $R_0$ of 
+**{r_naught:.2f}**.
+
+**Mitigation**: A **{relative_contact_rate:.0%}** reduction in social contact after the onset of the 
+outbreak reduces the doubling time to **{doubling_time_t:.1f}** days, implying an effective $R_t$ of **${r_t:.2f}$**.""".format(
         total_infections=total_infections,
         current_hosp=current_hosp,
         hosp_rate=hosp_rate,
@@ -160,6 +187,12 @@ and Hospital market share (**{BGH_market_share:.0%}**).""".format(
         BGH_market_share=BGH_market_share,
         initial_infections=initial_infections,
         detection_prob=detection_prob,
+        recovery_days=recovery_days,
+        r_naught=r_naught,
+        doubling_time=doubling_time,
+        relative_contact_rate=relative_contact_rate,
+        r_t=r_t,
+        doubling_time_t=doubling_time_t
     )
 )
 

@@ -1,9 +1,18 @@
 # Modified version for Western New York
+# Contact: ganaya@buffalo.edu
 
 import pandas as pd
 import streamlit as st
 import numpy as np
 import matplotlib
+from bs4 import BeautifulSoup
+#import plotly.graph_objects as go
+import requests
+import ipyvuetify as v
+from traitlets import Unicode, List
+import datetime
+from datetime import date
+import time
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -15,10 +24,81 @@ hide_menu_style = """
         """
 st.markdown(hide_menu_style, unsafe_allow_html=True)
 
+# General Variables
+today = date.today()
+fdate = date.today().strftime("%m-%d-%Y")
+time = time.strftime("%H:%M:%S")
+
+### Extract data for US
+# URL
+# 1 Request URL
+url = 'https://www.cdc.gov/coronavirus/2019-ncov/cases-updates/cases-in-us.html'
+page = requests.get(url)
+# 2 Parse HTML content
+soup = BeautifulSoup(page.text, 'html.parser')
+# 3 Extract cases data
+cdc_data = soup.find_all(attrs={"class": "card-body bg-white"})
+
+# Create dataset of extracted data
+df = []
+for ul in cdc_data:
+    for li in ul.find_all('li'):
+        df.append(li.text.replace('\n', ' ').strip())
+### US specific cases - CDC
+cases_us = df[0].split(': ')
+# Replace + and , for numeric values
+cases_us = int(cases_us[1].replace(',', ''))
+# Total US deaths - CDC
+deaths_us = df[1].split(': ')
+deaths_us = pd.to_numeric(deaths_us[1])
+# Calculate mortality rate
+us_MR = round((deaths_us/cases_us)*100,2)
+# Create table
+data = {'Cases': [cases_us],
+       'Deaths': [deaths_us],
+       'Calculated Mortality Rate': [us_MR]}
+us_data = pd.DataFrame(data)
+
+### Extract data for NY State cases
+# URL
+# 1 Request URL
+url = 'https://coronavirus.health.ny.gov/county-county-breakdown-positive-cases'
+page = requests.get(url)
+# 2 Parse HTML content
+soup = BeautifulSoup(page.text, 'html.parser')
+# 3 Get the table having the class country table
+table = soup.find("div", attrs={'class':"wysiwyg--field-webny-wysiwyg-body"})
+table_data = table.find_all("td")
+# Get all the headings of Lists
+df = []
+for i in range(0,len(table_data)):
+    for td in table_data[i]:
+        df.append(table_data[i].text.replace('\n', ' ').strip())
+        
+counties = pd.DataFrame([])
+for i in range(0, len(df), 2):
+    counties = counties.append(pd.DataFrame({'County': df[i], 'Cases': df[i+1]},
+                                              index =[0]), ignore_index=True)
+
+# NY state Modification for Counties and State Tables
+nys = counties[-3:]
+counties_cases = counties[0:-3]
+counties_cases['Cases'] = pd.to_numeric(counties_cases['Cases'])
+# Total state cases for print
+cases_nys = pd.to_numeric(counties.iloc[-1,1].replace(',', ''))
+#Erie County
+erie = counties[counties['County']=='Erie'].reset_index()
+cases_erie = pd.to_numeric(erie.Cases[0])
+
+
+# Populations and Infections
 buffalo = 258612
+tonawanda = 14904
+cheektowaga = 87018
+amherst = 126082
 erie = 919794
 S_default = erie
-known_infections = 6
+known_infections = cases_erie
 
 # Widgets
 initial_infections = st.sidebar.number_input(
@@ -64,7 +144,9 @@ Penn Medicine.
 
 All credit goes to the PH team at Penn Medicine. We have adapted the code based on our current cases and population.
 
-For questions and comments please see ...""")
+For questions about this page, contact ganaya@buffalo.edu. 
+
+For question and comments about the model [contact page](http://predictivehealthcare.pennmedicine.org/contact/).""")
 
 st.markdown(
     """The estimated number of currently infected individuals is **{total_infections:.0f}**. The **{initial_infections}** 
@@ -80,6 +162,30 @@ and Hospital market share (**{BGH_market_share:.0%}**).""".format(
         detection_prob=detection_prob,
     )
 )
+
+st.subheader("Cases of COVID-19 in the United States")
+# Table of cases in the US
+st.table(us_data)
+# Table of cases in NYS
+st.subheader("Cases of COVID-19 in New York State")
+counties_cases.sort_values(by=['Cases'], ascending=False)
+st.table(nys)
+st.subheader("Cases of COVID-19 in Erie County")
+st.markdown(
+    """Erie county has reported **{cases_erie:.0f}** cases of COVID-19.""".format(
+        cases_erie=cases_erie
+    )
+)
+st.markdown(""" """)
+st.markdown(""" """)
+st.markdown(""" """)
+
+#fig = go.Figure(data=[go.Table(header=dict(values=['Total Cases', 'Total Deaths', 'Mortality Rate %']),
+#                 cells=dict(values=[cases_us, deaths_us, us_MR]))
+#                     ])
+#st.plotly_chart(fig)
+
+
 
 if st.checkbox("Show more info about this tool"):
     st.subheader(
@@ -97,7 +203,7 @@ The epidemic proceeds via a growth and decline process. This is the core model o
     st.latex("R_{t+1} = (\\gamma I_t) + R_t")
 
     st.markdown(
-        """To project the expected impact to Penn Medicine, we estimate the terms of the model. 
+        """To project the expected impact to Great Lakes Health System, we follow the model created by Penn Medicine, we estimate the terms of the model. 
 
 To do this, we use a combination of estimates from other locations, informed estimates based on logical reasoning, and best guesses from the American Hospital Association.
 
@@ -222,7 +328,7 @@ if st.checkbox("Show Projected Admissions in tabular form"):
 
 st.subheader("Admitted Patients (Census)")
 st.markdown(
-    "Projected **census** of COVID-19 patients, accounting for arrivals and discharges at Penn hospitals"
+    "Projected **census** of COVID-19 patients, accounting for arrivals and discharges at Buffalo General hospitals"
 )
 
 # ALOS for each category of COVID-19 case (total guesses)
@@ -289,4 +395,18 @@ if st.checkbox("Show Additional Projections"):
     if st.checkbox("Show Raw SIR Similation Data"):
         st.dataframe(infect_table)
 
+
 st.subheader("References & Acknowledgements")
+st.markdown(
+    """
+    We appreciate the great work done by Predictive Healthcare team (http://predictivehealthcare.pennmedicine.org/) at
+Penn Medicine who created the predictive model used.
+    https://www.worldometers.info/coronavirus/coronavirus-incubation-period/
+Lauer SA, Grantz KH, Bi Q, et al. The Incubation Period of Coronavirus Disease 2019 (COVID-19) From Publicly Reported Confirmed Cases: Estimation and Application. Ann Intern Med. 2020; [Epub ahead of print 10 March 2020]. doi: https://doi.org/10.7326/M20-0504
+http://www.centerforhealthsecurity.org/resources/COVID-19/index.html
+http://www.centerforhealthsecurity.org/resources/fact-sheets/pdfs/coronaviruses.pdf'
+https://coronavirus.jhu.edu/
+https://www.who.int/emergencies/diseases/novel-coronavirus-2019/situation-reports
+https://www.worldometers.info/coronavirus/coronavirus-age-sex-demographics/
+    """
+)

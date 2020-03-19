@@ -61,7 +61,7 @@ data = {'Cases': [cases_us],
        'Calculated Mortality Rate': [us_MR]}
 us_data = pd.DataFrame(data)
 
-### Extract data for NY State cases
+# Extract data for NY State cases
 # URL
 # 1 Request URL
 url = 'https://coronavirus.health.ny.gov/county-county-breakdown-positive-cases'
@@ -77,21 +77,32 @@ for i in range(0,len(table_data)):
     for td in table_data[i]:
         df.append(table_data[i].text.replace('\n', ' ').strip())
         
+
+
 counties = pd.DataFrame([])
 for i in range(0, len(df), 2):
     counties = counties.append(pd.DataFrame({'County': df[i], 'Cases': df[i+1]},
                                               index =[0]), ignore_index=True)
 
+    
 # NY state Modification for Counties and State Tables
-nys = counties[-3:]
-counties_cases = counties[0:-3]
-counties['Cases'] = counties['Cases'].str.replace(',', '')
-counties_cases['Cases'] = pd.to_numeric(counties_cases['Cases'])
-# Total state cases for print
-cases_nys = pd.to_numeric(counties.iloc[-1,1].replace(',', ''))
-#Erie County
+NYC = counties[counties['County']=='New York City'].reset_index()
+NYS = counties[counties['County']=='Total Number of Positive Cases'].reset_index()
 erie = counties[counties['County']=='Erie'].reset_index()
+counties_cases = counties[~(counties['County']=='New York City') & ~(counties['County']=='Total Number of Positive Cases')]
+# Remove comma
+NYC['Cases'] = pd.to_numeric(NYC['Cases'].str.replace(',', ''))
+NYS['Cases'] = pd.to_numeric(NYS['Cases'].str.replace(',', ''))
+# Extract value
+cases_nys = NYC.Cases[0]
+cases_nyc = NYS.Cases[0]
 cases_erie = pd.to_numeric(erie.Cases[0])
+
+# Create table
+data = {'County': ['Erie', 'New York City', 'New York State'],
+       'Cases': [cases_erie, cases_nyc, cases_nys]}
+ny_data = pd.DataFrame(data)
+
 
 
 # Populations and Infections
@@ -101,8 +112,8 @@ cheektowaga = 87018
 amherst = 126082
 erie = 1500000
 S_default = erie
-known_infections = cases_erie
-known_cases = 1
+known_infections = 20
+known_cases = 2
 
 # Widgets
 initial_infections = st.sidebar.number_input(
@@ -219,18 +230,18 @@ st.subheader("Cases of COVID-19 in the United States")
 # Table of cases in the US
 st.table(us_data)
 # Table of cases in NYS
-st.subheader("Cases of COVID-19 in New York State")
-counties_cases.sort_values(by=['Cases'], ascending=False)
-st.table(nys)
-st.subheader("Cases of COVID-19 in Erie County")
-st.markdown(
-    """Erie county has reported **{cases_erie:.0f}** cases of COVID-19.""".format(
-        cases_erie=cases_erie
-    )
-)
-st.markdown(""" """)
-st.markdown(""" """)
-st.markdown(""" """)
+#st.subheader("Cases of COVID-19 in New York State")
+#counties.sort_values(by=['Cases'], ascending=False)
+#st.table(ny_data)
+#st.subheader("Cases of COVID-19 in Erie County")
+#st.markdown(
+#    """Erie county has reported **{cases_erie:.0f}** cases of COVID-19.""".format(
+#        cases_erie=cases_erie
+#    )
+#)
+#st.markdown(""" """)
+#st.markdown(""" """)
+#st.markdown(""" """)
 
 #fig = go.Figure(data=[go.Table(header=dict(values=['Total Cases', 'Total Deaths', 'Mortality Rate %']),
 #                 cells=dict(values=[cases_us, deaths_us, us_MR]))

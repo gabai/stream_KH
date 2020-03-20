@@ -8,7 +8,6 @@ import streamlit as st
 import numpy as np
 import matplotlib
 from bs4 import BeautifulSoup
-#import plotly.graph_objects as go
 import requests
 import ipyvuetify as v
 from traitlets import Unicode, List
@@ -104,21 +103,46 @@ data = {'County': ['Erie', 'New York City', 'New York State'],
 ny_data = pd.DataFrame(data)
 
 
-
 # Populations and Infections
 buffalo = 258612
 tonawanda = 14904
 cheektowaga = 87018
 amherst = 126082
 erie = 1500000
-S_default = erie
+#S_default = erie
 known_infections = 20
 known_cases = 2
+initial_infections = 20
 
 # Widgets
-initial_infections = st.sidebar.number_input(
-    "Currently Known Regional Infections", value=known_infections, step=10, format="%i"
-)
+#initial_infections = st.sidebar.number_input(
+#    "Currently Known Regional Infections", value=known_infections, step=10, format="%i"
+#)
+
+hosp_options = st.sidebar.radio(
+    "Hospitals", ('Regional', 'BGH', 'ECMC', 'Mercy', 'MFSH', 'SCH', 'SCSJH'))
+    
+if hosp_options == 'Regional':
+    regional_hosp_share = 1.0
+    S = erie * regional_hosp_share
+if hosp_options == 'BGH':
+    regional_hosp_share = 0.23
+    S = erie * regional_hosp_share
+if hosp_options == 'ECMC':
+    regional_hosp_share = 0.27
+    S = erie * regional_hosp_share
+if hosp_options == 'Mercy':
+    regional_hosp_share = 0.18
+    S = erie * regional_hosp_share
+if hosp_options == 'MFSH':
+    regional_hosp_share = 0.12
+    S = erie * regional_hosp_share
+if hosp_options == 'SCH':
+    regional_hosp_share = 0.15
+    S = erie * regional_hosp_share
+if hosp_options == 'SCSJH':
+    regional_hosp_share = 0.05
+    S = erie * regional_hosp_share
 
 current_hosp = st.sidebar.number_input(
     "Currently Hospitalized COVID-19 Patients", value=known_cases, step=1, format="%i"
@@ -146,29 +170,26 @@ vent_rate = (
     / 100.0
 )
 
-hosp_los = st.sidebar.number_input("Hospital LOS", value=12, step=1, format="%i")
-icu_los = st.sidebar.number_input("ICU LOS", value=9, step=1, format="%i")
-vent_los = st.sidebar.number_input("Vent LOS", value=7, step=1, format="%i")
+hosp_los = st.sidebar.number_input("Hospital Lenght of Stay", value=12, step=1, format="%i")
+icu_los = st.sidebar.number_input("ICU Lenght of Stay", value=9, step=1, format="%i")
+vent_los = st.sidebar.number_input("Ventilator Lenght of Stay", value=7, step=1, format="%i")
 
-BGH_market_share = (
-    st.sidebar.number_input(
-        "Hospital Market Share (%)", 0.0, 100.0, value=15.0, step=1.0, format="%f"
-    )
-    / 100.0
+#regional_hosp_share = (
+#    st.sidebar.number_input(
+#        "Hospital Bed Share (%)", 0.0, 100.0, value=100.0, step=1.0, format="%f")
+#    / 100.0
+#)
+
+#S = st.sidebar.number_input(
+#    "Regional Population", value=S_default, step=100000, format="%i"
+#)
+
+initial_infections = st.sidebar.number_input(
+    "Currently Known Regional Infections (only used to compute detection rate - does not change projections)", value=known_infections, step=10, format="%i"
 )
+    
 
-BGH_bed_share = (
-    st.sidebar.number_input(
-        "BGH Bed Share (%)", 0.0, 100.0, value=15.0, step=1.0, format="%f"
-    )
-    / 100.0
-)
-
-S = st.sidebar.number_input(
-    "Regional Population", value=S_default, step=100000, format="%i"
-)
-
-total_infections = current_hosp / BGH_market_share / hosp_rate
+total_infections = current_hosp / regional_hosp_share / hosp_rate
 detection_prob = initial_infections / total_infections
 
 S, I, R = S, initial_infections / detection_prob, 0
@@ -193,17 +214,17 @@ st.markdown(
     """*This tool was developed by the [Predictive Healthcare team](http://predictivehealthcare.pennmedicine.org/) at
 Penn Medicine. 
 
-All credit goes to the PH team at Penn Medicine. We have adapted the code based on our current cases and population.
+All credit goes to the PH team at Penn Medicine. We have adapted the code based on our current regional cases, county population and hospitals.
 
 For questions about this page, contact ganaya@buffalo.edu. 
 
 For question and comments about the model [contact page](http://predictivehealthcare.pennmedicine.org/contact/).""")
 
 st.markdown(
-    """The estimated number of currently infected individuals is **{total_infections:.0f}**. The **{initial_infections}** 
+    """The estimated number of currently infected individuals in Erie County or catchment area by hospital is **{total_infections:.0f}**. The **{initial_infections}** 
 confirmed cases in the region imply a **{detection_prob:.0%}** rate of detection. This is based on current inputs for 
 Hospitalizations (**{current_hosp}**), Hospitalization rate (**{hosp_rate:.0%}**), Region size (**{S}**), 
-and Hospital market share (**{BGH_market_share:.0%}**).
+and a county wide analysis, as well as Hospital bed share (CCU, ICU, MedSurg).
 
 An initial doubling time of **{doubling_time}** days and a recovery time of **{recovery_days}** days imply an $R_0$ of 
 **{r_naught:.2f}**.
@@ -214,7 +235,7 @@ outbreak reduces the doubling time to **{doubling_time_t:.1f}** days, implying a
         current_hosp=current_hosp,
         hosp_rate=hosp_rate,
         S=S,
-        BGH_market_share=BGH_market_share,
+        regional_hosp_share=regional_hosp_share,
         initial_infections=initial_infections,
         detection_prob=detection_prob,
         recovery_days=recovery_days,
@@ -264,7 +285,7 @@ The epidemic proceeds via a growth and decline process. This is the core model o
     st.latex("R_{t+1} = (\\gamma I_t) + R_t")
 
     st.markdown(
-        """To project the expected impact to Great Lakes Healthcare System, we estimate the terms of the model.
+        """To project the expected impact to Erie County Hospitals, we estimate the terms of the model.
 To do this, we use a combination of estimates from other locations, informed estimates based on logical reasoning, and best guesses from the American Hospital Association.
 ### Parameters
 The model's parameters, $\\beta$ and $\\gamma$, determine the virulence of the epidemic.
@@ -310,7 +331,13 @@ $$\\beta = (g + \\gamma)$$.
 ### Initial Conditions
 
 - The total size of the susceptible population will be the entire catchment area for Erie County.
-- Erie = {erie}""".format(
+- Erie = {erie}
+- Buffalo General Hospital with 23% of beds.
+- Erie County Medical Center with 27% of beds.
+- Mercy Hospital with 18% of beds.
+- Millard Fillmore Suburban Hospital with 12% of beds.
+- Sisters of Charity Hospital with 15% of beds, and
+- Sisters of Charity St. Joeseph Hospital with 5% of beds.""".format(
             erie=erie))
 
 
@@ -354,9 +381,9 @@ beta_decay = 0.0
 s, i, r = sim_sir(S, I, R, beta, gamma, n_days, beta_decay=beta_decay)
 
 
-hosp = i * hosp_rate * BGH_market_share
-icu = i * icu_rate * BGH_market_share
-vent = i * vent_rate * BGH_market_share
+hosp = i * hosp_rate * regional_hosp_share
+icu = i * icu_rate * regional_hosp_share
+vent = i * vent_rate * regional_hosp_share
 
 days = np.array(range(0, n_days + 1))
 data_list = [days, hosp, icu, vent]
@@ -365,7 +392,7 @@ data_dict = dict(zip(["day", "hosp", "icu", "vent"], data_list))
 projection = pd.DataFrame.from_dict(data_dict)
 
 st.subheader("New Admissions")
-st.markdown("Projected number of **daily** COVID-19 admissions at Great Lakes Healthcare System")
+st.markdown("Projected number of **daily** COVID-19 admissions at Erie County or selected Hospital")
 
 # New cases
 projection_admits = projection.iloc[:-1, :] - projection.shift(1)
@@ -395,13 +422,14 @@ def new_admissions_chart(projection_admits: pd.DataFrame, plot_projection_days: 
 st.altair_chart(new_admissions_chart(projection_admits, plot_projection_days), use_container_width=True)
 
 
-admits_table = projection_admits[np.mod(projection_admits.index, 7) == 0].copy()
-admits_table["day"] = admits_table.index
-admits_table.index = range(admits_table.shape[0])
-admits_table = admits_table.fillna(0).astype(int)
-
 if st.checkbox("Show Projected Admissions in tabular form"):
+    admits_table = projection_admits[np.mod(projection_admits.index, 7) == 0].copy()
+    admits_table["day"] = admits_table.index
+    admits_table.index = range(admits_table.shape[0])
+    admits_table = admits_table.fillna(0).astype(int)
+    
     st.dataframe(admits_table)
+
 
 st.subheader("Admitted Patients (Census)")
 st.markdown(
@@ -457,12 +485,12 @@ st.altair_chart(admitted_patients_chart(census_table), use_container_width=True)
 if st.checkbox("Show Projected Census in tabular form"):
     st.dataframe(census_table)
 
-st.markdown(
-    """**Click the checkbox below to view additional data generated by this simulation**"""
-)
+#st.markdown(
+#    """**Click the checkbox below to view additional data generated by this simulation**"""
+#)
 
 st.subheader(
-        "The number of infected and recovered individuals in the hospital catchment region at any given moment")
+        "The number of infected and recovered individuals in the region/hospital catchment region at any given moment")
 
 def additional_projections_chart(i: np.ndarray, r: np.ndarray) -> alt.Chart:
     dat = pd.DataFrame({"Infected": i, "Recovered": r})
@@ -475,13 +503,15 @@ def additional_projections_chart(i: np.ndarray, r: np.ndarray) -> alt.Chart:
         .encode(
             x=alt.X("index", title="Days from today"),
             y=alt.Y("value:Q", title="Case Volume"),
-            tooltip=["key:N", "value:Q"],
+            tooltip=["key:N", "value:Q"], 
             color="key:N"
         )
         .interactive()
     )
 
 st.altair_chart(additional_projections_chart(i, r), use_container_width=True)
+
+
 
 if st.checkbox("Show Additional Information"):
 

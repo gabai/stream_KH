@@ -170,9 +170,9 @@ vent_rate = (
     / 100.0
 )
 
-hosp_los = st.sidebar.number_input("Hospital Lenght of Stay", value=12, step=1, format="%i")
-icu_los = st.sidebar.number_input("ICU Lenght of Stay", value=9, step=1, format="%i")
-vent_los = st.sidebar.number_input("Ventilator Lenght of Stay", value=7, step=1, format="%i")
+hosp_los = st.sidebar.number_input("Hospital Length of Stay", value=12, step=1, format="%i")
+icu_los = st.sidebar.number_input("ICU Length of Stay", value=9, step=1, format="%i")
+vent_los = st.sidebar.number_input("Ventilator Length of Stay", value=7, step=1, format="%i")
 
 #regional_hosp_share = (
 #    st.sidebar.number_input(

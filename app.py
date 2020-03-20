@@ -110,9 +110,9 @@ cheektowaga = 87018
 amherst = 126082
 erie = 1500000
 #S_default = erie
-known_infections = 20
-known_cases = 2
-initial_infections = 20
+known_infections = 29
+known_cases = 6
+initial_infections = 29
 
 # Widgets
 #initial_infections = st.sidebar.number_input(

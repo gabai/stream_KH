@@ -109,9 +109,10 @@ tonawanda = 14904
 cheektowaga = 87018
 amherst = 126082
 erie = 1500000
+cases_erie = 28
 #S_default = erie
 known_infections = 29
-known_cases = 6
+known_cases = 3
 initial_infections = 29
 
 # Widgets
@@ -120,28 +121,34 @@ initial_infections = 29
 #)
 
 hosp_options = st.sidebar.radio(
-    "Hospitals", ('Regional', 'BGH', 'ECMC', 'Mercy', 'MFSH', 'SCH', 'SCSJH'))
+    "Hospitals", ('Regional', 'BGH', 'ECMC', 'Mercy', 'MFSH', 'OCH', 'RPCI', 'SCH', 'SCSJH'))
     
 if hosp_options == 'Regional':
     regional_hosp_share = 1.0
     S = erie * regional_hosp_share
 if hosp_options == 'BGH':
-    regional_hosp_share = 0.23
+    regional_hosp_share = 0.25
     S = erie * regional_hosp_share
 if hosp_options == 'ECMC':
-    regional_hosp_share = 0.27
+    regional_hosp_share = 0.16
     S = erie * regional_hosp_share
 if hosp_options == 'Mercy':
-    regional_hosp_share = 0.18
+    regional_hosp_share = 0.17
     S = erie * regional_hosp_share
 if hosp_options == 'MFSH':
-    regional_hosp_share = 0.12
+    regional_hosp_share = 0.13
+    S = erie * regional_hosp_share
+if hosp_options == 'OCH':
+    regional_hosp_share = 0.05
+    S = erie * regional_hosp_share
+if hosp_options == 'RPCI':
+    regional_hosp_share = 0.06
     S = erie * regional_hosp_share
 if hosp_options == 'SCH':
-    regional_hosp_share = 0.15
+    regional_hosp_share = 0.12
     S = erie * regional_hosp_share
 if hosp_options == 'SCSJH':
-    regional_hosp_share = 0.05
+    regional_hosp_share = 0.06
     S = erie * regional_hosp_share
 
 current_hosp = st.sidebar.number_input(
@@ -157,16 +164,16 @@ relative_contact_rate = st.sidebar.number_input(
 )/100.0
 
 hosp_rate = (
-    st.sidebar.number_input("Hospitalization %", 0, 100, value=8, step=1, format="%i")
+    st.sidebar.number_input("Hospitalization %", 0.0, 100.0, value=20.0, step=1.0, format="%f")
     / 100.0
 )
 
 icu_rate = (
-    st.sidebar.number_input("ICU %", 0, 100, value=2, step=1, format="%i") / 100.0
+    st.sidebar.number_input("ICU %", 0.0, 100.0, value=6.0, step=1.0, format="%f") / 100.0
 )
 
 vent_rate = (
-    st.sidebar.number_input("Ventilated %", 0, 100, value=1, step=1, format="%i")
+    st.sidebar.number_input("Ventilated %", 0.0, 100.0, value=2.5, step=1.0, format="%f")
     / 100.0
 )
 
@@ -221,10 +228,8 @@ For questions about this page, contact ganaya@buffalo.edu.
 For question and comments about the model [contact page](http://predictivehealthcare.pennmedicine.org/contact/).""")
 
 st.markdown(
-    """The estimated number of currently infected individuals in Erie County or catchment area by hospital is **{total_infections:.0f}**. The **{initial_infections}** 
-confirmed cases in the region imply a **{detection_prob:.0%}** rate of detection. This is based on current inputs for 
-Hospitalizations (**{current_hosp}**), Hospitalization rate (**{hosp_rate:.0%}**), Region size (**{S}**), 
-and a county wide analysis, as well as Hospital bed share (CCU, ICU, MedSurg).
+    """The estimated number of currently infected individuals in Erie County or catchment area by hospital is **{total_infections:.0f}**.  This is based on current inputs for 
+Hospitalizations (**{current_hosp}**), Hospitalization rate (**{hosp_rate:.0%}**) and Region size (**{S}**). The regional variable includes a county wide analysis, and each Hospital variable includes an analysis based on bed share distribution (CCU, ICU, MedSurg).
 
 An initial doubling time of **{doubling_time}** days and a recovery time of **{recovery_days}** days imply an $R_0$ of 
 **{r_naught:.2f}**.
@@ -247,6 +252,8 @@ outbreak reduces the doubling time to **{doubling_time_t:.1f}** days, implying a
     )
 )
 
+# The **{initial_infections}** confirmed cases in the region imply a **{detection_prob:.0%}** rate of detection.
+
 st.subheader("Cases of COVID-19 in the United States")
 # Table of cases in the US
 st.table(us_data)
@@ -255,11 +262,11 @@ st.table(us_data)
 #counties.sort_values(by=['Cases'], ascending=False)
 #st.table(ny_data)
 #st.subheader("Cases of COVID-19 in Erie County")
-#st.markdown(
-#    """Erie county has reported **{cases_erie:.0f}** cases of COVID-19.""".format(
-#        cases_erie=cases_erie
-#    )
-#)
+st.markdown(
+    """Erie county has reported **{cases_erie:.0f}** cases of COVID-19.""".format(
+        cases_erie=cases_erie
+    )
+)
 #st.markdown(""" """)
 #st.markdown(""" """)
 #st.markdown(""" """)
@@ -332,12 +339,14 @@ $$\\beta = (g + \\gamma)$$.
 
 - The total size of the susceptible population will be the entire catchment area for Erie County.
 - Erie = {erie}
-- Buffalo General Hospital with 23% of beds.
-- Erie County Medical Center with 27% of beds.
-- Mercy Hospital with 18% of beds.
-- Millard Fillmore Suburban Hospital with 12% of beds.
-- Sisters of Charity Hospital with 15% of beds, and
-- Sisters of Charity St. Joeseph Hospital with 5% of beds.""".format(
+- Buffalo General Hospital with 25% of bed share, calculated based on 456 CCU/ICU/MedSurg beds. Excluded MRU beds. 
+- Erie County Medical Center with 16% of beds share, calculated based on 285 CCU/ICU/MedSurg beds. Excluded burns care, chemical dependence, pediatric, MRU, prisoner and psychiatric beds. 
+- Mercy Hospital with 17% of bed share, calculated based on 306 CCU/ICU/MedSurg beds. Excluded maternity beds, neonatal, pediatric and MRU beds. 
+- Millard Fillmore Suburban Hospital with 13% of bed share, calculated based on 227 CCU/ICU/MedSurg beds. Excluded maternity and neonatal beds. 
+- Oishei Hospital Children's with 5% of bed share, calculated based on 89 ICU/MedSurg beds. Excluded bone marrow transplant beds and neonatal beds. 
+- Roswell Park Cancer Institute with 6% of bed share, calculated based on 110 ICU/MedSurg beds. Excluded bone marrow transplant beds and pediatric beds. 
+- Sisters of Charity Hospital with 12% of bed share, calculated based on 215 CCU/ICU/MedSurg beds. Excluded maternity, neonatal and MRU beds.
+- Sisters of Charity St. Joeseph Hospital with 6% of beds share, calculated based on 103 CCU/ICU/MedSurg beds. """.format(
             erie=erie))
 
 

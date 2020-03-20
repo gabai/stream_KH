@@ -169,11 +169,11 @@ hosp_rate = (
 )
 
 icu_rate = (
-    st.sidebar.number_input("ICU %", 0.0, 100.0, value=6.0, step=1.0, format="%f") / 100.0
+    st.sidebar.number_input("ICU %", 0.0, 100.0, value=6.0, step=0.5, format="%f") / 100.0
 )
 
 vent_rate = (
-    st.sidebar.number_input("Ventilated %", 0.0, 100.0, value=2.5, step=1.0, format="%f")
+    st.sidebar.number_input("Ventilated %", 0.0, 100.0, value=2.5, step=0.5, format="%f")
     / 100.0
 )
 

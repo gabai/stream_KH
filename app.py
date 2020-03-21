@@ -109,47 +109,18 @@ tonawanda = 14904
 cheektowaga = 87018
 amherst = 126082
 erie = 1500000
-cases_erie = 28
-#S_default = erie
-known_infections = 29
-known_cases = 3
-initial_infections = 29
+cases_erie = 47
+S_default = erie
+known_infections = 47
+known_cases = 4
+#initial_infections = 47
+#regional_hosp_share = 1.0
+S = erie
+
 
 # Widgets
-#initial_infections = st.sidebar.number_input(
-#    "Currently Known Regional Infections", value=known_infections, step=10, format="%i"
-#)
-
 hosp_options = st.sidebar.radio(
-    "Hospitals", ('Regional', 'BGH', 'ECMC', 'Mercy', 'MFSH', 'OCH', 'RPCI', 'SCH', 'SCSJH'))
-    
-if hosp_options == 'Regional':
-    regional_hosp_share = 1.0
-    S = erie * regional_hosp_share
-if hosp_options == 'BGH':
-    regional_hosp_share = 0.25
-    S = erie * regional_hosp_share
-if hosp_options == 'ECMC':
-    regional_hosp_share = 0.16
-    S = erie * regional_hosp_share
-if hosp_options == 'Mercy':
-    regional_hosp_share = 0.17
-    S = erie * regional_hosp_share
-if hosp_options == 'MFSH':
-    regional_hosp_share = 0.13
-    S = erie * regional_hosp_share
-if hosp_options == 'OCH':
-    regional_hosp_share = 0.05
-    S = erie * regional_hosp_share
-if hosp_options == 'RPCI':
-    regional_hosp_share = 0.06
-    S = erie * regional_hosp_share
-if hosp_options == 'SCH':
-    regional_hosp_share = 0.12
-    S = erie * regional_hosp_share
-if hosp_options == 'SCSJH':
-    regional_hosp_share = 0.06
-    S = erie * regional_hosp_share
+    "Hospitals", ('BGH', 'ECMC', 'Mercy', 'MFSH', 'OCH', 'RPCI', 'SCH', 'SCSJH'))
 
 current_hosp = st.sidebar.number_input(
     "Currently Hospitalized COVID-19 Patients", value=known_cases, step=1, format="%i"
@@ -169,7 +140,7 @@ hosp_rate = (
 )
 
 icu_rate = (
-    st.sidebar.number_input("ICU %", 0.0, 100.0, value=6.0, step=0.5, format="%f") / 100.0
+    st.sidebar.number_input("ICU %", 0.0, 100.0, value=5.0, step=0.5, format="%f") / 100.0
 )
 
 vent_rate = (
@@ -181,20 +152,20 @@ hosp_los = st.sidebar.number_input("Hospital Length of Stay", value=12, step=1, 
 icu_los = st.sidebar.number_input("ICU Length of Stay", value=9, step=1, format="%i")
 vent_los = st.sidebar.number_input("Ventilator Length of Stay", value=7, step=1, format="%i")
 
-#regional_hosp_share = (
-#    st.sidebar.number_input(
-#        "Hospital Bed Share (%)", 0.0, 100.0, value=100.0, step=1.0, format="%f")
-#    / 100.0
-#)
+regional_hosp_share = (
+   st.sidebar.number_input(
+       "Hospital Bed Share (%)", 0.0, 100.0, value=100.0, step=1.0, format="%f")
+   / 100.0
+)
 
-#S = st.sidebar.number_input(
-#    "Regional Population", value=S_default, step=100000, format="%i"
-#)
+S = st.sidebar.number_input(
+   "Regional Population", value=S_default, step=100000, format="%i"
+)
 
 initial_infections = st.sidebar.number_input(
     "Currently Known Regional Infections (only used to compute detection rate - does not change projections)", value=known_infections, step=10, format="%i"
 )
-    
+
 
 total_infections = current_hosp / regional_hosp_share / hosp_rate
 detection_prob = initial_infections / total_infections
@@ -228,8 +199,10 @@ For questions about this page, contact ganaya@buffalo.edu.
 For question and comments about the model [contact page](http://predictivehealthcare.pennmedicine.org/contact/).""")
 
 st.markdown(
-    """The estimated number of currently infected individuals in Erie County or catchment area by hospital is **{total_infections:.0f}**.  This is based on current inputs for 
-Hospitalizations (**{current_hosp}**), Hospitalization rate (**{hosp_rate:.0%}**) and Region size (**{S}**). The regional variable includes a county wide analysis, and each Hospital variable includes an analysis based on bed share distribution (CCU, ICU, MedSurg).
+    """The estimated number of currently infected individuals in Erie County is **{total_infections:.0f}**. The **{initial_infections}** 
+confirmed cases in the region imply a **{detection_prob:.0%}** rate of detection. This is based on current inputs for 
+Hospitalizations (**{current_hosp}**), Hospitalization rate (**{hosp_rate:.0%}**) and Region size (**{S}**). 
+The first graph includes a county wide analysis, each Hospital is represented as a percent from the total bed-share distribution (CCU, ICU, MedSurg).
 
 An initial doubling time of **{doubling_time}** days and a recovery time of **{recovery_days}** days imply an $R_0$ of 
 **{r_naught:.2f}**.
@@ -390,18 +363,74 @@ beta_decay = 0.0
 s, i, r = sim_sir(S, I, R, beta, gamma, n_days, beta_decay=beta_decay)
 
 
+# List of Hospitals
+hosp_list = ['BGH', 'ECMC', 'Mercy', 'MFSH', 'OCH', 'RPCI', 'SCH', 'SCSJH']
+
+# Variables for projection tables
 hosp = i * hosp_rate * regional_hosp_share
 icu = i * icu_rate * regional_hosp_share
 vent = i * vent_rate * regional_hosp_share
+# BGH
+hosp_bgh = hosp * 0.25
+icu_bgh = icu * 0.25
+vent_bgh = vent * 0.25
+# ECMC
+hosp_ecmc = hosp * 0.16
+icu_ecmc = icu * 0.16
+vent_ecmc = vent * 0.16
+# Mercy
+hosp_mercy = hosp * 0.17
+icu_mercy = icu * 0.17
+vent_mercy = vent * 0.17
+# MFSH
+hosp_mfsh = hosp * 0.13
+icu_mfsh = icu * 0.13
+vent_mfsh = vent * 0.13
+# OCH
+hosp_och = hosp * 0.05
+icu_och = icu * 0.05
+vent_och = vent * 0.05
+# RPCI
+hosp_rpci = hosp * 0.06
+icu_rpci = icu * 0.06
+vent_rpci = vent * 0.06
+# SCH
+hosp_sch = hosp * 0.12
+icu_sch = icu * 0.12
+vent_sch = vent * 0.12
+# SCSJH
+hosp_scsjh = hosp * 0.06
+icu_scsjh = icu * 0.06
+vent_scsjh = vent * 0.06
+
 
 days = np.array(range(0, n_days + 1))
-data_list = [days, hosp, icu, vent]
-data_dict = dict(zip(["day", "hosp", "icu", "vent"], data_list))
+data_list = [days, hosp, icu, vent, 
+    hosp_bgh, icu_bgh, vent_bgh,
+    hosp_ecmc, icu_ecmc, vent_ecmc,
+    hosp_mercy, icu_mercy, vent_mercy,
+    hosp_mfsh, icu_mfsh, vent_mfsh,
+    hosp_och, icu_och, vent_och,
+    hosp_rpci, icu_rpci, vent_rpci,
+    hosp_sch, icu_sch, vent_sch,
+    hosp_scsjh, icu_scsjh, vent_scsjh
+    ]
+#data_dict = dict(zip(["day", "hosp", "icu", "vent"], data_list))
+data_dict = dict(zip(["day", "hosp", "icu", "vent", 
+    "hosp_bgh", "icu_bgh", "vent_bgh", 
+    "hosp_ecmc", "icu_ecmc", "vent_ecmc",
+    "hosp_mercy", "icu_mercy", "vent_mercy",
+    "hosp_mfsh", "icu_mfsh", "vent_mfsh",
+    "hosp_och", "icu_och", "vent_och",
+    "hosp_rpci", "icu_rpci", "vent_rpci",
+    "hosp_sch", "icu_sch", "vent_sch",
+    "hosp_scsjh", "icu_scsjh", "vent_scsjh"
+    ], data_list))
 
 projection = pd.DataFrame.from_dict(data_dict)
 
 st.subheader("New Admissions")
-st.markdown("Projected number of **daily** COVID-19 admissions at Erie County or selected Hospital")
+st.markdown("Projected number of **daily** COVID-19 admissions for Erie County")
 
 # New cases
 projection_admits = projection.iloc[:-1, :] - projection.shift(1)
@@ -411,7 +440,7 @@ plot_projection_days = n_days - 10
 projection_admits["day"] = range(projection_admits.shape[0])
 
 
-def new_admissions_chart(projection_admits: pd.DataFrame, plot_projection_days: int) -> alt.Chart:
+def regional_admissions_chart(projection_admits: pd.DataFrame, plot_projection_days: int) -> alt.Chart:
     """docstring"""
     projection_admits = projection_admits.rename(columns={"hosp": "Hospitalized", "icu": "ICU", "vent": "Ventilated"})
     return (
@@ -428,8 +457,93 @@ def new_admissions_chart(projection_admits: pd.DataFrame, plot_projection_days: 
         .interactive()
     )
 
-st.altair_chart(new_admissions_chart(projection_admits, plot_projection_days), use_container_width=True)
+st.altair_chart(regional_admissions_chart(projection_admits, plot_projection_days), use_container_width=True)
 
+
+# def all_admissions_chart(projection_admits: pd.DataFrame, plot_projection_days: int) -> alt.Chart:
+    # """docstring"""
+    # projection_admits = projection_admits.rename(columns={"hosp_bgh": "Hospitalized - BGH", "icu_bgh": "ICU - BGH", "vent_bgh": "Ventilated - BGH",
+    # "hosp_ecmc": "Hospitalized - ECMC", "icu_ecmc": "ICU - ECMC", "vent_ecmc": "Ventilated - ECMC",
+    # "hosp_mercy": "Hospitalized - Mercy", "icu_mercy": "ICU - Mercy", "vent_mercy": "Ventilated - Mercy",
+    # "hosp_mfsh": "Hospitalized - Millard Fillmore Suburban", "icu_mfsh": "ICU - Millard Fillmore Suburban", "vent_mfsh": "Ventilated - Millard Fillmore Suburban",
+    # "hosp_och": "Hospitalized - Oishei", "icu_och": "ICU - Oishei", "vent_och": "Ventilated - Oishei",
+    # "hosp_rpci": "Hospitalized - Roswell", "icu_rpci": "ICU - Roswell", "vent_rpci": "Ventilated - Roswell",
+    # "hosp_sch": "Hospitalized - Sisters", "icu_sch": "ICU - Siters", "vent_sch": "Ventilated - Sisters",
+    # "hosp_scsjh": "Hospitalized - St Joseph", "icu_scsjh": "ICU - St Joseph", "vent_scsjh": "Ventilated - St Joseph",
+    # })
+    # return (
+        # alt
+        # .Chart(projection_admits.head(plot_projection_days))
+        # .transform_fold(fold=["Hospitalized - BGH", "ICU - BGH", "Ventilated - BGH",
+        # "Hospitalized - ECMC", "ICU - ECMC", "Ventilated - ECMC",
+        # "Hospitalized - Mercy", "ICU - Mercy", "Ventilated - Mercy",
+        # "Hospitalized - Millard Fillmore Suburban", "ICU - Millard Fillmore Suburban", "Ventilated - Millard Fillmore Suburban",
+        # "Hospitalized - Oishei", "ICU - Oishei", "Ventilated - Oishei",
+        # "Hospitalized - Roswell", "ICU - Roswell", "Ventilated - Roswell",
+        # "Hospitalized - Sisters", "ICU - Sisters", "Ventilated - Sisters",
+        # "Hospitalized - St Joseph", "ICU - St Joseph", "Ventilated - St Joseph",        
+        # ])
+        # .mark_line(point=True)
+        # .encode(
+            # x=alt.X("day", title="Days from today"),
+            # y=alt.Y("value:Q", title="Daily admissions"),
+            # color="key:N",
+            # tooltip=["day", "key:N"]
+        # )
+        # .interactive()
+    # )
+
+# st.altair_chart(all_admissions_chart(projection_admits, plot_projection_days), use_container_width=True)
+
+
+# Individual hospitals selection
+
+if hosp_options == 'BGH':
+    col_name = {"hosp_bgh": "Hospitalized - BGH", "icu_bgh": "ICU - BGH", "vent_bgh": "Ventilated - BGH"}
+    fold_name = ["Hospitalized - BGH", "ICU - BGH", "Ventilated - BGH"]
+if hosp_options == 'ECMC':
+    col_name = {"hosp_ecmc": "Hospitalized - ECMC", "icu_ecmc": "ICU - ECMC", "vent_ecmc": "Ventilated - ECMC"}
+    fold_name = ["Hospitalized - ECMC", "ICU - ECMC", "Ventilated - ECMC"]
+if hosp_options == 'Mercy':
+    col_name = {"hosp_mercy": "Hospitalized - Mercy", "icu_mercy": "ICU - Mercy", "vent_mercy": "Ventilated - Mercy"}
+    fold_name = ["Hospitalized - Mercy", "ICU - Mercy", "Ventilated - Mercy"]
+if hosp_options == 'MFSH':
+    col_name = {"hosp_mfsh": "Hospitalized - MFSH", "icu_mfsh": "ICU - MFSH", "vent_mfsh": "Ventilated - MFSH"}
+    fold_name = ["Hospitalized - MFSH", "ICU - MFSH", "Ventilated - MFSH"]
+if hosp_options == 'OCH':
+    col_name = {"hosp_och": "Hospitalized - Oishei", "icu_och": "ICU - Oishei", "vent_och": "Ventilated - Oishei"}
+    fold_name = ["Hospitalized - Oishei", "ICU - Oishei", "Ventilated - Oishei"]
+if hosp_options == 'RPCI':
+    col_name = {"hosp_rpci": "Hospitalized - Roswell", "icu_rpci": "ICU - Roswell", "vent_rpci": "Ventilated - Roswell"}
+    fold_name = ["Hospitalized - Roswell", "ICU - Roswell", "Ventilated - Roswell"]
+if hosp_options == 'SCH':
+    col_name = {"hosp_sch": "Hospitalized - Sisters", "icu_sch": "ICU - Sisters", "vent_sch": "Ventilated - Sisters"}
+    fold_name = ["Hospitalized - Sisters", "ICU - Sisters", "Ventilated - Sisters"]
+if hosp_options == 'SCSJH':
+    col_name = {"hosp_scsjh": "Hospitalized - StJoseph", "icu_scsjh": "ICU - StJoseph", "vent_scsjh": "Ventilated - StJoseph"}
+    fold_name = ["Hospitalized - StJoseph", "ICU - StJoseph", "Ventilated - StJoseph"]
+
+st.markdown("Projected number of **daily** COVID-19 admissions by Hospital")
+st.markdown("Distribution of regional cases based on total bed percentage (CCU/ICU/MedSurg).")
+
+def hospital_admissions_chart(projection_admits: pd.DataFrame, plot_projection_days: int) -> alt.Chart:
+    """docstring"""
+    projection_admits = projection_admits.rename(columns=col_name)
+    return (
+        alt
+        .Chart(projection_admits.head(plot_projection_days))
+        .transform_fold(fold=fold_name)
+        .mark_line(point=True)
+        .encode(
+            x=alt.X("day", title="Days from today"),
+            y=alt.Y("value:Q", title="Daily admissions"),
+            color="key:N",
+            tooltip=["day", "key:N"]
+        )
+        .interactive()
+    )
+
+st.altair_chart(hospital_admissions_chart(projection_admits, plot_projection_days), use_container_width=True)
 
 if st.checkbox("Show Projected Admissions in tabular form"):
     admits_table = projection_admits[np.mod(projection_admits.index, 7) == 0].copy()
@@ -446,11 +560,34 @@ st.markdown(
 )
 
 # ALOS for each category of COVID-19 case (total guesses)
-
 los_dict = {
     "hosp": hosp_los,
     "icu": icu_los,
     "vent": vent_los,
+    "hosp_bgh": hosp_los,
+    "icu_bgh": icu_los,
+    "vent_bgh": vent_los,
+    "hosp_ecmc": hosp_los,
+    "icu_ecmc": icu_los,
+    "vent_ecmc": vent_los,
+    "hosp_mercy": hosp_los,
+    "icu_mercy": icu_los,
+    "vent_mercy": vent_los,
+    "hosp_mfsh": hosp_los,
+    "icu_mfsh": icu_los,
+    "vent_mfsh": vent_los,
+    "hosp_och": hosp_los,
+    "icu_och": icu_los,
+    "vent_och": vent_los,
+    "hosp_rpci": hosp_los,
+    "icu_rpci": icu_los,
+    "vent_rpci": vent_los,
+    "hosp_sch": hosp_los,
+    "icu_sch": icu_los,
+    "vent_sch": vent_los,
+    "hosp_scsjh": hosp_los,
+    "icu_scsjh": icu_los,
+    "vent_scsjh": vent_los,
 }
 
 census_dict = dict()
@@ -464,12 +601,22 @@ for k, los in los_dict.items():
 
 census_df = pd.DataFrame(census_dict)
 census_df["day"] = census_df.index
-census_df = census_df[["day", "hosp", "icu", "vent"]]
+census_df = census_df[["day", "hosp", "icu", "vent", 
+    "hosp_bgh", "icu_bgh", "vent_bgh", 
+    "hosp_ecmc", "icu_ecmc", "vent_ecmc",
+    "hosp_mercy", "icu_mercy", "vent_mercy",
+    "hosp_mfsh", "icu_mfsh", "vent_mfsh",
+    "hosp_och", "icu_och", "vent_och",
+    "hosp_rpci", "icu_rpci", "vent_rpci",
+    "hosp_sch", "icu_sch", "vent_sch",
+    "hosp_scsjh", "icu_scsjh", "vent_scsjh"
+    ]]
 
 census_table = census_df[np.mod(census_df.index, 7) == 0].copy()
 census_table.index = range(census_table.shape[0])
 census_table.loc[0, :] = 0
 census_table = census_table.dropna().astype(int)
+
 
 def admitted_patients_chart(census: pd.DataFrame) -> alt.Chart:
     """docstring"""
@@ -491,6 +638,30 @@ def admitted_patients_chart(census: pd.DataFrame) -> alt.Chart:
 
 st.altair_chart(admitted_patients_chart(census_table), use_container_width=True)
 
+
+
+def hosp_admitted_patients_chart(census: pd.DataFrame) -> alt.Chart:
+    """docstring"""
+    census = census.rename(columns=col_name)
+
+    return (
+        alt
+        .Chart(census)
+        .transform_fold(fold=fold_name)
+        .mark_line(point=True)
+        .encode(
+            x=alt.X("day", title="Days from today"),
+            y=alt.Y("value:Q", title="Census"),
+            color="key:N",
+            tooltip=["day", "key:N"]
+        )
+        .interactive()
+    )
+
+st.altair_chart(hosp_admitted_patients_chart(census_table), use_container_width=True)
+
+
+
 if st.checkbox("Show Projected Census in tabular form"):
     st.dataframe(census_table)
 
@@ -499,7 +670,7 @@ if st.checkbox("Show Projected Census in tabular form"):
 #)
 
 st.subheader(
-        "The number of infected and recovered individuals in the region/hospital catchment region at any given moment")
+        "The number of infected and recovered individuals in the region at any given moment")
 
 def additional_projections_chart(i: np.ndarray, r: np.ndarray) -> alt.Chart:
     dat = pd.DataFrame({"Infected": i, "Recovered": r})

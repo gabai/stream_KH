@@ -198,10 +198,12 @@ For questions about this page, contact ganaya@buffalo.edu.
 
 For question and comments about the model [contact page](http://predictivehealthcare.pennmedicine.org/contact/).""")
 
+#The estimated number of currently infected individuals in Erie County is **{total_infections:.0f}**. The **{initial_infections}** 
+#confirmed cases in the region imply a **{detection_prob:.0%}** rate of detection. This is based on current inputs for 
+#Hospitalizations (**{current_hosp}**), Hospitalization rate (**{hosp_rate:.0%}**) and Region size (**{S}**). 
+
 st.markdown(
-    """The estimated number of currently infected individuals in Erie County is **{total_infections:.0f}**. The **{initial_infections}** 
-confirmed cases in the region imply a **{detection_prob:.0%}** rate of detection. This is based on current inputs for 
-Hospitalizations (**{current_hosp}**), Hospitalization rate (**{hosp_rate:.0%}**) and Region size (**{S}**). 
+    """
 The first graph includes a county wide analysis, each Hospital is represented as a percent from the total bed-share distribution (CCU, ICU, MedSurg).
 
 An initial doubling time of **{doubling_time}** days and a recovery time of **{recovery_days}** days imply an $R_0$ of 

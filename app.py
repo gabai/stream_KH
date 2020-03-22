@@ -501,40 +501,76 @@ st.altair_chart(regional_admissions_chart(projection_admits, plot_projection_day
 # Individual hospitals selection
 
 if hosp_options == 'BGH':
-    col_name = {"hosp_bgh": "Hospitalized - BGH", "icu_bgh": "ICU - BGH", "vent_bgh": "Ventilated - BGH"}
-    fold_name = ["Hospitalized - BGH", "ICU - BGH", "Ventilated - BGH"]
+    col_name1 = {"hosp_bgh": "Hospitalized - BGH", "icu_bgh": "ICU - BGH", "vent_bgh": "Ventilated - BGH"}
+    fold_name1 = ["Hospitalized - BGH", "ICU - BGH", "Ventilated - BGH"]
+    col_name2 = {"hosp_bgh": "Hospitalized - BGH", "icu_bgh": "ICU - BGH", "vent_bgh": "Ventilated - BGH", "total_beds":"Total Beds", "icu_beds": "Total ICU Beds"}
+    fold_name2 = ["Hospitalized - BGH", "ICU - BGH", "Ventilated - BGH", "Total Beds", "Total ICU Beds"]
+    icu_val = 53
+    total_beds_val = 456
 if hosp_options == 'ECMC':
-    col_name = {"hosp_ecmc": "Hospitalized - ECMC", "icu_ecmc": "ICU - ECMC", "vent_ecmc": "Ventilated - ECMC"}
-    fold_name = ["Hospitalized - ECMC", "ICU - ECMC", "Ventilated - ECMC"]
+    col_name1 = {"hosp_ecmc": "Hospitalized - ECMC", "icu_ecmc": "ICU - ECMC", "vent_ecmc": "Ventilated - ECMC"}
+    fold_name1 = ["Hospitalized - ECMC", "ICU - ECMC", "Ventilated - ECMC"]
+    col_name2 = {"hosp_ecmc": "Hospitalized - ECMC", "icu_ecmc": "ICU - ECMC", "vent_ecmc": "Ventilated - ECMC", "total_beds":"Total Beds", "icu_beds": "Total ICU Beds"}
+    fold_name2 = ["Hospitalized - ECMC", "ICU - ECMC", "Ventilated - ECMC", "Total Beds", "Total ICU Beds"]
+    icu_val = 34
+    total_beds_val = 285
 if hosp_options == 'Mercy':
-    col_name = {"hosp_mercy": "Hospitalized - Mercy", "icu_mercy": "ICU - Mercy", "vent_mercy": "Ventilated - Mercy"}
-    fold_name = ["Hospitalized - Mercy", "ICU - Mercy", "Ventilated - Mercy"]
+    col_name1 = {"hosp_mercy": "Hospitalized - Mercy", "icu_mercy": "ICU - Mercy", "vent_mercy": "Ventilated - Mercy"}
+    fold_name1 = ["Hospitalized - Mercy", "ICU - Mercy", "Ventilated - Mercy"]
+    col_name2 = {"hosp_mercy": "Hospitalized - Mercy", "icu_mercy": "ICU - Mercy", "vent_mercy": "Ventilated - Mercy", "total_beds":"Total Beds", "icu_beds": "Total ICU Beds"}
+    fold_name2 = ["Hospitalized - Mercy", "ICU - Mercy", "Ventilated - Mercy", "Total Beds", "Total ICU Beds"]
+    icu_val = 28
+    total_beds_val = 306
 if hosp_options == 'MFSH':
-    col_name = {"hosp_mfsh": "Hospitalized - MFSH", "icu_mfsh": "ICU - MFSH", "vent_mfsh": "Ventilated - MFSH"}
-    fold_name = ["Hospitalized - MFSH", "ICU - MFSH", "Ventilated - MFSH"]
+    col_name1 = {"hosp_mfsh": "Hospitalized - MFSH", "icu_mfsh": "ICU - MFSH", "vent_mfsh": "Ventilated - MFSH"}
+    fold_name1 = ["Hospitalized - MFSH", "ICU - MFSH", "Ventilated - MFSH"]
+    col_name2 = {"hosp_mfsh": "Hospitalized - MFSH", "icu_mfsh": "ICU - MFSH", "vent_mfsh": "Ventilated - MFSH", "total_beds":"Total Beds", "icu_beds": "Total ICU Beds"}
+    fold_name2 = ["Hospitalized - MFSH", "ICU - MFSH", "Ventilated - MFSH", "Total Beds", "Total ICU Beds"]
+    icu_val = 10
+    total_beds_val = 227
 if hosp_options == 'OCH':
-    col_name = {"hosp_och": "Hospitalized - Oishei", "icu_och": "ICU - Oishei", "vent_och": "Ventilated - Oishei"}
-    fold_name = ["Hospitalized - Oishei", "ICU - Oishei", "Ventilated - Oishei"]
+    col_name1 = {"hosp_och": "Hospitalized - Oishei", "icu_och": "ICU - Oishei", "vent_och": "Ventilated - Oishei"}
+    fold_name1 = ["Hospitalized - Oishei", "ICU - Oishei", "Ventilated - Oishei"]
+    col_name2 = {"hosp_och": "Hospitalized - Oishei", "icu_och": "ICU - Oishei", "vent_och": "Ventilated - Oishei", "total_beds":"Total Beds", "icu_beds": "Total ICU Beds"}
+    fold_name2 = ["Hospitalized - Oishei", "ICU - Oishei", "Ventilated - Oishei", "Total Beds", "Total ICU Beds"]
+    icu_val = 20
+    total_beds_val = 89
 if hosp_options == 'RPCI':
-    col_name = {"hosp_rpci": "Hospitalized - Roswell", "icu_rpci": "ICU - Roswell", "vent_rpci": "Ventilated - Roswell"}
-    fold_name = ["Hospitalized - Roswell", "ICU - Roswell", "Ventilated - Roswell"]
+    col_name1 = {"hosp_rpci": "Hospitalized - Roswell", "icu_rpci": "ICU - Roswell", "vent_rpci": "Ventilated - Roswell"}
+    fold_name1 = ["Hospitalized - Roswell", "ICU - Roswell", "Ventilated - Roswell"]
+    col_name2 = {"hosp_rpci": "Hospitalized - Roswell", "icu_rpci": "ICU - Roswell", "vent_rpci": "Ventilated - Roswell", "total_beds":"Total Beds", "icu_beds": "Total ICU Beds"}
+    fold_name2 = ["Hospitalized - Roswell", "ICU - Roswell", "Ventilated - Roswell", "Total Beds", "Total ICU Beds"]
+    icu_val = 16
+    total_beds_val = 110
 if hosp_options == 'SCH':
-    col_name = {"hosp_sch": "Hospitalized - Sisters", "icu_sch": "ICU - Sisters", "vent_sch": "Ventilated - Sisters"}
-    fold_name = ["Hospitalized - Sisters", "ICU - Sisters", "Ventilated - Sisters"]
+    col_name1 = {"hosp_sch": "Hospitalized - Sisters", "icu_sch": "ICU - Sisters", "vent_sch": "Ventilated - Sisters"}
+    fold_name1 = ["Hospitalized - Sisters", "ICU - Sisters", "Ventilated - Sisters"]
+    col_name2 = {"hosp_sch": "Hospitalized - Sisters", "icu_sch": "ICU - Sisters", "vent_sch": "Ventilated - Sisters", "total_beds":"Total Beds", "icu_beds": "Total ICU Beds"}
+    fold_name2 = ["Hospitalized - Sisters", "ICU - Sisters", "Ventilated - Sisters", "Total Beds", "Total ICU Beds"]
+    icu_val = 16
+    total_beds_val = 215
 if hosp_options == 'SCSJH':
-    col_name = {"hosp_scsjh": "Hospitalized - StJoseph", "icu_scsjh": "ICU - StJoseph", "vent_scsjh": "Ventilated - StJoseph"}
-    fold_name = ["Hospitalized - StJoseph", "ICU - StJoseph", "Ventilated - StJoseph"]
+    col_name1 = {"hosp_scsjh": "Hospitalized - StJoseph", "icu_scsjh": "ICU - StJoseph", "vent_scsjh": "Ventilated - StJoseph"}
+    fold_name1 = ["Hospitalized - StJoseph", "ICU - StJoseph", "Ventilated - StJoseph"]
+    col_name2 = {"hosp_scsjh": "Hospitalized - StJoseph", "icu_scsjh": "ICU - StJoseph", "vent_scsjh": "Ventilated - StJoseph", "total_beds":"Total Beds", "icu_beds": "Total ICU Beds"}
+    fold_name2 = ["Hospitalized - StJoseph", "ICU - StJoseph", "Ventilated - StJoseph", "Total ICU Beds"]
+    icu_val = 7
+    total_beds_val = 103
 
 st.markdown("Projected number of **daily** COVID-19 admissions by Hospital")
 st.markdown("Distribution of regional cases based on total bed percentage (CCU/ICU/MedSurg).")
 
+# Adding ICU bed for county
+icu_county = 184
+beds_county = 1791
+
 def hospital_admissions_chart(projection_admits: pd.DataFrame, plot_projection_days: int) -> alt.Chart:
     """docstring"""
-    projection_admits = projection_admits.rename(columns=col_name)
+    projection_admits = projection_admits.rename(columns=col_name1)
     return (
         alt
         .Chart(projection_admits.head(plot_projection_days))
-        .transform_fold(fold=fold_name)
+        .transform_fold(fold=fold_name1)
         .mark_line(point=True)
         .encode(
             x=alt.X("day", title="Days from today"),
@@ -557,9 +593,7 @@ if st.checkbox("Show Projected Admissions in tabular form"):
 
 
 st.subheader("Admitted Patients (Census)")
-st.markdown(
-    "Projected **census** of COVID-19 patients, accounting for arrivals and discharges."
-)
+st.markdown("Projected **census** of COVID-19 patients for Erie County, accounting for arrivals and discharges.")
 
 # ALOS for each category of COVID-19 case (total guesses)
 los_dict = {
@@ -618,16 +652,20 @@ census_table = census_df[np.mod(census_df.index, 7) == 0].copy()
 census_table.index = range(census_table.shape[0])
 census_table.loc[0, :] = 0
 census_table = census_table.dropna().astype(int)
+census_table['total_county_icu'] = icu_county
+census_table['total_county_beds'] = beds_county
+census_table['icu_beds'] = icu_val
+census_table['total_beds'] = total_beds_val
 
 
 def admitted_patients_chart(census: pd.DataFrame) -> alt.Chart:
     """docstring"""
-    census = census.rename(columns={"hosp": "Hospital Census", "icu": "ICU Census", "vent": "Ventilated Census"})
+    census = census.rename(columns={"hosp": "Hospital Census", "icu": "ICU Census", "vent": "Ventilated Census", "total_county_beds":"Total Beds", "total_county_icu": "Total ICU Beds"})
 
     return (
         alt
         .Chart(census)
-        .transform_fold(fold=["Hospital Census", "ICU Census", "Ventilated Census"])
+        .transform_fold(fold=["Hospital Census", "ICU Census", "Ventilated Census", "Total Beds", "Total ICU Beds"])
         .mark_line(point=True)
         .encode(
             x=alt.X("day", title="Days from today"),
@@ -641,15 +679,17 @@ def admitted_patients_chart(census: pd.DataFrame) -> alt.Chart:
 st.altair_chart(admitted_patients_chart(census_table), use_container_width=True)
 
 
+st.markdown("Projected **census** of COVID-19 patients by Hospital, accounting for arrivals and discharges.")
+
 
 def hosp_admitted_patients_chart(census: pd.DataFrame) -> alt.Chart:
     """docstring"""
-    census = census.rename(columns=col_name)
+    census = census.rename(columns=col_name2)
 
     return (
         alt
         .Chart(census)
-        .transform_fold(fold=fold_name)
+        .transform_fold(fold=fold_name2)
         .mark_line(point=True)
         .encode(
             x=alt.X("day", title="Days from today"),
@@ -661,7 +701,6 @@ def hosp_admitted_patients_chart(census: pd.DataFrame) -> alt.Chart:
     )
 
 st.altair_chart(hosp_admitted_patients_chart(census_table), use_container_width=True)
-
 
 
 if st.checkbox("Show Projected Census in tabular form"):
@@ -681,7 +720,7 @@ def additional_projections_chart(i: np.ndarray, r: np.ndarray) -> alt.Chart:
         alt
         .Chart(dat.reset_index())
         .transform_fold(fold=["Infected", "Recovered"])
-        .mark_line()
+        .mark_line(point=True)
         .encode(
             x=alt.X("index", title="Days from today"),
             y=alt.Y("value:Q", title="Case Volume"),

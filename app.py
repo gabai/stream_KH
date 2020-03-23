@@ -114,7 +114,7 @@ S_default = erie
 known_infections = 47
 known_cases = 4
 #initial_infections = 47
-#regional_hosp_share = 1.0
+regional_hosp_share = 1.0
 S = erie
 
 
@@ -135,12 +135,12 @@ relative_contact_rate = st.sidebar.number_input(
 )/100.0
 
 hosp_rate = (
-    st.sidebar.number_input("Hospitalization %", 0.0, 100.0, value=20.0, step=1.0, format="%f")
+    st.sidebar.number_input("Hospitalization %", 0.0, 100.0, value=14.0, step=1.0, format="%f")
     / 100.0
 )
 
 icu_rate = (
-    st.sidebar.number_input("ICU %", 0.0, 100.0, value=5.0, step=0.5, format="%f") / 100.0
+    st.sidebar.number_input("ICU %", 0.0, 100.0, value=6.0, step=0.5, format="%f") / 100.0
 )
 
 vent_rate = (
@@ -148,24 +148,23 @@ vent_rate = (
     / 100.0
 )
 
-hosp_los = st.sidebar.number_input("Hospital Length of Stay", value=12, step=1, format="%i")
-icu_los = st.sidebar.number_input("ICU Length of Stay", value=9, step=1, format="%i")
-vent_los = st.sidebar.number_input("Ventilator Length of Stay", value=7, step=1, format="%i")
+hosp_los = st.sidebar.number_input("Hospital Length of Stay", value=10, step=1, format="%i")
+icu_los = st.sidebar.number_input("ICU Length of Stay", value=7, step=1, format="%i")
+vent_los = st.sidebar.number_input("Ventilator Length of Stay", value=5, step=1, format="%i")
 
-regional_hosp_share = (
-   st.sidebar.number_input(
-       "Hospital Bed Share (%)", 0.0, 100.0, value=100.0, step=1.0, format="%f")
-   / 100.0
-)
+# regional_hosp_share = (
+   # st.sidebar.number_input(
+       # "Hospital Bed Share (%)", 0.0, 100.0, value=100.0, step=1.0, format="%f")
+   # / 100.0
+# )
 
-S = st.sidebar.number_input(
-   "Regional Population", value=S_default, step=100000, format="%i"
-)
+# S = st.sidebar.number_input(
+   # "Regional Population", value=S_default, step=100000, format="%i"
+# )
 
 initial_infections = st.sidebar.number_input(
     "Currently Known Regional Infections (only used to compute detection rate - does not change projections)", value=known_infections, step=10, format="%i"
 )
-
 
 total_infections = current_hosp / regional_hosp_share / hosp_rate
 detection_prob = initial_infections / total_infections
@@ -366,7 +365,7 @@ s, i, r = sim_sir(S, I, R, beta, gamma, n_days, beta_decay=beta_decay)
 
 
 # List of Hospitals
-hosp_list = ['BGH', 'ECMC', 'Mercy', 'MFSH', 'OCH', 'RPCI', 'SCH', 'SCSJH']
+hosp_list = ['bgh', 'ecmc', 'mercy', 'mfsh', 'och', 'rpci', 'sch', 'scsjh']
 
 # Variables for projection tables
 hosp = i * hosp_rate * regional_hosp_share
@@ -408,24 +407,24 @@ vent_scsjh = vent * 0.06
 
 days = np.array(range(0, n_days + 1))
 data_list = [days, hosp, icu, vent, 
-    hosp_bgh, icu_bgh, vent_bgh,
-    hosp_ecmc, icu_ecmc, vent_ecmc,
-    hosp_mercy, icu_mercy, vent_mercy,
-    hosp_mfsh, icu_mfsh, vent_mfsh,
-    hosp_och, icu_och, vent_och,
-    hosp_rpci, icu_rpci, vent_rpci,
-    hosp_sch, icu_sch, vent_sch,
+    hosp_bgh, icu_bgh, vent_bgh, 
+    hosp_ecmc, icu_ecmc, vent_ecmc, 
+    hosp_mercy, icu_mercy, vent_mercy,  
+    hosp_mfsh, icu_mfsh, vent_mfsh, 
+    hosp_och, icu_och, vent_och, 
+    hosp_rpci, icu_rpci, vent_rpci, 
+    hosp_sch, icu_sch, vent_sch, 
     hosp_scsjh, icu_scsjh, vent_scsjh
     ]
-#data_dict = dict(zip(["day", "hosp", "icu", "vent"], data_list))
-data_dict = dict(zip(["day", "hosp", "icu", "vent", 
+
+data_dict = dict(zip(["day", "hosp", "icu", "vent",
     "hosp_bgh", "icu_bgh", "vent_bgh", 
-    "hosp_ecmc", "icu_ecmc", "vent_ecmc",
-    "hosp_mercy", "icu_mercy", "vent_mercy",
-    "hosp_mfsh", "icu_mfsh", "vent_mfsh",
-    "hosp_och", "icu_och", "vent_och",
-    "hosp_rpci", "icu_rpci", "vent_rpci",
-    "hosp_sch", "icu_sch", "vent_sch",
+    "hosp_ecmc", "icu_ecmc", "vent_ecmc", 
+    "hosp_mercy", "icu_mercy", "vent_mercy", 
+    "hosp_mfsh", "icu_mfsh", "vent_mfsh", 
+    "hosp_och", "icu_och", "vent_och", 
+    "hosp_rpci", "icu_rpci", "vent_rpci", 
+    "hosp_sch", "icu_sch", "vent_sch", 
     "hosp_scsjh", "icu_scsjh", "vent_scsjh"
     ], data_list))
 
@@ -505,6 +504,9 @@ if hosp_options == 'BGH':
     fold_name1 = ["Hospitalized - BGH", "ICU - BGH", "Ventilated - BGH"]
     col_name2 = {"hosp_bgh": "Hospitalized - BGH", "icu_bgh": "ICU - BGH", "vent_bgh": "Ventilated - BGH", "total_beds":"Total Beds", "icu_beds": "Total ICU Beds"}
     fold_name2 = ["Hospitalized - BGH", "ICU - BGH", "Ventilated - BGH", "Total Beds", "Total ICU Beds"]
+    col_name3 = {"ppe_mild_d_bgh": "PPE Mild Cases - Lower Range", "ppe_mild_u_bgh": "PPE Mild Cases - Upper Range", 
+    "ppe_severe_d_bgh": "PPE Severe Cases - Lower Range", "ppe_severe_u_bgh": "PPE Severe Cases - Upper Range"}
+    fold_name3 = ["PPE Mild Cases - Lower Range", "PPE Mild Cases - Upper Range", "PPE Severe Cases - Lower Range", "PPE Severe Cases - Upper Range"]
     icu_val = 53
     total_beds_val = 456
 if hosp_options == 'ECMC':
@@ -512,6 +514,9 @@ if hosp_options == 'ECMC':
     fold_name1 = ["Hospitalized - ECMC", "ICU - ECMC", "Ventilated - ECMC"]
     col_name2 = {"hosp_ecmc": "Hospitalized - ECMC", "icu_ecmc": "ICU - ECMC", "vent_ecmc": "Ventilated - ECMC", "total_beds":"Total Beds", "icu_beds": "Total ICU Beds"}
     fold_name2 = ["Hospitalized - ECMC", "ICU - ECMC", "Ventilated - ECMC", "Total Beds", "Total ICU Beds"]
+    col_name3 ={"ppe_mild_d_ecmc": "PPE Mild Cases - Lower Range", "ppe_mild_u_ecmc": "PPE Mild Cases - Upper Range", 
+    "ppe_severe_d_ecmc": "PPE Severe Cases - Lower Range", "ppe_severe_u_ecmc": "PPE Severe Cases - Upper Range"}
+    fold_name3 = ["PPE Mild Cases - Lower Range", "PPE Mild Cases - Upper Range", "PPE Severe Cases - Lower Range", "PPE Severe Cases - Upper Range"]
     icu_val = 34
     total_beds_val = 285
 if hosp_options == 'Mercy':
@@ -519,6 +524,9 @@ if hosp_options == 'Mercy':
     fold_name1 = ["Hospitalized - Mercy", "ICU - Mercy", "Ventilated - Mercy"]
     col_name2 = {"hosp_mercy": "Hospitalized - Mercy", "icu_mercy": "ICU - Mercy", "vent_mercy": "Ventilated - Mercy", "total_beds":"Total Beds", "icu_beds": "Total ICU Beds"}
     fold_name2 = ["Hospitalized - Mercy", "ICU - Mercy", "Ventilated - Mercy", "Total Beds", "Total ICU Beds"]
+    col_name3 ={"ppe_mild_d_mercy": "PPE Mild Cases - Lower Range", "ppe_mild_u_mercy": "PPE Mild Cases - Upper Range", 
+    "ppe_severe_d_mercy": "PPE Severe Cases - Lower Range", "ppe_severe_u_mercy": "PPE Severe Cases - Upper Range"}
+    fold_name3 = ["PPE Mild Cases - Lower Range", "PPE Mild Cases - Upper Range", "PPE Severe Cases - Lower Range", "PPE Severe Cases - Upper Range"]
     icu_val = 28
     total_beds_val = 306
 if hosp_options == 'MFSH':
@@ -526,6 +534,9 @@ if hosp_options == 'MFSH':
     fold_name1 = ["Hospitalized - MFSH", "ICU - MFSH", "Ventilated - MFSH"]
     col_name2 = {"hosp_mfsh": "Hospitalized - MFSH", "icu_mfsh": "ICU - MFSH", "vent_mfsh": "Ventilated - MFSH", "total_beds":"Total Beds", "icu_beds": "Total ICU Beds"}
     fold_name2 = ["Hospitalized - MFSH", "ICU - MFSH", "Ventilated - MFSH", "Total Beds", "Total ICU Beds"]
+    col_name3 ={"ppe_mild_d_mfsh": "PPE Mild Cases - Lower Range", "ppe_mild_u_mfsh": "PPE Mild Cases - Upper Range", 
+    "ppe_severe_d_mfsh": "PPE Severe Cases - Lower Range", "ppe_severe_u_mfsh": "PPE Severe Cases - Upper Range"}
+    fold_name3 = ["PPE Mild Cases - Lower Range", "PPE Mild Cases - Upper Range", "PPE Severe Cases - Lower Range", "PPE Severe Cases - Upper Range"]
     icu_val = 10
     total_beds_val = 227
 if hosp_options == 'OCH':
@@ -533,6 +544,9 @@ if hosp_options == 'OCH':
     fold_name1 = ["Hospitalized - Oishei", "ICU - Oishei", "Ventilated - Oishei"]
     col_name2 = {"hosp_och": "Hospitalized - Oishei", "icu_och": "ICU - Oishei", "vent_och": "Ventilated - Oishei", "total_beds":"Total Beds", "icu_beds": "Total ICU Beds"}
     fold_name2 = ["Hospitalized - Oishei", "ICU - Oishei", "Ventilated - Oishei", "Total Beds", "Total ICU Beds"]
+    col_name3 ={"ppe_mild_d_och": "PPE Mild Cases - Lower Range", "ppe_mild_u_och": "PPE Mild Cases - Upper Range", 
+    "ppe_severe_d_och": "PPE Severe Cases - Lower Range", "ppe_severe_u_och": "PPE Severe Cases - Upper Range"}
+    fold_name3 = ["PPE Mild Cases - Lower Range", "PPE Mild Cases - Upper Range", "PPE Severe Cases - Lower Range", "PPE Severe Cases - Upper Range"]
     icu_val = 20
     total_beds_val = 89
 if hosp_options == 'RPCI':
@@ -540,6 +554,9 @@ if hosp_options == 'RPCI':
     fold_name1 = ["Hospitalized - Roswell", "ICU - Roswell", "Ventilated - Roswell"]
     col_name2 = {"hosp_rpci": "Hospitalized - Roswell", "icu_rpci": "ICU - Roswell", "vent_rpci": "Ventilated - Roswell", "total_beds":"Total Beds", "icu_beds": "Total ICU Beds"}
     fold_name2 = ["Hospitalized - Roswell", "ICU - Roswell", "Ventilated - Roswell", "Total Beds", "Total ICU Beds"]
+    col_name3 ={"ppe_mild_d_rpci": "PPE Mild Cases - Lower Range", "ppe_mild_u_rpci": "PPE Mild Cases - Upper Range", 
+    "ppe_severe_d_rpci": "PPE Severe Cases - Lower Range", "ppe_severe_u_rpci": "PPE Severe Cases - Upper Range"}
+    fold_name3 = ["PPE Mild Cases - Lower Range", "PPE Mild Cases - Upper Range", "PPE Severe Cases - Lower Range", "PPE Severe Cases - Upper Range"]
     icu_val = 16
     total_beds_val = 110
 if hosp_options == 'SCH':
@@ -547,6 +564,9 @@ if hosp_options == 'SCH':
     fold_name1 = ["Hospitalized - Sisters", "ICU - Sisters", "Ventilated - Sisters"]
     col_name2 = {"hosp_sch": "Hospitalized - Sisters", "icu_sch": "ICU - Sisters", "vent_sch": "Ventilated - Sisters", "total_beds":"Total Beds", "icu_beds": "Total ICU Beds"}
     fold_name2 = ["Hospitalized - Sisters", "ICU - Sisters", "Ventilated - Sisters", "Total Beds", "Total ICU Beds"]
+    col_name3 ={"ppe_mild_d_sch": "PPE Mild Cases - Lower Range", "ppe_mild_u_sch": "PPE Mild Cases - Upper Range", 
+    "ppe_severe_d_sch": "PPE Severe Cases - Lower Range", "ppe_severe_u_sch": "PPE Severe Cases - Upper Range"}
+    fold_name3 = ["PPE Mild Cases - Lower Range", "PPE Mild Cases - Upper Range", "PPE Severe Cases - Lower Range", "PPE Severe Cases - Upper Range"]
     icu_val = 16
     total_beds_val = 215
 if hosp_options == 'SCSJH':
@@ -554,6 +574,9 @@ if hosp_options == 'SCSJH':
     fold_name1 = ["Hospitalized - StJoseph", "ICU - StJoseph", "Ventilated - StJoseph"]
     col_name2 = {"hosp_scsjh": "Hospitalized - StJoseph", "icu_scsjh": "ICU - StJoseph", "vent_scsjh": "Ventilated - StJoseph", "total_beds":"Total Beds", "icu_beds": "Total ICU Beds"}
     fold_name2 = ["Hospitalized - StJoseph", "ICU - StJoseph", "Ventilated - StJoseph", "Total ICU Beds"]
+    col_name3 ={"ppe_mild_d_scsjh": "PPE Mild Cases - Lower Range", "ppe_mild_u_scsjh": "PPE Mild Cases - Upper Range", 
+    "ppe_severe_d_scsjh": "PPE Severe Cases - Lower Range", "ppe_severe_u_scsjh": "PPE Severe Cases - Upper Range"}
+    fold_name3 = ["PPE Mild Cases - Lower Range", "PPE Mild Cases - Upper Range", "PPE Severe Cases - Lower Range", "PPE Severe Cases - Upper Range"]
     icu_val = 7
     total_beds_val = 103
 
@@ -563,6 +586,11 @@ st.markdown("Distribution of regional cases based on total bed percentage (CCU/I
 # Adding ICU bed for county
 icu_county = 184
 beds_county = 1791
+# PPE Values
+ppe_mild_val_lower = 14
+ppe_mild_val_upper = 15
+ppe_severe_val_lower = 15
+ppe_severe_val_upper = 24
 
 def hospital_admissions_chart(projection_admits: pd.DataFrame, plot_projection_days: int) -> alt.Chart:
     """docstring"""
@@ -596,6 +624,7 @@ st.subheader("Admitted Patients (Census)")
 st.markdown("Projected **census** of COVID-19 patients for Erie County, accounting for arrivals and discharges.")
 
 # ALOS for each category of COVID-19 case (total guesses)
+# Dictionary for loop to create estimates for census
 los_dict = {
     "hosp": hosp_los,
     "icu": icu_los,
@@ -623,7 +652,7 @@ los_dict = {
     "vent_sch": vent_los,
     "hosp_scsjh": hosp_los,
     "icu_scsjh": icu_los,
-    "vent_scsjh": vent_los,
+    "vent_scsjh": vent_los
 }
 
 census_dict = dict()
@@ -648,6 +677,14 @@ census_df = census_df[["day", "hosp", "icu", "vent",
     "hosp_scsjh", "icu_scsjh", "vent_scsjh"
     ]]
 
+# Add ppe columns w/ calcs to census before cummulative sum
+ppe_df = census_df
+for hosp in hosp_list:
+    ppe_df['ppe_mild_d_'+hosp] = ppe_df['hosp_'+hosp] * ppe_mild_val_lower
+    ppe_df['ppe_mild_u_'+hosp] = ppe_df['hosp_'+hosp] * ppe_mild_val_upper
+    ppe_df['ppe_severe_d_'+hosp] = ppe_df['icu_'+hosp] * ppe_severe_val_lower
+    ppe_df['ppe_severe_u_'+hosp] = ppe_df['icu_'+hosp] * ppe_severe_val_upper
+
 census_table = census_df[np.mod(census_df.index, 7) == 0].copy()
 census_table.index = range(census_table.shape[0])
 census_table.loc[0, :] = 0
@@ -656,11 +693,17 @@ census_table['total_county_icu'] = icu_county
 census_table['total_county_beds'] = beds_county
 census_table['icu_beds'] = icu_val
 census_table['total_beds'] = total_beds_val
-
+for hosp in hosp_list:
+    census_table['ppe_mild_d_'+hosp] = census_table['hosp_'+hosp] * ppe_mild_val_lower
+    census_table['ppe_mild_u_'+hosp] = census_table['hosp_'+hosp] * ppe_mild_val_upper
+    census_table['ppe_severe_d_'+hosp] = census_table['icu_'+hosp] * ppe_severe_val_lower
+    census_table['ppe_severe_u_'+hosp] = census_table['icu_'+hosp] * ppe_severe_val_upper
+    
 
 def admitted_patients_chart(census: pd.DataFrame) -> alt.Chart:
     """docstring"""
-    census = census.rename(columns={"hosp": "Hospital Census", "icu": "ICU Census", "vent": "Ventilated Census", "total_county_beds":"Total Beds", "total_county_icu": "Total ICU Beds"})
+    census = census.rename(columns={"hosp": "Hospital Census", "icu": "ICU Census", "vent": "Ventilated Census", 
+    "total_county_beds":"Total Beds", "total_county_icu": "Total ICU Beds"})
 
     return (
         alt
@@ -710,8 +753,74 @@ if st.checkbox("Show Projected Census in tabular form"):
 #    """**Click the checkbox below to view additional data generated by this simulation**"""
 #)
 
-st.subheader(
-        "The number of infected and recovered individuals in the region at any given moment")
+st.subheader("Projected personal protective equipment needs for mild and severe cases of COVID-19.")
+
+def ppe_chart(census: pd.DataFrame) -> alt.Chart:
+    """docstring"""
+    census = census.rename(columns=col_name3)
+
+    return (
+        alt
+        .Chart(census)
+        .transform_fold(fold=fold_name3)
+        .mark_line(point=True)
+        .encode(
+            x=alt.X("day", title="Days from today"),
+            y=alt.Y("value:Q", title="Projected PPE needs per day"),
+            color="key:N",
+            tooltip=["day", "key:N"]
+        )
+        .interactive()
+    )
+
+st.altair_chart(ppe_chart(census_table), use_container_width=True)
+
+# PPE needs summary variables
+
+def get_key(dic, val): 
+    for key, value in dic.items(): 
+         if val == value: 
+             return key 
+
+ppe_1d_mild_lower = current_hosp * 14
+ppe_1d_mild_upper = current_hosp * 15
+ppe_1d_severe_lower = current_hosp *15
+ppe_1d_severe_upper = current_hosp *24
+# 7 Days
+# ppe_7d_mild_lower = sum(ppe_df[get_key(col_name3, 'PPE Mild Cases - Lower Range')][1:7])
+# ppe_7d_mild_upper = sum(ppe_df[get_key(col_name3, 'PPE Mild Cases - Upper Range')][1:7])
+# ppe_7d_severe_lower = sum(ppe_df[get_key(col_name3, 'PPE Severe Cases - Lower Range')][1:7])
+# ppe_7d_severe_upper = sum(ppe_df[get_key(col_name3, 'PPE Severe Cases - Upper Range')][1:7])
+# 28 days
+# ppe_28d_mild_lower = sum(ppe_df[get_key(col_name3, 'PPE Mild Cases - Lower Range')][1:28])
+# ppe_28d_mild_upper = sum(ppe_df[get_key(col_name3, 'PPE Mild Cases - Upper Range')][1:28])
+# ppe_28d_severe_lower = sum(ppe_df[get_key(col_name3, 'PPE Severe Cases - Lower Range')][1:28])
+# ppe_28d_severe_upper = sum(ppe_df[get_key(col_name3, 'PPE Severe Cases - Upper Range')][1:28])
+
+
+st.markdown("""The estimated **daily** PPE needs for the currently admitted COVID-19 patients is **{ppe_1d_mild_lower:.0f}**-**{ppe_1d_mild_upper:.0f}** for mild cases of COVID-19, 
+            and **{ppe_1d_severe_lower:.0f}**-**{ppe_1d_severe_upper:.0f}** for severe cases.""".format(
+                ppe_1d_mild_lower = ppe_1d_mild_lower,
+                ppe_1d_mild_upper = ppe_1d_mild_upper,
+                ppe_1d_severe_lower = ppe_1d_severe_lower,
+                ppe_1d_severe_upper = ppe_1d_severe_upper
+))
+
+# PPE Needs by day, 7d, 28d
+# data = {
+    # 'Period': ['Daily', 'Weekly', 'Monthly'],
+    # 'Mild Cases' : [np.mean([ppe_1d_mild_lower, ppe_1d_mild_upper]), 
+        # np.mean([ppe_7d_mild_lower, ppe_7d_mild_upper]), 
+        # np.mean([ppe_28d_mild_lower, ppe_28d_mild_upper])],
+    # 'Severe Cases': [np.mean([ppe_1d_severe_lower, ppe_1d_severe_upper]), 
+        # np.mean([ppe_7d_severe_lower, ppe_7d_severe_upper]), 
+        # np.mean([ppe_28d_severe_lower, ppe_28d_severe_upper])], 
+# }
+# ppe_needs = pd.DataFrame(data)
+# st.table(ppe_needs)
+
+# Recovered/Infected table
+st.subheader("The number of infected and recovered individuals in the region at any given moment")
 
 def additional_projections_chart(i: np.ndarray, r: np.ndarray) -> alt.Chart:
     dat = pd.DataFrame({"Infected": i, "Recovered": r})

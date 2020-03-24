@@ -26,12 +26,12 @@ hide_menu_style = """
         """
 st.markdown(hide_menu_style, unsafe_allow_html=True)
 
-# General Variables
+# General Variables for adding auto-updates
 today = date.today()
 fdate = date.today().strftime("%m-%d-%Y")
 time = time.strftime("%H:%M:%S")
 
-### Extract data for US
+### Extract web data for US
 # URL
 # 1 Request URL
 url = 'https://www.cdc.gov/coronavirus/2019-ncov/cases-updates/cases-in-us.html'
@@ -60,7 +60,9 @@ data = {'Cases': [cases_us],
        'Calculated Mortality Rate': [us_MR]}
 us_data = pd.DataFrame(data)
 
-# Extract data for NY State cases
+
+## Currently not in use as NYS website is not updating regularly
+# Extract web data for NY State cases
 # URL
 # 1 Request URL
 url = 'https://coronavirus.health.ny.gov/county-county-breakdown-positive-cases'
@@ -76,13 +78,10 @@ for i in range(0,len(table_data)):
     for td in table_data[i]:
         df.append(table_data[i].text.replace('\n', ' ').strip())
         
-
-
 counties = pd.DataFrame([])
 for i in range(0, len(df), 2):
     counties = counties.append(pd.DataFrame({'County': df[i], 'Cases': df[i+1]},
                                               index =[0]), ignore_index=True)
-
     
 # NY state Modification for Counties and State Tables
 NYC = counties[counties['County']=='New York City'].reset_index()
@@ -103,22 +102,24 @@ data = {'County': ['Erie', 'New York City', 'New York State'],
 ny_data = pd.DataFrame(data)
 
 
+# For regional populations, using erie primarily. 
 # Populations and Infections
 buffalo = 258612
 tonawanda = 14904
 cheektowaga = 87018
 amherst = 126082
+
 erie = 1500000
 cases_erie = 47
 S_default = erie
-known_infections = 61
+known_infections = 87
 known_cases = 6
 #initial_infections = 47
 regional_hosp_share = 1.0
 S = erie
 
 
-# Widgets
+# Widgets for sidebar
 hosp_options = st.sidebar.radio(
     "Hospitals", ('BGH', 'ECMC', 'Mercy', 'MFSH', 'OCH', 'RPCI', 'SCH', 'SCSJH'))
 
@@ -152,6 +153,7 @@ hosp_los = st.sidebar.number_input("Hospital Length of Stay", value=10, step=1, 
 icu_los = st.sidebar.number_input("ICU Length of Stay", value=7, step=1, format="%i")
 vent_los = st.sidebar.number_input("Ventilator Length of Stay", value=5, step=1, format="%i")
 
+# Removed per Dr. W
 # regional_hosp_share = (
    # st.sidebar.number_input(
        # "Hospital Bed Share (%)", 0.0, 100.0, value=100.0, step=1.0, format="%f")
@@ -169,6 +171,7 @@ initial_infections = st.sidebar.number_input(
 total_infections = current_hosp / regional_hosp_share / hosp_rate
 detection_prob = initial_infections / total_infections
 
+# S is susceptible population
 S, I, R = S, initial_infections / detection_prob, 0
 
 intrinsic_growth_rate = 2 ** (1 / doubling_time) - 1
@@ -186,6 +189,7 @@ r_t = beta / gamma * S # r_t is r_0 after distancing
 r_naught = r_t / (1-relative_contact_rate)
 doubling_time_t = 1/np.log2(beta*S - gamma +1) # doubling time after distancing
 
+# Start dashboard
 st.title("COVID-19 Hospital Impact Model for Epidemics - Modified for Erie County")
 st.markdown(
     """*This tool was developed by the [Predictive Healthcare team](http://predictivehealthcare.pennmedicine.org/) at
@@ -367,7 +371,7 @@ s, i, r = sim_sir(S, I, R, beta, gamma, n_days, beta_decay=beta_decay)
 # List of Hospitals
 hosp_list = ['bgh', 'ecmc', 'mercy', 'mfsh', 'och', 'rpci', 'sch', 'scsjh']
 
-# Variables for projection tables
+# Variables for projection tables, sorry, didn't have to figure out how to make this nicer
 hosp = i * hosp_rate * regional_hosp_share
 icu = i * icu_rate * regional_hosp_share
 vent = i * vent_rate * regional_hosp_share
@@ -428,19 +432,20 @@ data_dict = dict(zip(["day", "hosp", "icu", "vent",
     "hosp_scsjh", "icu_scsjh", "vent_scsjh"
     ], data_list))
 
+# First projection table
 projection = pd.DataFrame.from_dict(data_dict)
 
 st.subheader("New Admissions")
 st.markdown("Projected number of **daily** COVID-19 admissions for Erie County")
 
-# New cases
+# New cases table
 projection_admits = projection.iloc[:-1, :] - projection.shift(1)
 projection_admits[projection_admits < 0] = 0
 
 plot_projection_days = n_days - 10
 projection_admits["day"] = range(projection_admits.shape[0])
 
-
+# Chart function - General Erie County
 def regional_admissions_chart(projection_admits: pd.DataFrame, plot_projection_days: int) -> alt.Chart:
     """docstring"""
     projection_admits = projection_admits.rename(columns={"hosp": "Hospitalized", "icu": "ICU", "vent": "Ventilated"})
@@ -458,9 +463,11 @@ def regional_admissions_chart(projection_admits: pd.DataFrame, plot_projection_d
         .interactive()
     )
 
+# Show chart
 st.altair_chart(regional_admissions_chart(projection_admits, plot_projection_days), use_container_width=True)
 
 
+# This one include all hospital lines, too crowded
 # def all_admissions_chart(projection_admits: pd.DataFrame, plot_projection_days: int) -> alt.Chart:
     # """docstring"""
     # projection_admits = projection_admits.rename(columns={"hosp_bgh": "Hospitalized - BGH", "icu_bgh": "ICU - BGH", "vent_bgh": "Ventilated - BGH",
@@ -497,7 +504,8 @@ st.altair_chart(regional_admissions_chart(projection_admits, plot_projection_day
 # st.altair_chart(all_admissions_chart(projection_admits, plot_projection_days), use_container_width=True)
 
 
-# Individual hospitals selection
+# Individual hospitals selection - This is based on the selection from the sidebar. 
+# Col_name and fold name are the variable names that are needed to create the graphs. 
 
 if hosp_options == 'BGH':
     col_name1 = {"hosp_bgh": "Hospitalized - BGH", "icu_bgh": "ICU - BGH", "vent_bgh": "Ventilated - BGH"}
@@ -583,15 +591,16 @@ if hosp_options == 'SCSJH':
 st.markdown("Projected number of **daily** COVID-19 admissions by Hospital")
 st.markdown("Distribution of regional cases based on total bed percentage (CCU/ICU/MedSurg).")
 
-# Adding ICU bed for county
+# Adding ICU beds for county
 icu_county = 184
 beds_county = 1791
-# PPE Values
+# PPE Values based on European CDC
 ppe_mild_val_lower = 14
 ppe_mild_val_upper = 15
 ppe_severe_val_lower = 15
 ppe_severe_val_upper = 24
 
+# Hospital specific admissions
 def hospital_admissions_chart(projection_admits: pd.DataFrame, plot_projection_days: int) -> alt.Chart:
     """docstring"""
     projection_admits = projection_admits.rename(columns=col_name1)
@@ -611,6 +620,7 @@ def hospital_admissions_chart(projection_admits: pd.DataFrame, plot_projection_d
 
 st.altair_chart(hospital_admissions_chart(projection_admits, plot_projection_days), use_container_width=True)
 
+# Show table
 if st.checkbox("Show Projected Admissions in tabular form"):
     admits_table = projection_admits[np.mod(projection_admits.index, 7) == 0].copy()
     admits_table["day"] = admits_table.index
@@ -622,6 +632,8 @@ if st.checkbox("Show Projected Admissions in tabular form"):
 
 st.subheader("Admitted Patients (Census)")
 st.markdown("Projected **census** of COVID-19 patients for Erie County, accounting for arrivals and discharges.")
+
+# Start of census tables
 
 # ALOS for each category of COVID-19 case (total guesses)
 # Dictionary for loop to create estimates for census
@@ -689,17 +701,19 @@ census_table = census_df[np.mod(census_df.index, 7) == 0].copy()
 census_table.index = range(census_table.shape[0])
 census_table.loc[0, :] = 0
 census_table = census_table.dropna().astype(int)
+# Add bed numbers to create horizontal line, no time to find other way
 census_table['total_county_icu'] = icu_county
 census_table['total_county_beds'] = beds_county
 census_table['icu_beds'] = icu_val
 census_table['total_beds'] = total_beds_val
+# create columns of ppe needs by hospital
 for hosp in hosp_list:
     census_table['ppe_mild_d_'+hosp] = census_table['hosp_'+hosp] * ppe_mild_val_lower
     census_table['ppe_mild_u_'+hosp] = census_table['hosp_'+hosp] * ppe_mild_val_upper
     census_table['ppe_severe_d_'+hosp] = census_table['icu_'+hosp] * ppe_severe_val_lower
     census_table['ppe_severe_u_'+hosp] = census_table['icu_'+hosp] * ppe_severe_val_upper
     
-
+# Chart of hospitalized patients - Erie County
 def admitted_patients_chart(census: pd.DataFrame) -> alt.Chart:
     """docstring"""
     census = census.rename(columns={"hosp": "Hospital Census", "icu": "ICU Census", "vent": "Ventilated Census", 
@@ -724,7 +738,7 @@ st.altair_chart(admitted_patients_chart(census_table), use_container_width=True)
 
 st.markdown("Projected **census** of COVID-19 patients by Hospital, accounting for arrivals and discharges.")
 
-
+# Chart of hospitalized patients by hospital
 def hosp_admitted_patients_chart(census: pd.DataFrame) -> alt.Chart:
     """docstring"""
     census = census.rename(columns=col_name2)
@@ -755,6 +769,7 @@ if st.checkbox("Show Projected Census in tabular form"):
 
 st.subheader("Projected personal protective equipment needs for mild and severe cases of COVID-19.")
 
+# PPE chart
 def ppe_chart(census: pd.DataFrame) -> alt.Chart:
     """docstring"""
     census = census.rename(columns=col_name3)
@@ -775,8 +790,7 @@ def ppe_chart(census: pd.DataFrame) -> alt.Chart:
 
 st.altair_chart(ppe_chart(census_table), use_container_width=True)
 
-# PPE needs summary variables
-
+# PPE needs summary variables for table and more - Incomplete
 def get_key(dic, val): 
     for key, value in dic.items(): 
          if val == value: 

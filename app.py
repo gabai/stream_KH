@@ -337,11 +337,11 @@ current_hosp = st.sidebar.number_input(
 )
 
 doubling_time = st.sidebar.number_input(
-    "Doubling Time (days)", value=6, step=1, format="%i"
+    "Doubling Time (days)", value=5, step=1, format="%i"
 )
 
 relative_contact_rate = st.sidebar.number_input(
-    "Social distancing (% reduction in social contact)", 0, 100, value=0, step=5, format="%i"
+    "Social distancing (% reduction in social contact)", 0, 100, value=30, step=5, format="%i"
 )/100.0
 
 hosp_rate = (

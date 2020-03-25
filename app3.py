@@ -91,7 +91,7 @@ def get_dispositions(
     """Get dispositions of infected adjusted by rate and market_share."""
     return (*(patient_state * rate * regional_hosp_share for rate in rates),)
 
-def build_admissions_df(p) -> pd.DataFrame:
+def build_admissions_df(dispositions) -> pd.DataFrame:
     """Build admissions dataframe from Parameters."""
     days = np.array(range(0, n_days + 1))
     data_dict = dict(
@@ -186,6 +186,58 @@ def build_census_df(projection_admits: pd.DataFrame) -> pd.DataFrame:
         # }
     # )
     return census_df
+
+def seir(
+    s: float, e: float, i: float, r: float, beta: float, gamma: float, alpha: float, n: float
+) -> Tuple[float, float, float, float]:
+    """The SIR model, one time step."""
+    s_n = (-beta * s * i) + s
+    e_n = (beta * s * i) - alpha * e + e
+    i_n = (alpha * e - gamma * i) + i
+    r_n = gamma * i + r
+    if s_n < 0.0:
+        s_n = 0.0
+    if e_n < 0.0:
+        e_n = 0.0
+    if i_n < 0.0:
+        i_n = 0.0
+    if r_n < 0.0:
+        r_n = 0.0
+
+    scale = n / (s_n + e_n+ i_n + r_n)
+    return s_n * scale, e_n * scale, i_n * scale, r_n * scale
+
+def sim_seir(
+    s: float, e:float, i: float, r: float, beta: float, gamma: float, alpha: float, n_days: int
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Simulate the SIR model forward in time."""
+    s, e, i, r = (float(v) for v in (s, e, i, r))
+    n = s + e + i + r
+    s_v, e_v, i_v, r_v = [s], [e], [i], [r]
+    for day in range(n_days):
+        s, e, i, r = seir(s, e, i, r, beta, gamma, alpha, n)
+        s_v.append(s)
+        e_v.append(e)
+        i_v.append(i)
+        r_v.append(r)
+
+    return (
+        np.array(s_v),
+        np.array(e_v),
+        np.array(i_v),
+        np.array(r_v),
+    )
+
+def gen_seir(
+    s: float, e: float, i: float, r: float, beta: float, gamma: float, alpha: float, n_days: int
+) -> Generator[Tuple[float, float, float, float], None, None]:
+    """Simulate SIR model forward in time yielding tuples."""
+    s, e, i, r = (float(v) for v in (s, e, i, r))
+    n = s + e + i + r
+    for _ in range(n_days + 1):
+        yield s, e, i, r
+        s, e, i, r = seir(s, e, i, r, beta, gamma, alpha, n)
+        
 
 # End Models # 
 
@@ -404,6 +456,15 @@ vent_rate = (
     / 100.0
 )
 
+incubation_period =(
+    st.sidebar.number_input("Incubation Period", 0.0, 12.0, value=5.8, step=0.1, format="%f")
+)
+
+recovery_days =(
+    st.sidebar.number_input("Recovery Period", 0.0, 21.0, value=11.0 ,step=0.1, format="%f")
+)
+
+
 hosp_los = st.sidebar.number_input("Hospital Length of Stay", value=10, step=1, format="%i")
 icu_los = st.sidebar.number_input("ICU Length of Stay", value=7, step=1, format="%i")
 vent_los = st.sidebar.number_input("Ventilator Length of Stay", value=5, step=1, format="%i")
@@ -430,7 +491,6 @@ S, I, R = S, initial_infections / detection_prob, 0
 intrinsic_growth_rate = 2 ** (1 / doubling_time) - 1
 # (0.12 + 0.07)/
 
-recovery_days = 14.0
 recovered = 0.0
 # mean recovery rate, gamma, (in 1/days).
 gamma = 1 / recovery_days
@@ -597,7 +657,11 @@ ventilated=RateLos(vent_rate, vent_los)
 rates = tuple(each.rate for each in (hospitalized, icu, ventilated))
 lengths_of_stay = tuple(each.length_of_stay for each in (hospitalized, icu, ventilated))
 
+<<<<<<< HEAD
 
+=======
+### SIR model
+>>>>>>> SarahBranch
 s_v, i_v, r_v = sim_sir(S, total_infections, recovered, beta, gamma, n_days)
 susceptible_v, infected_v, recovered_v = s_v, i_v, r_v
 
@@ -615,7 +679,26 @@ hospitalized_v, icu_v, ventilated_v = (
             i_icu_v,
             i_ventilated_v)
 
+### SEIR model
+alpha = 1 / incubation_period
+exposed_start=beta*S*total_infections
+s_e, e_e, i_e, r_e = sim_seir(S, exposed_start, total_infections , recovered, beta, gamma,alpha, n_days)
+### Issue here
+susceptible_e, exposed_e, infected_e, recovered_e = s_e, e_e, i_e, r_e
 
+i_hospitalized_e, i_icu_e, i_ventilated_e = get_dispositions(i_e, rates, regional_hosp_share)
+
+r_hospitalized_e, r_icu_e, r_ventilated_e = get_dispositions(r_e, rates, regional_hosp_share)
+
+dispositions_e = (
+            i_hospitalized_e + r_hospitalized_e,
+            i_icu_e + r_icu_e,
+            i_ventilated_e + r_ventilated_e)
+
+hospitalized_e, icu_e, ventilated_e = (
+            i_hospitalized_e,
+            i_icu_e,
+            i_ventilated_e)
 
 # Individual hospitals selection
 
@@ -744,11 +827,15 @@ if hosp_options == 'SCSJH':
     
 
 # Graphs of new admissions for Erie
-st.subheader("New Admissions")
+st.subheader("New Admissions: SIR Model")
 st.markdown("Projected number of **daily** COVID-19 admissions for Erie County")
 
+<<<<<<< HEAD
 ###########################
 # New cases
+=======
+# New cases SIR
+>>>>>>> SarahBranch
 projection_admits = build_admissions_df(dispositions)
 # Census Table
 census_table = build_census_df(projection_admits)
@@ -756,6 +843,7 @@ census_table = build_census_df(projection_admits)
 plot_projection_days = n_days - 10
 ############################
 
+<<<<<<< HEAD
 ###
 ### Admissions Graphs
 ###
@@ -764,6 +852,48 @@ def regional_admissions_chart(
     projection_admits: pd.DataFrame, 
     plot_projection_days: int,
     as_date:bool = False) -> alt.Chart:
+=======
+
+# def new_admissions_chart(
+    # alt, projection_admits: pd.DataFrame, parameters: Parameters, as_date: bool = False,
+# ) -> Chart:
+    # """docstring"""
+    # plot_projection_days = n_days - 10
+    # #max_y_axis = parameters.max_y_axis
+
+    # y_scale = alt.Scale()
+
+    # # if max_y_axis is not None:
+        # # y_scale.domain = (0, max_y_axis)
+        # # y_scale.clamp = True
+
+    # tooltip_dict = {False: "day", True: "date:T"}
+    # if as_date:
+        # projection_admits = add_date_column(projection_admits)
+        # x_kwargs = {"shorthand": "date:T", "title": "Date"}
+    # else:
+        # x_kwargs = {"shorthand": "day", "title": "Days from today"}
+
+    # return (
+        # alt.Chart(projection_admits.head(plot_projection_days))
+        # .transform_fold(fold=["Hospitalized", "ICU", "Ventilated"])
+        # .mark_line(point=True)
+        # .encode(
+            # x=alt.X(**x_kwargs),
+            # y=alt.Y("value:Q", title="Daily admissions", scale=y_scale),
+            # color="key:N",
+            # tooltip=[
+                # tooltip_dict[as_date],
+                # alt.Tooltip("value:Q", format=".0f", title="Admissions"),
+                # "key:N",
+            # ],
+        # )
+        # .interactive()
+    # )
+
+# Erie Graph of Cases: SIR
+def regional_admissions_chart(projection_admits: pd.DataFrame, plot_projection_days: int) -> alt.Chart:
+>>>>>>> SarahBranch
     """docstring"""
     
     projection_admits = projection_admits.rename(columns={"hosp": "Hospitalized", "icu": "ICU", "vent": "Ventilated"})
@@ -801,6 +931,35 @@ st.altair_chart(
     use_container_width=True)
 
 
+st.subheader("New Admissions: SEIR Model")
+st.markdown("Projected number of **daily** COVID-19 admissions for Erie County")
+
+# New cases SEIR
+projection_admits_e = build_admissions_df(dispositions_e)
+# Census Table
+census_table_e = build_census_df(projection_admits_e)
+
+# Erie Graph of Cases: SEIR
+def regional_admissions_chart_e(projection_admits_e: pd.DataFrame, plot_projection_days: int) -> alt.Chart:
+    """docstring"""
+    projection_admits_e = projection_admits_e.rename(columns={"hosp": "Hospitalized", "icu": "ICU", "vent": "Ventilated"})
+    return (
+        alt
+        .Chart(projection_admits_e.head(plot_projection_days))
+        .transform_fold(fold=["Hospitalized", "ICU", "Ventilated"])
+        .mark_line(point=True)
+        .encode(
+            x=alt.X("day", title="Days from today"),
+            y=alt.Y("value:Q", title="Daily admissions"),
+            color="key:N",
+            tooltip=["day", "key:N"]
+        )
+        .interactive()
+    )
+
+st.altair_chart(regional_admissions_chart_e(projection_admits_e, plot_projection_days), use_container_width=True)
+
+
 # Admissions for Erie County for comparison - Only has simple line - Not using.
 def erie_chart(erie_df: pd.DataFrame) -> alt.Chart:
     """docstring"""
@@ -829,7 +988,7 @@ def erie_chart(erie_df: pd.DataFrame) -> alt.Chart:
 #st.altair_chart(alt.layer(regional_admissions_chart(projection_admits, plot_projection_days).mark_line() + alt.layer(erie_chart(erie_admits).mark_line())), use_container_width=True)
 
 
-st.markdown("Projected number of **daily** COVID-19 admissions by Hospital")
+st.subheader("Projected number of **daily** COVID-19 admissions by Hospital: SIR model")
 st.markdown("Distribution of regional cases based on total bed percentage (CCU/ICU/MedSurg).")
 
 
@@ -872,7 +1031,7 @@ st.altair_chart(
     use_container_width=True)
 
 
-if st.checkbox("Show Projected Admissions in tabular form"):
+if st.checkbox("Show Projected Admissions in tabular form:SIR"):
     admits_table = projection_admits[np.mod(projection_admits.index, 7) == 0].copy()
     admits_table["day"] = admits_table.index
     admits_table.index = range(admits_table.shape[0])
@@ -880,6 +1039,36 @@ if st.checkbox("Show Projected Admissions in tabular form"):
     
     st.dataframe(admits_table)
 
+st.subheader("Projected number of **daily** COVID-19 admissions by Hospital: SEIR model")
+st.markdown("Distribution of regional cases based on total bed percentage (CCU/ICU/MedSurg).")
+
+
+def hospital_admissions_chart_e(projection_admits_e: pd.DataFrame, plot_projection_days: int) -> alt.Chart:
+    """docstring"""
+    projection_admits_e = projection_admits_e.rename(columns=col_name1)
+    return (
+        alt
+        .Chart(projection_admits_e.head(plot_projection_days))
+        .transform_fold(fold=fold_name1)
+        .mark_line(point=True)
+        .encode(
+            x=alt.X("day", title="Days from today"),
+            y=alt.Y("value:Q", title="Daily admissions"),
+            color="key:N",
+            tooltip=["day", "key:N"]
+        )
+        .interactive()
+    )
+
+st.altair_chart(hospital_admissions_chart_e(projection_admits_e, plot_projection_days), use_container_width=True)    
+
+if st.checkbox("Show Projected Admissions in tabular form:SEIR"):
+    admits_table_e = projection_admits_e[np.mod(projection_admits_e.index, 7) == 0].copy()
+    admits_table_e["day"] = admits_table_e.index
+    admits_table_e.index = range(admits_table_e.shape[0])
+    admits_table_e = admits_table_e.fillna(0).astype(int)
+    
+    st.dataframe(admits_table_e)
 
 st.subheader("Admitted Patients (Census)")
 st.markdown("Projected **census** of COVID-19 patients for Erie County, accounting for arrivals and discharges.")
@@ -925,6 +1114,7 @@ st.altair_chart(
         plot_projection_days,
         as_date=as_date),
     use_container_width=True)
+
 
 # st.altair_chart(alt.layer(admitted_patients_chart(census_table).mark_line() + alt.layer(erie_chart(erie_admits).mark_line())), use_container_width=True)
 

@@ -1042,10 +1042,10 @@ ppe_1d_mild_upper = current_hosp * 15.0
 ppe_1d_severe_lower = current_hosp *15.0
 ppe_1d_severe_upper = current_hosp *24.0
 # 7 Days
-ppe_7d_mild_lower = sum([ppe_1d_mild_lower, census_table['ppe_mild_d'][1:8]])
-ppe_7d_mild_upper = sum([ppe_1d_severe_upper, census_table['ppe_mild_u'][1:8]])
-ppe_7d_severe_lower = sum([ppe_1d_mild_lower, census_table['ppe_severe_d'][1:8]])
-ppe_7d_severe_upper = sum([ppe_1d_severe_upper, census_table['ppe_severe_u'][1:8]])
+ppe_7d_mild_lower = ppe_1d_mild_lower+sum(census_table['ppe_mild_d'][1:8])
+ppe_7d_mild_upper = ppe_1d_mild_upper+sum(census_table['ppe_mild_u'][1:8])
+ppe_7d_severe_lower = ppe_1d_severe_lower+sum(census_table['ppe_severe_d'][1:8])
+ppe_7d_severe_upper = ppe_1d_severe_upper+sum(census_table['ppe_severe_u'][1:8])
 # 2nd week
 ppe_14d_mild_lower = sum(census_table['ppe_mild_d'][1:15])
 ppe_14d_mild_upper = sum(census_table['ppe_mild_u'][1:15])
@@ -1063,7 +1063,7 @@ ppe_1m_severe_lower = sum(census_table['ppe_severe_d'][1:29])
 ppe_1m_severe_upper = sum(census_table['ppe_severe_u'][1:29])
 
 st.markdown("""The estimated **daily** PPE needs for the currently admitted COVID-19 patients is **{ppe_1d_mild_lower:.0f}**-**{ppe_1d_mild_upper:.0f}** for mild cases of COVID-19, 
-            and **{ppe_1d_severe_lower:.0f}**-**{ppe_1d_severe_upper:.0f}** for severe cases. The estimated **monthly** PPE needs for the expected admitted COVID-19 patients is
+            and **{ppe_1d_severe_lower:.0f}**-**{ppe_1d_severe_upper:.0f}** for severe cases. The estimated PPE needs for the **first month** of COVID-19 patients is
             **{ppe_1m_mild_lower:.0f}**-**{ppe_1m_mild_upper:.0f}** for mild cases of COVID-19, and **{ppe_1m_severe_lower:.0f}**-**{ppe_1m_severe_upper:.0f}** for severe cases.""".format(
                 ppe_1d_mild_lower = ppe_1d_mild_lower,
                 ppe_1d_mild_upper = ppe_1d_mild_upper,
@@ -1077,7 +1077,7 @@ st.markdown("""The estimated **daily** PPE needs for the currently admitted COVI
 
 # PPE Needs by day, 7d, 14, 21, 28d
 data = {
-    ' ': ['Today', 'Week 1', 'Week2', 'Week3', 'First Month'],
+    'PPE Needs': ['Today', 'Week 1', 'Week2', 'Week3', 'First Month'],
     'Mild Cases' : [
         float_formatter(np.mean([ppe_1d_mild_lower, ppe_1d_mild_upper])), 
         float_formatter(np.mean([ppe_7d_mild_lower, ppe_7d_mild_upper])), 

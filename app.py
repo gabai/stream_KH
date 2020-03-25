@@ -355,8 +355,8 @@ data_dict = {
     "Date": ['3/16/20', '3/17/20', '3/18/20', '3/20/20', '3/21/20', '3/22/20', '3/23/20', '3/24/20', '3/25/20'],
     "day": [14,15,16,17,18,19,20,21, 22]
     }
-erie = pd.DataFrame.from_dict(data_dict)
-erie['Date'] = pd.to_datetime(erie['Date'])
+erie_df = pd.DataFrame.from_dict(data_dict)
+erie_df['Date'] = pd.to_datetime(erie_df['Date'])
 
 
 # Populations and Infections
@@ -616,7 +616,6 @@ hospitalized_v, icu_v, ventilated_v = (
             i_ventilated_v)
 
 
-
 # Individual hospitals selection
 
 if hosp_options == 'BGH':
@@ -756,6 +755,8 @@ census_table = build_census_df(projection_admits)
 plot_projection_days = n_days - 10
 ############################
 
+
+
 ###
 ### Admissions Graphs
 ###
@@ -801,19 +802,35 @@ st.altair_chart(
     use_container_width=True)
 
 
+st.table(erie_df)
+
 # Admissions for Erie County for comparison - Only has simple line - Not using.
-def erie_chart(erie_df: pd.DataFrame) -> alt.Chart:
+def erie_chart(
+    erie_df: pd.DataFrame, 
+    as_date:bool = False) -> alt.Chart:
     """docstring"""
+    
+    tooltip_dict = {False: "day", True: "date:T"}
+    if as_date:
+        erie_df = add_date_column(erie_df)
+        x_kwargs = {"shorthand": "date:T", "title": "Date"}
+    else:
+        x_kwargs = {"shorthand": "day", "title": "Days from today"}
+    
     return (
         alt
         .Chart(erie_df)
         .transform_fold(fold=["Admissions"])
         .mark_line(point=True)
         .encode(
-            x=alt.X("Date:T", title="Date"),
+            x=alt.X(**x_kwargs),
             y=alt.Y("value:Q", title="Admissions"),
             color="key:N",
-            tooltip=["Date:T", "key:N"]
+            tooltip=[
+                tooltip_dict[as_date],
+                alt.Tooltip("value:Q", format=".0f", title="Admissions"),
+                "key:N",
+            ],
         )
         .interactive()
     )
@@ -823,7 +840,11 @@ def erie_chart(erie_df: pd.DataFrame) -> alt.Chart:
     # y='Admissions:Q'
 # ))
 
-#st.altair_chart(erie_chart(erie), use_container_width=True)
+st.altair_chart(
+    erie_chart(
+        erie, 
+        as_date=as_date), 
+    use_container_width=True)
 
 # Comparison chart Model w/ Erie Data
 #st.altair_chart(alt.layer(regional_admissions_chart(projection_admits, plot_projection_days).mark_line() + alt.layer(erie_chart(erie_admits).mark_line())), use_container_width=True)

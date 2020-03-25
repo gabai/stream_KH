@@ -31,7 +31,7 @@ st.markdown(hide_menu_style, unsafe_allow_html=True)
 ########
 def sir(
     s: float, i: float, r: float, beta: float, gamma: float, n: float
-) -> Tuple[float, float, float]:
+    ) -> Tuple[float, float, float]:
     """The SIR model, one time step."""
     s_n = (-beta * s * i) + s
     i_n = (beta * s * i - gamma * i) + i
@@ -48,7 +48,7 @@ def sir(
     
 def gen_sir(
     s: float, i: float, r: float, beta: float, gamma: float, n_days: int
-) -> Generator[Tuple[float, float, float], None, None]:
+    ) -> Generator[Tuple[float, float, float], None, None]:
     """Simulate SIR model forward in time yielding tuples."""
     s, i, r = (float(v) for v in (s, i, r))
     n = s + i + r
@@ -58,7 +58,7 @@ def gen_sir(
 
 def sim_sir(
     s: float, i: float, r: float, beta: float, gamma: float, n_days: int
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Simulate the SIR model forward in time."""
     s, i, r = (float(v) for v in (s, i, r))
     n = s + i + r
@@ -87,7 +87,7 @@ def sim_sir_df(p) -> pd.DataFrame:
 
 def get_dispositions(
     patient_state: np.ndarray, rates: Tuple[float, ...], regional_hosp_share: float = 1.0
-) -> Tuple[np.ndarray, ...]:
+    ) -> Tuple[np.ndarray, ...]:
     """Get dispositions of infected adjusted by rate and market_share."""
     return (*(patient_state * rate * regional_hosp_share for rate in rates),)
 
@@ -189,7 +189,7 @@ def build_census_df(projection_admits: pd.DataFrame) -> pd.DataFrame:
 
 def seir(
     s: float, e: float, i: float, r: float, beta: float, gamma: float, alpha: float, n: float
-) -> Tuple[float, float, float, float]:
+    ) -> Tuple[float, float, float, float]:
     """The SIR model, one time step."""
     s_n = (-beta * s * i) + s
     e_n = (beta * s * i) - alpha * e + e
@@ -209,7 +209,7 @@ def seir(
 
 def sim_seir(
     s: float, e:float, i: float, r: float, beta: float, gamma: float, alpha: float, n_days: int
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """Simulate the SIR model forward in time."""
     s, e, i, r = (float(v) for v in (s, e, i, r))
     n = s + e + i + r
@@ -230,7 +230,7 @@ def sim_seir(
 
 def gen_seir(
     s: float, e: float, i: float, r: float, beta: float, gamma: float, alpha: float, n_days: int
-) -> Generator[Tuple[float, float, float, float], None, None]:
+    ) -> Generator[Tuple[float, float, float, float], None, None]:
     """Simulate SIR model forward in time yielding tuples."""
     s, e, i, r = (float(v) for v in (s, e, i, r))
     n = s + e + i + r
@@ -244,7 +244,7 @@ def gen_seir(
 # Add dates #
 def add_date_column(
     df: pd.DataFrame, drop_day_column: bool = False, date_format: Optional[str] = None,
-) -> pd.DataFrame:
+    ) -> pd.DataFrame:
     """Copies input data frame and converts "day" column to "date" column
 
     Assumes that day=0 is today and allocates dates for each integer day.
@@ -834,15 +834,23 @@ st.markdown("Projected number of **daily** COVID-19 admissions for Erie County")
 projection_admits = build_admissions_df(dispositions)
 # Census Table
 census_table = build_census_df(projection_admits)
+############################
+
+# New cases SEIR
+###########################
+# New cases
+projection_admits_e = build_admissions_df(dispositions_e)
+# Census Table
+census_table_e = build_census_df(projection_admits_e)
+
 # Projection days
 plot_projection_days = n_days - 10
 ############################
 
 
 
-
 # Erie Graph of Cases: SIR
-def regional_admissions_chart(projection_admits: pd.DataFrame, plot_projection_days: int) -> alt.Chart:
+#def regional_admissions_chart(projection_admits: pd.DataFrame, plot_projection_days: int) -> alt.Chart:
 ###
 ### Admissions Graphs
 ###
@@ -887,79 +895,60 @@ st.altair_chart(
         as_date=as_date), 
     use_container_width=True)
 
-
-st.table(erie_df)
-
 st.subheader("New Admissions: SEIR Model")
 st.markdown("Projected number of **daily** COVID-19 admissions for Erie County")
 
-# New cases SEIR
-projection_admits_e = build_admissions_df(dispositions_e)
-# Census Table
-census_table_e = build_census_df(projection_admits_e)
 
 # Erie Graph of Cases: SEIR
-def regional_admissions_chart_e(projection_admits_e: pd.DataFrame, plot_projection_days: int) -> alt.Chart:
-    """docstring"""
-    projection_admits_e = projection_admits_e.rename(columns={"hosp": "Hospitalized", "icu": "ICU", "vent": "Ventilated"})
-    return (
-        alt
-        .Chart(projection_admits_e.head(plot_projection_days))
-        .transform_fold(fold=["Hospitalized", "ICU", "Ventilated"])
-        .mark_line(point=True)
-        .encode(
-            x=alt.X("day", title="Days from today"),
-            y=alt.Y("value:Q", title="Daily admissions"),
-            color="key:N",
-            tooltip=["day", "key:N"]
-        )
-        .interactive()
-    )
 
-st.altair_chart(regional_admissions_chart_e(projection_admits_e, plot_projection_days), use_container_width=True)
+st.altair_chart(
+    regional_admissions_chart(projection_admits_e, 
+        plot_projection_days, 
+        as_date=as_date), 
+    use_container_width=True)
 
 
-# Admissions for Erie County for comparison - Only has simple line - Not using.
-def erie_chart(
-    erie_df: pd.DataFrame, 
-    as_date:bool = False) -> alt.Chart:
-    """docstring"""
+# # Admissions for Erie County for comparison - Only has simple line - Not using.
+# def erie_chart(
+    # erie_df: pd.DataFrame, 
+    # as_date:bool = False) -> alt.Chart:
+    # """docstring"""
     
-    tooltip_dict = {False: "day", True: "date:T"}
-    if as_date:
-        erie_df = add_date_column(erie_df)
-        x_kwargs = {"shorthand": "date:T", "title": "Date"}
-    else:
-        x_kwargs = {"shorthand": "day", "title": "Days from today"}
+    # tooltip_dict = {False: "day", True: "date:T"}
+    # if as_date:
+        # erie_df = add_date_column(erie_df)
+        # x_kwargs = {"shorthand": "date:T", "title": "Date"}
+    # else:
+        # x_kwargs = {"shorthand": "day", "title": "Days from today"}
     
-    return (
-        alt
-        .Chart(erie_df)
-        .transform_fold(fold=["Admissions"])
-        .mark_line(point=True)
-        .encode(
-            x=alt.X(**x_kwargs),
-            y=alt.Y("value:Q", title="Admissions"),
-            color="key:N",
-            tooltip=[
-                tooltip_dict[as_date],
-                alt.Tooltip("value:Q", format=".0f", title="Admissions"),
-                "key:N",
-            ],
-        )
-        .interactive()
-    )
+    # return (
+        # alt
+        # .Chart(erie_df)
+        # .transform_fold(fold=["Admissions"])
+        # .mark_line(point=True)
+        # .encode(
+            # x=alt.X(**x_kwargs),
+            # y=alt.Y("value:Q", title="Admissions"),
+            # color="key:N",
+            # tooltip=[
+                # tooltip_dict[as_date],
+                # alt.Tooltip("value:Q", format=".0f", title="Admissions"),
+                # "key:N",
+            # ],
+        # )
+        # .interactive()
+    # )
 
 # st.altair_chart(alt.Chart(erie).mark_line().encode(
     # x='Date:T',
     # y='Admissions:Q'
 # ))
 
-st.altair_chart(
-    erie_chart(
-        erie, 
-        as_date=as_date), 
-    use_container_width=True)
+# st.altair_chart(
+    # erie_chart(
+        # erie, 
+        # as_date=as_date), 
+    # use_container_width=True)
 
 # Comparison chart Model w/ Erie Data
 #st.altair_chart(alt.layer(regional_admissions_chart(projection_admits, plot_projection_days).mark_line() + alt.layer(erie_chart(erie_admits).mark_line())), use_container_width=True)
@@ -967,7 +956,6 @@ st.altair_chart(
 
 st.subheader("Projected number of **daily** COVID-19 admissions by Hospital: SIR model")
 st.markdown("Distribution of regional cases based on total bed percentage (CCU/ICU/MedSurg).")
-
 
 def hospital_admissions_chart(
     projection_admits: pd.DataFrame, 
@@ -1001,7 +989,7 @@ def hospital_admissions_chart(
         .interactive()
     )
 
-# By Hospital Admissions Chart
+# By Hospital Admissions Chart - SIR
 st.altair_chart(
     hospital_admissions_chart(
         projection_admits, plot_projection_days, as_date=as_date), 
@@ -1019,26 +1007,12 @@ if st.checkbox("Show Projected Admissions in tabular form:SIR"):
 st.subheader("Projected number of **daily** COVID-19 admissions by Hospital: SEIR model")
 st.markdown("Distribution of regional cases based on total bed percentage (CCU/ICU/MedSurg).")
 
-
-def hospital_admissions_chart_e(projection_admits_e: pd.DataFrame, plot_projection_days: int) -> alt.Chart:
-    """docstring"""
-    projection_admits_e = projection_admits_e.rename(columns=col_name1)
-    return (
-        alt
-        .Chart(projection_admits_e.head(plot_projection_days))
-        .transform_fold(fold=fold_name1)
-        .mark_line(point=True)
-        .encode(
-            x=alt.X("day", title="Days from today"),
-            y=alt.Y("value:Q", title="Daily admissions"),
-            color="key:N",
-            tooltip=["day", "key:N"]
-        )
-        .interactive()
-    )
-
-st.altair_chart(hospital_admissions_chart_e(projection_admits_e, plot_projection_days), use_container_width=True)    
-
+# By Hospital Admissions Chart - SEIR
+st.altair_chart(
+    hospital_admissions_chart(
+        projection_admits_e, plot_projection_days, as_date=as_date), 
+    use_container_width=True)
+    
 if st.checkbox("Show Projected Admissions in tabular form:SEIR"):
     admits_table_e = projection_admits_e[np.mod(projection_admits_e.index, 7) == 0].copy()
     admits_table_e["day"] = admits_table_e.index
@@ -1084,10 +1058,18 @@ def admitted_patients_chart(
         .interactive()
     )
 
-# Erie County Census Graph
+# Erie County Census Graph - SIR
 st.altair_chart(
     admitted_patients_chart(
         census_table,
+        plot_projection_days,
+        as_date=as_date),
+    use_container_width=True)
+    
+# Erie County Census Graph - SEIR
+st.altair_chart(
+    admitted_patients_chart(
+        census_table_e,
         plot_projection_days,
         as_date=as_date),
     use_container_width=True)

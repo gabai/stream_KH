@@ -1,8 +1,8 @@
-# Modified version for Western New York
+# Modified version for Erie County, New York
 # Contact: ganaya@buffalo.edu
 
 from functools import reduce
-from typing import Tuple, Dict, Any
+from typing import Generator, Tuple, Dict, Any
 import pandas as pd
 import streamlit as st
 import numpy as np
@@ -11,10 +11,10 @@ from bs4 import BeautifulSoup
 import requests
 import ipyvuetify as v
 from traitlets import Unicode, List
-import datetime
-from datetime import date
+from datetime import date, datetime, timedelta
 import time
 import altair as alt
+from collections import namedtuple
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -26,6 +26,180 @@ hide_menu_style = """
         """
 st.markdown(hide_menu_style, unsafe_allow_html=True)
 
+
+# Models and base functions
+########
+def sir(
+    s: float, i: float, r: float, beta: float, gamma: float, n: float
+) -> Tuple[float, float, float]:
+    """The SIR model, one time step."""
+    s_n = (-beta * s * i) + s
+    i_n = (beta * s * i - gamma * i) + i
+    r_n = gamma * i + r
+    if s_n < 0.0:
+        s_n = 0.0
+    if i_n < 0.0:
+        i_n = 0.0
+    if r_n < 0.0:
+        r_n = 0.0
+
+    scale = n / (s_n + i_n + r_n)
+    return s_n * scale, i_n * scale, r_n * scale
+    
+def gen_sir(
+    s: float, i: float, r: float, beta: float, gamma: float, n_days: int
+) -> Generator[Tuple[float, float, float], None, None]:
+    """Simulate SIR model forward in time yielding tuples."""
+    s, i, r = (float(v) for v in (s, i, r))
+    n = s + i + r
+    for _ in range(n_days + 1):
+        yield s, i, r
+        s, i, r = sir(s, i, r, beta, gamma, n)
+
+def sim_sir(
+    s: float, i: float, r: float, beta: float, gamma: float, n_days: int
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Simulate the SIR model forward in time."""
+    s, i, r = (float(v) for v in (s, i, r))
+    n = s + i + r
+    s_v, i_v, r_v = [s], [i], [r]
+    for day in range(n_days):
+        s, i, r = sir(s, i, r, beta, gamma, n)
+        s_v.append(s)
+        i_v.append(i)
+        r_v.append(r)
+
+    return (
+        np.array(s_v),
+        np.array(i_v),
+        np.array(r_v),
+    )
+    
+def sim_sir_df(p) -> pd.DataFrame:
+    """Simulate the SIR model forward in time.
+
+    p is a Parameters instance. for circuluar dependency reasons i can't annotate it.
+    """
+    return pd.DataFrame(
+        data=gen_sir(S, total_infections, recovered, beta, gamma, n_days),
+        columns=("Susceptible", "Infected", "Recovered"),
+    )
+
+def get_dispositions(
+    patient_state: np.ndarray, rates: Tuple[float, ...], regional_hosp_share: float = 1.0
+) -> Tuple[np.ndarray, ...]:
+    """Get dispositions of infected adjusted by rate and market_share."""
+    return (*(patient_state * rate * regional_hosp_share for rate in rates),)
+
+def build_admissions_df(p) -> pd.DataFrame:
+    """Build admissions dataframe from Parameters."""
+    days = np.array(range(0, n_days + 1))
+    data_dict = dict(
+        zip(
+            ["day", "hosp", "icu", "vent"], 
+            [days] + [disposition for disposition in dispositions],
+        )
+    )
+    projection = pd.DataFrame.from_dict(data_dict)
+    
+    counter = 0
+    for i in hosp_list:
+        projection[groups[0]+"_"+i] = projection.hosp*bed_share.iloc[3,counter]
+        projection[groups[1]+"_"+i] = projection.icu*bed_share.iloc[3,counter]
+        projection[groups[2]+"_"+i] = projection.vent*bed_share.iloc[3,counter]
+        counter +=1
+        if counter == 8: break
+    
+    
+    # New cases
+    projection_admits = projection.iloc[:-1, :] - projection.shift(1)
+    projection_admits["day"] = range(projection_admits.shape[0])
+    return projection_admits
+
+def build_census_df(projection_admits: pd.DataFrame) -> pd.DataFrame:
+    """ALOS for each category of COVID-19 case (total guesses)"""
+    n_days = np.shape(projection_admits)[0]
+    #hosp_los, icu_los, vent_los = parameters.lengths_of_stay
+    los_dict = {
+    "hosp": hosp_los,
+    "icu": icu_los,
+    "vent": vent_los,
+    "hosp_bgh": hosp_los,
+    "icu_bgh": icu_los,
+    "vent_bgh": vent_los,
+    "hosp_ecmc": hosp_los,
+    "icu_ecmc": icu_los,
+    "vent_ecmc": vent_los,
+    "hosp_mercy": hosp_los,
+    "icu_mercy": icu_los,
+    "vent_mercy": vent_los,
+    "hosp_mfsh": hosp_los,
+    "icu_mfsh": icu_los,
+    "vent_mfsh": vent_los,
+    "hosp_och": hosp_los,
+    "icu_och": icu_los,
+    "vent_och": vent_los,
+    "hosp_rpci": hosp_los,
+    "icu_rpci": icu_los,
+    "vent_rpci": vent_los,
+    "hosp_sch": hosp_los,
+    "icu_sch": icu_los,
+    "vent_sch": vent_los,
+    "hosp_scsjh": hosp_los,
+    "icu_scsjh": icu_los,
+    "vent_scsjh": vent_los
+    }
+
+    census_dict = dict()
+    for k, los in los_dict.items():
+        census = (
+            projection_admits.cumsum().iloc[:-los, :]
+            - projection_admits.cumsum().shift(los).fillna(0)
+        ).apply(np.ceil)
+        census_dict[k] = census[k]
+
+    census_df = pd.DataFrame(census_dict)
+    census_df["day"] = census_df.index
+    census_df = census_df[["day", "hosp", "icu", "vent", 
+    "hosp_bgh", "icu_bgh", "vent_bgh", 
+    "hosp_ecmc", "icu_ecmc", "vent_ecmc",
+    "hosp_mercy", "icu_mercy", "vent_mercy",
+    "hosp_mfsh", "icu_mfsh", "vent_mfsh",
+    "hosp_och", "icu_och", "vent_och",
+    "hosp_rpci", "icu_rpci", "vent_rpci",
+    "hosp_sch", "icu_sch", "vent_sch",
+    "hosp_scsjh", "icu_scsjh", "vent_scsjh"
+    ]]
+    
+    # # Add ppe columns w/ calcs to census before cummulative sum
+    # ppe_df = census_df
+    # for hosp in hosp_list:
+        # ppe_df['ppe_mild_d_'+hosp] = ppe_df['hosp_'+hosp] * ppe_mild_val_lower
+        # ppe_df['ppe_mild_u_'+hosp] = ppe_df['hosp_'+hosp] * ppe_mild_val_upper
+        # ppe_df['ppe_severe_d_'+hosp] = ppe_df['icu_'+hosp] * ppe_severe_val_lower
+        # ppe_df['ppe_severe_u_'+hosp] = ppe_df['icu_'+hosp] * ppe_severe_val_upper
+    
+    census_df = census_df.head(n_days)
+    census_df['total_county_icu'] = icu_county
+    census_df['total_county_beds'] = beds_county
+    census_df['icu_beds'] = icu_val
+    census_df['total_beds'] = total_beds_val
+    for hosp in hosp_list:
+        census_df['ppe_mild_d_'+hosp] = census_df['hosp_'+hosp] * ppe_mild_val_lower
+        census_df['ppe_mild_u_'+hosp] = census_df['hosp_'+hosp] * ppe_mild_val_upper
+        census_df['ppe_severe_d_'+hosp] = census_df['icu_'+hosp] * ppe_severe_val_lower
+        census_df['ppe_severe_u_'+hosp] = census_df['icu_'+hosp] * ppe_severe_val_upper
+    # census_df = census_df.rename(
+        # columns={
+            # disposition: f"{disposition}"
+            # for disposition in ("hosp", "icu", "vent")
+        # }
+    # )
+    return census_df
+
+# End Models # 
+
+    
 # General Variables
 today = date.today()
 fdate = date.today().strftime("%m-%d-%Y")
@@ -83,7 +257,7 @@ for i in range(0, len(df), 2):
     counties = counties.append(pd.DataFrame({'County': df[i], 'Cases': df[i+1]},
                                               index =[0]), ignore_index=True)
 
-    
+
 # NY state Modification for Counties and State Tables
 NYC = counties[counties['County']=='New York City'].reset_index()
 NYS = counties[counties['County']=='Total Number of Positive Cases'].reset_index()
@@ -102,6 +276,42 @@ data = {'County': ['Erie', 'New York City', 'New York State'],
        'Cases': [cases_erie, cases_nyc, cases_nys]}
 ny_data = pd.DataFrame(data)
 
+# Adding ICU bed for county
+icu_county = 184
+beds_county = 1791
+# PPE Values
+ppe_mild_val_lower = 14
+ppe_mild_val_upper = 15
+ppe_severe_val_lower = 15
+ppe_severe_val_upper = 24
+
+# List of Hospitals
+hosp_list = ['bgh', 'ecmc', 'mercy', 'mfsh', 'och', 'rpci', 'sch', 'scsjh']
+groups = ['hosp', 'icu', 'vent']
+
+# Hospital Bed Sharing Percentage
+data = {
+    #'Bed Type': ['CCU', 'ICU', 'MedSurg', 'Hosp_share'],
+    'BGH' : [0.34, 0.34, 0.26, 0.27],
+    'ECMC': [0.14, 0.20, 0.17, 0.17], 
+    'Mercy': [0.21, 0.17, 0.18, 0.18],
+    'MFSH' : [0.12, 0.6, 0.15, 0.14],
+    'OCH' : [0.0, 0.12, 0.05, 0.05],
+    'RPCI': [0.0, 0.09, 0.06, 0.06],
+    'SCH' : [0.12, 0.10, 0.13, 0.13],
+    'SCSJH': [0.08, 0.04, 0.06, 0.06]
+}
+bed_share = pd.DataFrame(data)
+
+# Erie's admission for comparison with current curve
+data_dict = {
+    "Admissions": [0, 0, 1, 4, 6, 6, 8, 21],
+    "Cases": [3, 7, 20, 34, 47, 61, 96, 114],
+    "Date": ['3/16/20', '3/17/20', '3/18/20', '3/20/20', '3/21/20', '3/22/20', '3/23/20', '3/24/20'],
+    "day": [14,15,16,17,18,19,20,21]
+    }
+erie_admits = pd.DataFrame.from_dict(data_dict)
+
 
 # Populations and Infections
 buffalo = 258612
@@ -109,10 +319,10 @@ tonawanda = 14904
 cheektowaga = 87018
 amherst = 126082
 erie = 1500000
-cases_erie = 47
+cases_erie = 114
 S_default = erie
-known_infections = 61
-known_cases = 6
+known_infections = 114
+known_cases = 19
 #initial_infections = 47
 regional_hosp_share = 1.0
 S = erie
@@ -135,16 +345,16 @@ relative_contact_rate = st.sidebar.number_input(
 )/100.0
 
 hosp_rate = (
-    st.sidebar.number_input("Hospitalization %", 0.0, 100.0, value=14.0, step=1.0, format="%f")
+    st.sidebar.number_input("Hospitalization %", 0.0, 100.0, value=12.0, step=1.0, format="%f")
     / 100.0
 )
 
 icu_rate = (
-    st.sidebar.number_input("ICU %", 0.0, 100.0, value=6.0, step=0.5, format="%f") / 100.0
+    st.sidebar.number_input("ICU %", 0.0, 100.0, value=4.0, step=0.5, format="%f") / 100.0
 )
 
 vent_rate = (
-    st.sidebar.number_input("Ventilated %", 0.0, 100.0, value=2.5, step=0.5, format="%f")
+    st.sidebar.number_input("Ventilated %", 0.0, 100.0, value=2.0, step=0.5, format="%f")
     / 100.0
 )
 
@@ -172,8 +382,10 @@ detection_prob = initial_infections / total_infections
 S, I, R = S, initial_infections / detection_prob, 0
 
 intrinsic_growth_rate = 2 ** (1 / doubling_time) - 1
+# (0.12 + 0.07)/
 
 recovery_days = 14.0
+recovered = 0.0
 # mean recovery rate, gamma, (in 1/days).
 gamma = 1 / recovery_days
 
@@ -183,7 +395,7 @@ beta = (
 ) / S * (1-relative_contact_rate) # {rate based on doubling time} / {initial S}
 
 r_t = beta / gamma * S # r_t is r_0 after distancing
-r_naught = r_t / (1-relative_contact_rate)
+r_naught = (intrinsic_growth_rate + gamma) / gamma
 doubling_time_t = 1/np.log2(beta*S - gamma +1) # doubling time after distancing
 
 st.title("COVID-19 Hospital Impact Model for Epidemics - Modified for Erie County")
@@ -324,177 +536,38 @@ $$\\beta = (g + \\gamma)$$.
             erie=erie))
 
 
-# The SIR model, one time step
-def sir(y, beta, gamma, N):
-    S, I, R = y
-    Sn = (-beta * S * I) + S
-    In = (beta * S * I - gamma * I) + I
-    Rn = gamma * I + R
-    if Sn < 0:
-        Sn = 0
-    if In < 0:
-        In = 0
-    if Rn < 0:
-        Rn = 0
-
-    scale = N / (Sn + In + Rn)
-    return Sn * scale, In * scale, Rn * scale
-
-
-# Run the SIR model forward in time
-def sim_sir(S, I, R, beta, gamma, n_days, beta_decay=None):
-    N = S + I + R
-    s, i, r = [S], [I], [R]
-    for day in range(n_days):
-        y = S, I, R
-        S, I, R = sir(y, beta, gamma, N)
-        if beta_decay:
-            beta = beta * (1 - beta_decay)
-        s.append(S)
-        i.append(I)
-        r.append(R)
-
-    s, i, r = np.array(s), np.array(i), np.array(r)
-    return s, i, r
-
-
 n_days = st.slider("Number of days to project", 30, 200, 60, 1, "%i")
 
 beta_decay = 0.0
-s, i, r = sim_sir(S, I, R, beta, gamma, n_days, beta_decay=beta_decay)
+s, i, r = sim_sir(S, I, R, beta, gamma, n_days)
+
+RateLos = namedtuple("RateLos", ("rate", "length_of_stay"))
+hospitalized=RateLos(hosp_rate, hosp_los)
+icu=RateLos(icu_rate, icu_los)
+ventilated=RateLos(vent_rate, vent_los)
 
 
-# List of Hospitals
-hosp_list = ['bgh', 'ecmc', 'mercy', 'mfsh', 'och', 'rpci', 'sch', 'scsjh']
+rates = tuple(each.rate for each in (hospitalized, icu, ventilated))
+lengths_of_stay = tuple(each.length_of_stay for each in (hospitalized, icu, ventilated))
 
-# Variables for projection tables
-hosp = i * hosp_rate * regional_hosp_share
-icu = i * icu_rate * regional_hosp_share
-vent = i * vent_rate * regional_hosp_share
-# BGH
-hosp_bgh = hosp * 0.25
-icu_bgh = icu * 0.25
-vent_bgh = vent * 0.25
-# ECMC
-hosp_ecmc = hosp * 0.16
-icu_ecmc = icu * 0.16
-vent_ecmc = vent * 0.16
-# Mercy
-hosp_mercy = hosp * 0.17
-icu_mercy = icu * 0.17
-vent_mercy = vent * 0.17
-# MFSH
-hosp_mfsh = hosp * 0.13
-icu_mfsh = icu * 0.13
-vent_mfsh = vent * 0.13
-# OCH
-hosp_och = hosp * 0.05
-icu_och = icu * 0.05
-vent_och = vent * 0.05
-# RPCI
-hosp_rpci = hosp * 0.06
-icu_rpci = icu * 0.06
-vent_rpci = vent * 0.06
-# SCH
-hosp_sch = hosp * 0.12
-icu_sch = icu * 0.12
-vent_sch = vent * 0.12
-# SCSJH
-hosp_scsjh = hosp * 0.06
-icu_scsjh = icu * 0.06
-vent_scsjh = vent * 0.06
+### Issue here
+s_v, i_v, r_v = sim_sir(S, total_infections, recovered, beta, gamma, n_days)
+susceptible_v, infected_v, recovered_v = s_v, i_v, r_v
 
+i_hospitalized_v, i_icu_v, i_ventilated_v = get_dispositions(i_v, rates, regional_hosp_share)
 
-days = np.array(range(0, n_days + 1))
-data_list = [days, hosp, icu, vent, 
-    hosp_bgh, icu_bgh, vent_bgh, 
-    hosp_ecmc, icu_ecmc, vent_ecmc, 
-    hosp_mercy, icu_mercy, vent_mercy,  
-    hosp_mfsh, icu_mfsh, vent_mfsh, 
-    hosp_och, icu_och, vent_och, 
-    hosp_rpci, icu_rpci, vent_rpci, 
-    hosp_sch, icu_sch, vent_sch, 
-    hosp_scsjh, icu_scsjh, vent_scsjh
-    ]
+r_hospitalized_v, r_icu_v, r_ventilated_v = get_dispositions(r_v, rates, regional_hosp_share)
 
-data_dict = dict(zip(["day", "hosp", "icu", "vent",
-    "hosp_bgh", "icu_bgh", "vent_bgh", 
-    "hosp_ecmc", "icu_ecmc", "vent_ecmc", 
-    "hosp_mercy", "icu_mercy", "vent_mercy", 
-    "hosp_mfsh", "icu_mfsh", "vent_mfsh", 
-    "hosp_och", "icu_och", "vent_och", 
-    "hosp_rpci", "icu_rpci", "vent_rpci", 
-    "hosp_sch", "icu_sch", "vent_sch", 
-    "hosp_scsjh", "icu_scsjh", "vent_scsjh"
-    ], data_list))
+dispositions = (
+            i_hospitalized_v + r_hospitalized_v,
+            i_icu_v + r_icu_v,
+            i_ventilated_v + r_ventilated_v)
 
-projection = pd.DataFrame.from_dict(data_dict)
+hospitalized_v, icu_v, ventilated_v = (
+            i_hospitalized_v,
+            i_icu_v,
+            i_ventilated_v)
 
-st.subheader("New Admissions")
-st.markdown("Projected number of **daily** COVID-19 admissions for Erie County")
-
-# New cases
-projection_admits = projection.iloc[:-1, :] - projection.shift(1)
-projection_admits[projection_admits < 0] = 0
-
-plot_projection_days = n_days - 10
-projection_admits["day"] = range(projection_admits.shape[0])
-
-
-def regional_admissions_chart(projection_admits: pd.DataFrame, plot_projection_days: int) -> alt.Chart:
-    """docstring"""
-    projection_admits = projection_admits.rename(columns={"hosp": "Hospitalized", "icu": "ICU", "vent": "Ventilated"})
-    return (
-        alt
-        .Chart(projection_admits.head(plot_projection_days))
-        .transform_fold(fold=["Hospitalized", "ICU", "Ventilated"])
-        .mark_line(point=True)
-        .encode(
-            x=alt.X("day", title="Days from today"),
-            y=alt.Y("value:Q", title="Daily admissions"),
-            color="key:N",
-            tooltip=["day", "key:N"]
-        )
-        .interactive()
-    )
-
-st.altair_chart(regional_admissions_chart(projection_admits, plot_projection_days), use_container_width=True)
-
-
-# def all_admissions_chart(projection_admits: pd.DataFrame, plot_projection_days: int) -> alt.Chart:
-    # """docstring"""
-    # projection_admits = projection_admits.rename(columns={"hosp_bgh": "Hospitalized - BGH", "icu_bgh": "ICU - BGH", "vent_bgh": "Ventilated - BGH",
-    # "hosp_ecmc": "Hospitalized - ECMC", "icu_ecmc": "ICU - ECMC", "vent_ecmc": "Ventilated - ECMC",
-    # "hosp_mercy": "Hospitalized - Mercy", "icu_mercy": "ICU - Mercy", "vent_mercy": "Ventilated - Mercy",
-    # "hosp_mfsh": "Hospitalized - Millard Fillmore Suburban", "icu_mfsh": "ICU - Millard Fillmore Suburban", "vent_mfsh": "Ventilated - Millard Fillmore Suburban",
-    # "hosp_och": "Hospitalized - Oishei", "icu_och": "ICU - Oishei", "vent_och": "Ventilated - Oishei",
-    # "hosp_rpci": "Hospitalized - Roswell", "icu_rpci": "ICU - Roswell", "vent_rpci": "Ventilated - Roswell",
-    # "hosp_sch": "Hospitalized - Sisters", "icu_sch": "ICU - Siters", "vent_sch": "Ventilated - Sisters",
-    # "hosp_scsjh": "Hospitalized - St Joseph", "icu_scsjh": "ICU - St Joseph", "vent_scsjh": "Ventilated - St Joseph",
-    # })
-    # return (
-        # alt
-        # .Chart(projection_admits.head(plot_projection_days))
-        # .transform_fold(fold=["Hospitalized - BGH", "ICU - BGH", "Ventilated - BGH",
-        # "Hospitalized - ECMC", "ICU - ECMC", "Ventilated - ECMC",
-        # "Hospitalized - Mercy", "ICU - Mercy", "Ventilated - Mercy",
-        # "Hospitalized - Millard Fillmore Suburban", "ICU - Millard Fillmore Suburban", "Ventilated - Millard Fillmore Suburban",
-        # "Hospitalized - Oishei", "ICU - Oishei", "Ventilated - Oishei",
-        # "Hospitalized - Roswell", "ICU - Roswell", "Ventilated - Roswell",
-        # "Hospitalized - Sisters", "ICU - Sisters", "Ventilated - Sisters",
-        # "Hospitalized - St Joseph", "ICU - St Joseph", "Ventilated - St Joseph",        
-        # ])
-        # .mark_line(point=True)
-        # .encode(
-            # x=alt.X("day", title="Days from today"),
-            # y=alt.Y("value:Q", title="Daily admissions"),
-            # color="key:N",
-            # tooltip=["day", "key:N"]
-        # )
-        # .interactive()
-    # )
-
-# st.altair_chart(all_admissions_chart(projection_admits, plot_projection_days), use_container_width=True)
 
 
 # Individual hospitals selection
@@ -579,18 +652,115 @@ if hosp_options == 'SCSJH':
     fold_name3 = ["PPE Mild Cases - Lower Range", "PPE Mild Cases - Upper Range", "PPE Severe Cases - Lower Range", "PPE Severe Cases - Upper Range"]
     icu_val = 7
     total_beds_val = 103
+    
+    
+
+# Graphs of new admissions for Erie
+st.subheader("New Admissions")
+st.markdown("Projected number of **daily** COVID-19 admissions for Erie County")
+
+# New cases
+projection_admits = build_admissions_df(dispositions)
+# Census Table
+census_table = build_census_df(projection_admits)
+
+# census_table['total_county_icu'] = icu_county
+# census_table['total_county_beds'] = beds_county
+# census_table['icu_beds'] = icu_val
+# census_table['total_beds'] = total_beds_val
+# for hosp in hosp_list:
+    # census_table['ppe_mild_d_'+hosp] = census_table['hosp_'+hosp] * ppe_mild_val_lower
+    # census_table['ppe_mild_u_'+hosp] = census_table['hosp_'+hosp] * ppe_mild_val_upper
+    # census_table['ppe_severe_d_'+hosp] = census_table['icu_'+hosp] * ppe_severe_val_lower
+    # census_table['ppe_severe_u_'+hosp] = census_table['icu_'+hosp] * ppe_severe_val_upper
+
+plot_projection_days = n_days - 10
+
+
+# def new_admissions_chart(
+    # alt, projection_admits: pd.DataFrame, parameters: Parameters, as_date: bool = False,
+# ) -> Chart:
+    # """docstring"""
+    # plot_projection_days = n_days - 10
+    # #max_y_axis = parameters.max_y_axis
+
+    # y_scale = alt.Scale()
+
+    # # if max_y_axis is not None:
+        # # y_scale.domain = (0, max_y_axis)
+        # # y_scale.clamp = True
+
+    # tooltip_dict = {False: "day", True: "date:T"}
+    # if as_date:
+        # projection_admits = add_date_column(projection_admits)
+        # x_kwargs = {"shorthand": "date:T", "title": "Date"}
+    # else:
+        # x_kwargs = {"shorthand": "day", "title": "Days from today"}
+
+    # return (
+        # alt.Chart(projection_admits.head(plot_projection_days))
+        # .transform_fold(fold=["Hospitalized", "ICU", "Ventilated"])
+        # .mark_line(point=True)
+        # .encode(
+            # x=alt.X(**x_kwargs),
+            # y=alt.Y("value:Q", title="Daily admissions", scale=y_scale),
+            # color="key:N",
+            # tooltip=[
+                # tooltip_dict[as_date],
+                # alt.Tooltip("value:Q", format=".0f", title="Admissions"),
+                # "key:N",
+            # ],
+        # )
+        # .interactive()
+    # )
+
+# Erie Graph of Cases
+def regional_admissions_chart(projection_admits: pd.DataFrame, plot_projection_days: int) -> alt.Chart:
+    """docstring"""
+    projection_admits = projection_admits.rename(columns={"hosp": "Hospitalized", "icu": "ICU", "vent": "Ventilated"})
+    return (
+        alt
+        .Chart(projection_admits.head(plot_projection_days))
+        .transform_fold(fold=["Hospitalized", "ICU", "Ventilated"])
+        .mark_line(point=True)
+        .encode(
+            x=alt.X("day", title="Days from today"),
+            y=alt.Y("value:Q", title="Daily admissions"),
+            color="key:N",
+            tooltip=["day", "key:N"]
+        )
+        .interactive()
+    )
+
+st.altair_chart(regional_admissions_chart(projection_admits, plot_projection_days), use_container_width=True)
+
+# Admissions for Erie County for comparison - Only has simple line - Not using.
+def erie_chart(erie_admits: pd.DataFrame) -> alt.Chart:
+    """docstring"""
+    return (
+        alt
+        .Chart(erie_admits)
+        .transform_fold(fold=["Admissions"])
+        .mark_line(point=True)
+        .encode(
+            x=alt.X("day", title="Days"),
+            y=alt.Y("value:Q", title="Admissions"),
+            color="key:N",
+            tooltip=["day", "key:N"]
+        )
+        .interactive()
+    )
+
+#st.altair_chart(erie_chart(erie_admits), use_container_width=True)
+
+# Comparison chart Model w/ Erie Data
+st.altair_chart(alt.layer(regional_admissions_chart(projection_admits, plot_projection_days).mark_line() + alt.layer(erie_chart(erie_admits).mark_line())), use_container_width=True)
+
+
 
 st.markdown("Projected number of **daily** COVID-19 admissions by Hospital")
 st.markdown("Distribution of regional cases based on total bed percentage (CCU/ICU/MedSurg).")
 
-# Adding ICU bed for county
-icu_county = 184
-beds_county = 1791
-# PPE Values
-ppe_mild_val_lower = 14
-ppe_mild_val_upper = 15
-ppe_severe_val_lower = 15
-ppe_severe_val_upper = 24
 
 def hospital_admissions_chart(projection_admits: pd.DataFrame, plot_projection_days: int) -> alt.Chart:
     """docstring"""
@@ -625,79 +795,79 @@ st.markdown("Projected **census** of COVID-19 patients for Erie County, accounti
 
 # ALOS for each category of COVID-19 case (total guesses)
 # Dictionary for loop to create estimates for census
-los_dict = {
-    "hosp": hosp_los,
-    "icu": icu_los,
-    "vent": vent_los,
-    "hosp_bgh": hosp_los,
-    "icu_bgh": icu_los,
-    "vent_bgh": vent_los,
-    "hosp_ecmc": hosp_los,
-    "icu_ecmc": icu_los,
-    "vent_ecmc": vent_los,
-    "hosp_mercy": hosp_los,
-    "icu_mercy": icu_los,
-    "vent_mercy": vent_los,
-    "hosp_mfsh": hosp_los,
-    "icu_mfsh": icu_los,
-    "vent_mfsh": vent_los,
-    "hosp_och": hosp_los,
-    "icu_och": icu_los,
-    "vent_och": vent_los,
-    "hosp_rpci": hosp_los,
-    "icu_rpci": icu_los,
-    "vent_rpci": vent_los,
-    "hosp_sch": hosp_los,
-    "icu_sch": icu_los,
-    "vent_sch": vent_los,
-    "hosp_scsjh": hosp_los,
-    "icu_scsjh": icu_los,
-    "vent_scsjh": vent_los
-}
+# los_dict = {
+    # "hosp": hosp_los,
+    # "icu": icu_los,
+    # "vent": vent_los,
+    # "hosp_bgh": hosp_los,
+    # "icu_bgh": icu_los,
+    # "vent_bgh": vent_los,
+    # "hosp_ecmc": hosp_los,
+    # "icu_ecmc": icu_los,
+    # "vent_ecmc": vent_los,
+    # "hosp_mercy": hosp_los,
+    # "icu_mercy": icu_los,
+    # "vent_mercy": vent_los,
+    # "hosp_mfsh": hosp_los,
+    # "icu_mfsh": icu_los,
+    # "vent_mfsh": vent_los,
+    # "hosp_och": hosp_los,
+    # "icu_och": icu_los,
+    # "vent_och": vent_los,
+    # "hosp_rpci": hosp_los,
+    # "icu_rpci": icu_los,
+    # "vent_rpci": vent_los,
+    # "hosp_sch": hosp_los,
+    # "icu_sch": icu_los,
+    # "vent_sch": vent_los,
+    # "hosp_scsjh": hosp_los,
+    # "icu_scsjh": icu_los,
+    # "vent_scsjh": vent_los
+# }
 
-census_dict = dict()
-for k, los in los_dict.items():
-    census = (
-        projection_admits.cumsum().iloc[:-los, :]
-        - projection_admits.cumsum().shift(los).fillna(0)
-    ).apply(np.ceil)
-    census_dict[k] = census[k]
+# census_dict = dict()
+# for k, los in los_dict.items():
+    # census = (
+        # projection_admits.cumsum().iloc[:-los, :]
+        # - projection_admits.cumsum().shift(los).fillna(0)
+    # ).apply(np.ceil)
+    # census_dict[k] = census[k]
 
 
-census_df = pd.DataFrame(census_dict)
-census_df["day"] = census_df.index
-census_df = census_df[["day", "hosp", "icu", "vent", 
-    "hosp_bgh", "icu_bgh", "vent_bgh", 
-    "hosp_ecmc", "icu_ecmc", "vent_ecmc",
-    "hosp_mercy", "icu_mercy", "vent_mercy",
-    "hosp_mfsh", "icu_mfsh", "vent_mfsh",
-    "hosp_och", "icu_och", "vent_och",
-    "hosp_rpci", "icu_rpci", "vent_rpci",
-    "hosp_sch", "icu_sch", "vent_sch",
-    "hosp_scsjh", "icu_scsjh", "vent_scsjh"
-    ]]
+# census_df = pd.DataFrame(census_dict)
+# census_df["day"] = census_df.index
+# census_df = census_df[["day", "hosp", "icu", "vent", 
+    # "hosp_bgh", "icu_bgh", "vent_bgh", 
+    # "hosp_ecmc", "icu_ecmc", "vent_ecmc",
+    # "hosp_mercy", "icu_mercy", "vent_mercy",
+    # "hosp_mfsh", "icu_mfsh", "vent_mfsh",
+    # "hosp_och", "icu_och", "vent_och",
+    # "hosp_rpci", "icu_rpci", "vent_rpci",
+    # "hosp_sch", "icu_sch", "vent_sch",
+    # "hosp_scsjh", "icu_scsjh", "vent_scsjh"
+    # ]]
 
-# Add ppe columns w/ calcs to census before cummulative sum
-ppe_df = census_df
-for hosp in hosp_list:
-    ppe_df['ppe_mild_d_'+hosp] = ppe_df['hosp_'+hosp] * ppe_mild_val_lower
-    ppe_df['ppe_mild_u_'+hosp] = ppe_df['hosp_'+hosp] * ppe_mild_val_upper
-    ppe_df['ppe_severe_d_'+hosp] = ppe_df['icu_'+hosp] * ppe_severe_val_lower
-    ppe_df['ppe_severe_u_'+hosp] = ppe_df['icu_'+hosp] * ppe_severe_val_upper
+# # Add ppe columns w/ calcs to census before cummulative sum
+# ppe_df = census_df
+# for hosp in hosp_list:
+    # ppe_df['ppe_mild_d_'+hosp] = ppe_df['hosp_'+hosp] * ppe_mild_val_lower
+    # ppe_df['ppe_mild_u_'+hosp] = ppe_df['hosp_'+hosp] * ppe_mild_val_upper
+    # ppe_df['ppe_severe_d_'+hosp] = ppe_df['icu_'+hosp] * ppe_severe_val_lower
+    # ppe_df['ppe_severe_u_'+hosp] = ppe_df['icu_'+hosp] * ppe_severe_val_upper
 
-census_table = census_df[np.mod(census_df.index, 7) == 0].copy()
-census_table.index = range(census_table.shape[0])
-census_table.loc[0, :] = 0
-census_table = census_table.dropna().astype(int)
-census_table['total_county_icu'] = icu_county
-census_table['total_county_beds'] = beds_county
-census_table['icu_beds'] = icu_val
-census_table['total_beds'] = total_beds_val
-for hosp in hosp_list:
-    census_table['ppe_mild_d_'+hosp] = census_table['hosp_'+hosp] * ppe_mild_val_lower
-    census_table['ppe_mild_u_'+hosp] = census_table['hosp_'+hosp] * ppe_mild_val_upper
-    census_table['ppe_severe_d_'+hosp] = census_table['icu_'+hosp] * ppe_severe_val_lower
-    census_table['ppe_severe_u_'+hosp] = census_table['icu_'+hosp] * ppe_severe_val_upper
+# census_table = census_df[np.mod(census_df.index, 7) == 0].copy()
+# census_table.index = range(census_table.shape[0])
+# census_table.loc[0, :] = 0
+# census_table = census_table.dropna().astype(int)
+# census_table['total_county_icu'] = icu_county
+# census_table['total_county_beds'] = beds_county
+# census_table['icu_beds'] = icu_val
+# census_table['total_beds'] = total_beds_val
+# for hosp in hosp_list:
+    # census_table['ppe_mild_d_'+hosp] = census_table['hosp_'+hosp] * ppe_mild_val_lower
+    # census_table['ppe_mild_u_'+hosp] = census_table['hosp_'+hosp] * ppe_mild_val_upper
+    # census_table['ppe_severe_d_'+hosp] = census_table['icu_'+hosp] * ppe_severe_val_lower
+    # census_table['ppe_severe_u_'+hosp] = census_table['icu_'+hosp] * ppe_severe_val_upper
     
 
 def admitted_patients_chart(census: pd.DataFrame) -> alt.Chart:
@@ -721,6 +891,7 @@ def admitted_patients_chart(census: pd.DataFrame) -> alt.Chart:
 
 st.altair_chart(admitted_patients_chart(census_table), use_container_width=True)
 
+# st.altair_chart(alt.layer(admitted_patients_chart(census_table).mark_line() + alt.layer(erie_chart(erie_admits).mark_line())), use_container_width=True)
 
 st.markdown("Projected **census** of COVID-19 patients by Hospital, accounting for arrivals and discharges.")
 

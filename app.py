@@ -401,11 +401,19 @@ bed_share = pd.DataFrame(data)
 
 # Erie's admission for comparison with current curve
 data_dict = {
-    "Admissions": [0, 0, 1, 4, 6, 6, 8, 21, 30],
-    "Cases": [3, 7, 20, 34, 47, 61, 96, 114, 121],
-    "Deaths": [0,0,0,0,0,0,0,0,1],
-    "Date": ['3/16/20', '3/17/20', '3/18/20', '3/20/20', '3/21/20', '3/22/20', '3/23/20', '3/24/20', '3/25/20'],
-    "day": [14,15,16,17,18,19,20,21, 22]
+    "Admissions": [0,0,0,0,0,0,0,0,0,0,
+                   0,0,0,0,0,0,0,0,1,4,
+                   6,6,8,21,29],
+    "Cases": [0,0,0,0,0,0,0,0,0,0,
+              0,0,0,0,0,3,7,20,34,47,
+              61,96,114,121,146],
+    "Deaths": [0,0,0,0,0,0,0,0,0,0,
+               0,0,0,0,0,0,0,0,0,0,
+               0,0,0,0,2],
+    "Date": ['3/1/20', '3/2/20', '3/3/20', '3/4/20', '3/5/20', '3/6/20', '3/7/20', '3/8/20', '3/9/20', '3/10/20',
+        '3/11/20', '3/12/20', '3/13/20', '3/14/20', '3/15/20', '3/16/20', '3/17/20', '3/18/20', '3/19/20', '3/20/20', 
+        '3/21/20', '3/22/20', '3/23/20', '3/24/20', '3/25/20'],
+    "day": [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25]
     }
 erie_df = pd.DataFrame.from_dict(data_dict)
 erie_df['Date'] = pd.to_datetime(erie_df['Date'])
@@ -417,10 +425,10 @@ tonawanda = 14904
 cheektowaga = 87018
 amherst = 126082
 erie = 1500000
-cases_erie = 121
+cases_erie = 146
 S_default = erie
-known_infections = 121
-known_cases = 21
+known_infections = 146
+known_cases = 29
 #initial_infections = 47
 regional_hosp_share = 1.0
 S = erie
@@ -506,8 +514,8 @@ doubling_time_t = 1/np.log2(beta*S - gamma +1) # doubling time after distancing
 
 st.title("COVID-19 Hospital Impact Model for Epidemics - Modified for Erie County")
 st.markdown(
-    """*This tool was developed by the [Predictive Healthcare team](http://predictivehealthcare.pennmedicine.org/) at
-Penn Medicine. 
+    """*This tool was initially developed by the [Predictive Healthcare team](http://predictivehealthcare.pennmedicine.org/) at
+Penn Medicine and has been modified for our community.
 
 All credit goes to the PH team at Penn Medicine. We have adapted the code based on our current regional cases, county population and hospitals.
 
@@ -515,12 +523,13 @@ For questions about this page, contact ganaya@buffalo.edu.
 
 For question and comments about the model [contact page](http://predictivehealthcare.pennmedicine.org/contact/).""")
 
-#The estimated number of currently infected individuals in Erie County is **{total_infections:.0f}**. The **{initial_infections}** 
-#confirmed cases in the region imply a **{detection_prob:.0%}** rate of detection. This is based on current inputs for 
-#Hospitalizations (**{current_hosp}**), Hospitalization rate (**{hosp_rate:.0%}**) and Region size (**{S}**). 
 
 st.markdown(
     """
+The estimated number of currently infected individuals in Erie County is **{total_infections:.0f}**. The **{initial_infections}** 
+confirmed cases in the region imply a **{detection_prob:.0%}** rate of detection. This is based on current inputs for 
+Hospitalizations (**{current_hosp}**), Hospitalization rate (**{hosp_rate:.0%}**) and Region size (**{S}**). 
+
 The first graph includes a county wide analysis, each Hospital is represented as a percent from the total bed-share distribution (CCU, ICU, MedSurg).
 
 An initial doubling time of **{doubling_time}** days and a recovery time of **{recovery_days}** days imply an $R_0$ of 
@@ -561,7 +570,18 @@ st.markdown(
 )
 #st.markdown(""" """)
 #st.markdown(""" """)
-#st.markdown(""" """)
+
+
+#st.markdown("""Reported cases in Erie County""")
+
+erie_cases_bar = alt.Chart(erie_df).mark_bar().encode(
+    x='Date:T',
+    y='Cases:Q')
+erie_admit_line = alt.Chart(erie_df).mark_line(color='red').encode(
+    x='Date:T',
+    y='Admissions:Q')
+
+st.altair_chart(alt.layer(erie_cases_bar + erie_admit_line), use_container_width=True)
 
 #fig = go.Figure(data=[go.Table(header=dict(values=['Total Cases', 'Total Deaths', 'Mortality Rate %']),
 #                 cells=dict(values=[cases_us, deaths_us, us_MR]))
@@ -642,7 +662,7 @@ $$\\beta = (g + \\gamma)$$.
             erie=erie))
 
 
-n_days = st.slider("Number of days to project", 30, 200, 60, 1, "%i")
+n_days = st.slider("Number of days to project", 30, 200, 90, 1, "%i")
 as_date = st.checkbox(label="Present result as dates", value=False)
 
 beta_decay = 0.0
@@ -708,9 +728,9 @@ if hosp_options == 'BGH':
     col_name2 = {"hosp_bgh": "Hospitalized - BGH", "icu_bgh": "ICU - BGH", "vent_bgh": "Ventilated - BGH",
         "expanded_beds":"Expanded IP Beds", "expanded_icu_beds": "Expanded ICU Beds"}
     fold_name2 = ["Hospitalized - BGH", "ICU - BGH", "Ventilated - BGH", "Expanded IP Beds", "Expanded ICU Beds"]
-    col_name3 = {"ppe_mild_d_bgh": "PPE Mild Cases - Lower Range", "ppe_mild_u_bgh": "PPE Mild Cases - Upper Range", 
-    "ppe_severe_d_bgh": "PPE Severe Cases - Lower Range", "ppe_severe_u_bgh": "PPE Severe Cases - Upper Range"}
-    fold_name3 = ["PPE Mild Cases - Lower Range", "PPE Mild Cases - Upper Range", "PPE Severe Cases - Lower Range", "PPE Severe Cases - Upper Range"]
+    #col_name3 = {"ppe_mild_d_bgh": "PPE Mild Cases - Lower Range", "ppe_mild_u_bgh": "PPE Mild Cases - Upper Range", 
+    #"ppe_severe_d_bgh": "PPE Severe Cases - Lower Range", "ppe_severe_u_bgh": "PPE Severe Cases - Upper Range"}
+    #fold_name3 = ["PPE Mild Cases - Lower Range", "PPE Mild Cases - Upper Range", "PPE Severe Cases - Lower Range", "PPE Severe Cases - Upper Range"]
     icu_val = 53
     total_beds_val = 456
     expanded_beds_val = 684
@@ -888,6 +908,11 @@ def regional_admissions_chart(
         .interactive()
     )
 
+# , scale=alt.Scale(domain=[0, 3250])
+
+#st.altair_chart(alt.layer(altair_chart(regional_admissions_chart(projection_admits).mark_line()))
+ #+ alt.layer(regional_admissions_chart(projection_admits_e).mark_line()), use_container_width=True)    
+
 # Erie County Admissions Chart
 st.altair_chart(
     regional_admissions_chart(projection_admits, 
@@ -906,52 +931,6 @@ st.altair_chart(
         plot_projection_days, 
         as_date=as_date), 
     use_container_width=True)
-
-
-# # Admissions for Erie County for comparison - Only has simple line - Not using.
-# def erie_chart(
-    # erie_df: pd.DataFrame, 
-    # as_date:bool = False) -> alt.Chart:
-    # """docstring"""
-    
-    # tooltip_dict = {False: "day", True: "date:T"}
-    # if as_date:
-        # erie_df = add_date_column(erie_df)
-        # x_kwargs = {"shorthand": "date:T", "title": "Date"}
-    # else:
-        # x_kwargs = {"shorthand": "day", "title": "Days from today"}
-    
-    # return (
-        # alt
-        # .Chart(erie_df)
-        # .transform_fold(fold=["Admissions"])
-        # .mark_line(point=True)
-        # .encode(
-            # x=alt.X(**x_kwargs),
-            # y=alt.Y("value:Q", title="Admissions"),
-            # color="key:N",
-            # tooltip=[
-                # tooltip_dict[as_date],
-                # alt.Tooltip("value:Q", format=".0f", title="Admissions"),
-                # "key:N",
-            # ],
-        # )
-        # .interactive()
-    # )
-
-# st.altair_chart(alt.Chart(erie).mark_line().encode(
-    # x='Date:T',
-    # y='Admissions:Q'
-# ))
-
-# st.altair_chart(
-    # erie_chart(
-        # erie, 
-        # as_date=as_date), 
-    # use_container_width=True)
-
-# Comparison chart Model w/ Erie Data
-#st.altair_chart(alt.layer(regional_admissions_chart(projection_admits, plot_projection_days).mark_line() + alt.layer(erie_chart(erie_admits).mark_line())), use_container_width=True)
 
 
 st.subheader("Projected number of **daily** COVID-19 admissions by Hospital: SIR model")
@@ -988,6 +967,8 @@ def hospital_admissions_chart(
         )
         .interactive()
     )
+    
+
 
 # By Hospital Admissions Chart - SIR
 st.altair_chart(
@@ -1022,9 +1003,11 @@ if st.checkbox("Show Projected Admissions in tabular form:SEIR"):
     st.dataframe(admits_table_e)
 
 st.subheader("Admitted Patients (Census)")
-st.markdown("Projected **census** of COVID-19 patients for Erie County, accounting for arrivals and discharges.")
+st.subheader("Projected **census** of COVID-19 patients for Erie County, accounting for arrivals and discharges: **SIR Model**")
 
-   
+
+# Census Graphs
+ 
 def admitted_patients_chart(
     census: pd.DataFrame,
     plot_projection_days: int,
@@ -1044,7 +1027,7 @@ def admitted_patients_chart(
         alt
         .Chart(census)
         .transform_fold(fold=["Hospital Census", "ICU Census", "Ventilated Census", "Expanded IP Beds", "Expanded ICU Beds"])
-        .mark_line(point=True)
+        .mark_line(point=False)
         .encode(
             x=alt.X(**x_kwargs),
             y=alt.Y("value:Q", title="Census"),
@@ -1065,6 +1048,8 @@ st.altair_chart(
         plot_projection_days,
         as_date=as_date),
     use_container_width=True)
+
+st.subheader("Projected **census** of COVID-19 patients for Erie County, accounting for arrivals and discharges: **SEIR Model**")
     
 # Erie County Census Graph - SEIR
 st.altair_chart(
@@ -1097,7 +1082,7 @@ def hosp_admitted_patients_chart(
         alt
         .Chart(census)
         .transform_fold(fold=fold_name2)
-        .mark_line(point=True)
+        .mark_line(point=False)
         .encode(
             x=alt.X(**x_kwargs),
             y=alt.Y("value:Q", title="Census"),
@@ -1117,6 +1102,7 @@ st.altair_chart(
         as_date=as_date), 
     use_container_width=True)
 
+# , scale=alt.Scale(domain=[0, 30000])
 
 if st.checkbox("Show Projected Census in tabular form"):
     st.dataframe(census_table)
@@ -1125,14 +1111,13 @@ if st.checkbox("Show Projected Census in tabular form"):
 #    """**Click the checkbox below to view additional data generated by this simulation**"""
 #)
 
-st.subheader("Projected personal protective equipment needs for mild and severe cases of COVID-19.")
+st.subheader("Projected personal protective equipment needs for mild and severe cases of COVID-19: SIR Model")
 
 def ppe_chart(
     census: pd.DataFrame,
     as_date:bool = False) -> alt.Chart:
     """docstring"""
-    census = census.rename(columns=col_name3)
-
+    census = census.rename(columns={'ppe_mean_mild': 'Mean PPE needs - mild cases', 'ppe_mean_severe': 'Mean PPE needs - severe cases'})
     tooltip_dict = {False: "day", True: "date:T"}
     if as_date:
         census = add_date_column(census)
@@ -1143,7 +1128,7 @@ def ppe_chart(
     return (
         alt
         .Chart(census)
-        .transform_fold(fold=fold_name3)
+        .transform_fold(fold=['Mean PPE needs - mild cases', 'Mean PPE needs - severe cases'])
         .mark_line(point=True)
         .encode(
             x=alt.X(**x_kwargs),
@@ -1158,10 +1143,20 @@ def ppe_chart(
         .interactive()
     )
 
+# , scale=alt.Scale(domain=[0, 450000])
 
+#SIR
 st.altair_chart(
     ppe_chart(
     census_table,
+    as_date=as_date),
+    use_container_width=True)
+    
+st.subheader("Projected personal protective equipment needs for mild and severe cases of COVID-19: SEIR Model")
+# SEIR
+st.altair_chart(
+    ppe_chart(
+    census_table_e,
     as_date=as_date),
     use_container_width=True)
 

@@ -371,10 +371,10 @@ data = {'County': ['Erie', 'New York City', 'New York State'],
 ny_data = pd.DataFrame(data)
 
 # Adding ICU bed for county
-icu_county = 184
-expanded_icu_county = 276
-beds_county = 1791
-expanded_beds_county = 2687
+icu_county = 246
+expanded_icu_county = 369
+beds_county = 2380
+expanded_beds_county = 3570
 # PPE Values
 ppe_mild_val_lower = 14
 ppe_mild_val_upper = 15
@@ -451,7 +451,7 @@ relative_contact_rate = st.sidebar.number_input(
 )/100.0
 
 hosp_rate = (
-    st.sidebar.number_input("Hospitalization %", 0.0, 100.0, value=12.0, step=1.0, format="%f")
+    st.sidebar.number_input("Hospitalization %", 0.0, 100.0, value=10.0, step=1.0, format="%f")
     / 100.0
 )
 
@@ -515,22 +515,20 @@ doubling_time_t = 1/np.log2(beta*S - gamma +1) # doubling time after distancing
 st.title("COVID-19 Hospital Impact Model for Epidemics - Modified for Erie County")
 st.markdown(
     """*This tool was initially developed by the [Predictive Healthcare team](http://predictivehealthcare.pennmedicine.org/) at
-Penn Medicine and has been modified for our community.
+Penn Medicine and has been modified for our community. 
 
-All credit goes to the PH team at Penn Medicine. We have adapted the code based on our current regional cases, county population and hospitals.
+We have modified the model to include:
+- "Exposure", creating a SEIR model. 
+- We present distribution of cases by each hospital based on bed-share percentage.
+- Protective Equipment Equipment needs for Erie County, NY.
 
-For questions about this page, contact ganaya@buffalo.edu. 
-
-For question and comments about the model [contact page](http://predictivehealthcare.pennmedicine.org/contact/).""")
+For questions about this page, contact ganaya@buffalo.edu. """)
 
 
 st.markdown(
     """
-The estimated number of currently infected individuals in Erie County is **{total_infections:.0f}**. The **{initial_infections}** 
-confirmed cases in the region imply a **{detection_prob:.0%}** rate of detection. This is based on current inputs for 
-Hospitalizations (**{current_hosp}**), Hospitalization rate (**{hosp_rate:.0%}**) and Region size (**{S}**). 
-
-The first graph includes a county wide analysis, each Hospital is represented as a percent from the total bed-share distribution (CCU, ICU, MedSurg).
+The first graph includes the COVID-19 cases in Erie County, NY. A county wide and hospital based analysis using both SIR and SEIR models is presented afterwards. 
+Each Hospital is represented as a percent from the total bed-share distribution (CCU, ICU, MedSurg - Pending update of 'expanded' per hospital beds).
 
 An initial doubling time of **{doubling_time}** days and a recovery time of **{recovery_days}** days imply an $R_0$ of 
 **{r_naught:.2f}**.
@@ -553,6 +551,10 @@ outbreak reduces the doubling time to **{doubling_time_t:.1f}** days, implying a
     )
 )
 
+# The estimated number of currently infected individuals in Erie County is **{total_infections:.0f}**. The **{initial_infections}** 
+# confirmed cases in the region imply a **{detection_prob:.0%}** rate of detection. This is based on current inputs for 
+# Hospitalizations (**{current_hosp}**), Hospitalization rate (**{hosp_rate:.0%}**) and Region size (**{S}**). 
+# All credit goes to the PH team at Penn Medicine. We have adapted the code based on our current regional cases, county population and hospitals.
 # The **{initial_infections}** confirmed cases in the region imply a **{detection_prob:.0%}** rate of detection.
 
 st.subheader("Cases of COVID-19 in the United States")
@@ -563,6 +565,12 @@ st.table(us_data)
 #counties.sort_values(by=['Cases'], ascending=False)
 #st.table(ny_data)
 #st.subheader("Cases of COVID-19 in Erie County")
+
+
+
+st.subheader("""Reported cases and admissions in Erie County""")
+
+
 st.markdown(
     """Erie county has reported **{cases_erie:.0f}** cases of COVID-19.""".format(
         cases_erie=cases_erie
@@ -572,7 +580,7 @@ st.markdown(
 #st.markdown(""" """)
 
 
-#st.markdown("""Reported cases in Erie County""")
+
 
 erie_cases_bar = alt.Chart(erie_df).mark_bar().encode(
     x='Date:T',
@@ -662,7 +670,7 @@ $$\\beta = (g + \\gamma)$$.
             erie=erie))
 
 
-n_days = st.slider("Number of days to project", 30, 200, 90, 1, "%i")
+n_days = st.slider("Number of days to project", 30, 300, 120, 1, "%i")
 as_date = st.checkbox(label="Present result as dates", value=False)
 
 beta_decay = 0.0
@@ -1005,9 +1013,10 @@ if st.checkbox("Show Projected Admissions in tabular form:SEIR"):
 st.subheader("Admitted Patients (Census)")
 st.subheader("Projected **census** of COVID-19 patients for Erie County, accounting for arrivals and discharges: **SIR Model**")
 
-
+###################
 # Census Graphs
- 
+####################
+
 def admitted_patients_chart(
     census: pd.DataFrame,
     plot_projection_days: int,
@@ -1059,12 +1068,11 @@ st.altair_chart(
         as_date=as_date),
     use_container_width=True)
 
+# , scale=alt.Scale(domain=[0, 30000])
 
 # st.altair_chart(alt.layer(admitted_patients_chart(census_table).mark_line() + alt.layer(erie_chart(erie_admits).mark_line())), use_container_width=True)
 
-st.markdown("Projected **census** of COVID-19 patients by Hospital, accounting for arrivals and discharges.")
-
-
+# Census by hospital
 def hosp_admitted_patients_chart(
     census: pd.DataFrame, 
     as_date:bool = False) -> alt.Chart:
@@ -1096,9 +1104,21 @@ def hosp_admitted_patients_chart(
         .interactive()
     )
 
+
+st.markdown("The following two graphs still need adjustment of the bed distribution (horizontal lines) due to recent changes in bed expansion")
+st.subheader("Projected **census** of COVID-19 patients by Hospital, accounting for arrivals and discharges: SIR Model")
+
 st.altair_chart(
     hosp_admitted_patients_chart(
         census_table, 
+        as_date=as_date), 
+    use_container_width=True)
+
+st.subheader("Projected **census** of COVID-19 patients by Hospital, accounting for arrivals and discharges: SEIR Model")
+
+st.altair_chart(
+    hosp_admitted_patients_chart(
+        census_table_e, 
         as_date=as_date), 
     use_container_width=True)
 
@@ -1129,7 +1149,7 @@ def ppe_chart(
         alt
         .Chart(census)
         .transform_fold(fold=['Mean PPE needs - mild cases', 'Mean PPE needs - severe cases'])
-        .mark_line(point=True)
+        .mark_line(point=False)
         .encode(
             x=alt.X(**x_kwargs),
             y=alt.Y("value:Q", title="Projected PPE needs per day"),

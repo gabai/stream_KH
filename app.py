@@ -302,47 +302,47 @@ time = time.strftime("%H:%M:%S")
 ### Extract data for US
 # URL
 # 1 Request URL
-url = 'https://www.cdc.gov/coronavirus/2019-ncov/cases-updates/cases-in-us.html'
-page = requests.get(url)
+#url = 'https://www.cdc.gov/coronavirus/2019-ncov/cases-updates/cases-in-us.html'
+#page = requests.get(url)
 # 2 Parse HTML content
-soup = BeautifulSoup(page.text, 'html.parser')
+#soup = BeautifulSoup(page.text, 'html.parser')
 # 3 Extract cases data
-cdc_data = soup.find_all(attrs={"class": "card-body bg-white"})
+#cdc_data = soup.find_all(attrs={"class": "card-body bg-white"})
 # Create dataset of extracted data
-df = []
-for ul in cdc_data:
-    for li in ul.find_all('li'):
-        df.append(li.text.replace('\n', ' ').strip())
+#df = []
+#for ul in cdc_data:
+#    for li in ul.find_all('li'):
+#        df.append(li.text.replace('\n', ' ').strip())
 ### US specific cases - CDC
-cases_us = df[0].split(': ')
+#cases_us = df[0].split(': ')
 # Replace + and , for numeric values
-cases_us = int(cases_us[1].replace(',', ''))
+#cases_us = int(cases_us[1].replace(',', ''))
 # Total US deaths - CDC
-deaths_us = df[1].split(': ')
-deaths_us = pd.to_numeric(deaths_us[1])
+#deaths_us = df[1].split(': ')
+#deaths_us = pd.to_numeric(deaths_us[1])
 # Calculate mortality rate
-us_MR = round((deaths_us/cases_us)*100,2)
+#us_MR = round((deaths_us/cases_us)*100,2)
 # Create table
-data = {'Cases': [cases_us],
-       'Deaths': [deaths_us],
-       'Calculated Mortality Rate': [us_MR]}
-us_data = pd.DataFrame(data)
+#data = {'Cases': [cases_us],
+#       'Deaths': [deaths_us],
+#       'Calculated Mortality Rate': [us_MR]}
+#us_data = pd.DataFrame(data)
 
 # Extract data for NY State cases
 # URL
 # 1 Request URL
-url = 'https://coronavirus.health.ny.gov/county-county-breakdown-positive-cases'
-page = requests.get(url)
+#url = 'https://coronavirus.health.ny.gov/county-county-breakdown-positive-cases'
+#page = requests.get(url)
 # 2 Parse HTML content
-soup = BeautifulSoup(page.text, 'html.parser')
+#soup = BeautifulSoup(page.text, 'html.parser')
 # 3 Get the table having the class country table
-table = soup.find("div", attrs={'class':"wysiwyg--field-webny-wysiwyg-body"})
-table_data = table.find_all("td")
+#table = soup.find("div", attrs={'class':"wysiwyg--field-webny-wysiwyg-body"})
+#table_data = table.find_all("td")
 # Get all the headings of Lists
-df = []
-for i in range(0,len(table_data)):
-    for td in table_data[i]:
-        df.append(table_data[i].text.replace('\n', ' ').strip())
+#df = []
+#for i in range(0,len(table_data)):
+#    for td in table_data[i]:
+#        df.append(table_data[i].text.replace('\n', ' ').strip())
         
 
 

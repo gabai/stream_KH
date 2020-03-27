@@ -346,29 +346,29 @@ time = time.strftime("%H:%M:%S")
         
 
 
-counties = pd.DataFrame([])
-for i in range(0, len(df), 2):
-    counties = counties.append(pd.DataFrame({'County': df[i], 'Cases': df[i+1]},
-                                              index =[0]), ignore_index=True)
+#counties = pd.DataFrame([])
+#for i in range(0, len(df), 2):
+#    counties = counties.append(pd.DataFrame({'County': df[i], 'Cases': df[i+1]},
+#                                              index =[0]), ignore_index=True)
 
 
 # NY state Modification for Counties and State Tables
-NYC = counties[counties['County']=='New York City'].reset_index()
-NYS = counties[counties['County']=='Total Number of Positive Cases'].reset_index()
-erie = counties[counties['County']=='Erie'].reset_index()
-counties_cases = counties[~(counties['County']=='New York City') & ~(counties['County']=='Total Number of Positive Cases')]
+#NYC = counties[counties['County']=='New York City'].reset_index()
+#NYS = counties[counties['County']=='Total Number of Positive Cases'].reset_index()
+#erie = counties[counties['County']=='Erie'].reset_index()
+#counties_cases = counties[~(counties['County']=='New York City') & ~(counties['County']=='Total Number of Positive Cases')]
 # Remove comma
-NYC['Cases'] = pd.to_numeric(NYC['Cases'].str.replace(',', ''))
-NYS['Cases'] = pd.to_numeric(NYS['Cases'].str.replace(',', ''))
+#NYC['Cases'] = pd.to_numeric(NYC['Cases'].str.replace(',', ''))
+#NYS['Cases'] = pd.to_numeric(NYS['Cases'].str.replace(',', ''))
 # Extract value
-cases_nys = NYC.Cases[0]
-cases_nyc = NYS.Cases[0]
-cases_erie = pd.to_numeric(erie.Cases[0])
+#cases_nys = NYC.Cases[0]
+#cases_nyc = NYS.Cases[0]
+#cases_erie = pd.to_numeric(erie.Cases[0])
 
 # Create table
-data = {'County': ['Erie', 'New York City', 'New York State'],
-       'Cases': [cases_erie, cases_nyc, cases_nys]}
-ny_data = pd.DataFrame(data)
+#data = {'County': ['Erie', 'New York City', 'New York State'],
+#       'Cases': [cases_erie, cases_nyc, cases_nys]}
+#ny_data = pd.DataFrame(data)
 
 # Adding ICU bed for county
 icu_county = 246

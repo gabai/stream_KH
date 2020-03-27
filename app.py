@@ -302,73 +302,73 @@ time = time.strftime("%H:%M:%S")
 ### Extract data for US
 # URL
 # 1 Request URL
-url = 'https://www.cdc.gov/coronavirus/2019-ncov/cases-updates/cases-in-us.html'
-page = requests.get(url)
+#url = 'https://www.cdc.gov/coronavirus/2019-ncov/cases-updates/cases-in-us.html'
+#page = requests.get(url)
 # 2 Parse HTML content
-soup = BeautifulSoup(page.text, 'html.parser')
+#soup = BeautifulSoup(page.text, 'html.parser')
 # 3 Extract cases data
-cdc_data = soup.find_all(attrs={"class": "card-body bg-white"})
+#cdc_data = soup.find_all(attrs={"class": "card-body bg-white"})
 # Create dataset of extracted data
-df = []
-for ul in cdc_data:
-    for li in ul.find_all('li'):
-        df.append(li.text.replace('\n', ' ').strip())
+#df = []
+#for ul in cdc_data:
+#    for li in ul.find_all('li'):
+#        df.append(li.text.replace('\n', ' ').strip())
 ### US specific cases - CDC
-cases_us = df[0].split(': ')
+#cases_us = df[0].split(': ')
 # Replace + and , for numeric values
-cases_us = int(cases_us[1].replace(',', ''))
+#cases_us = int(cases_us[1].replace(',', ''))
 # Total US deaths - CDC
-deaths_us = df[1].split(': ')
-deaths_us = pd.to_numeric(deaths_us[1])
+#deaths_us = df[1].split(': ')
+#deaths_us = pd.to_numeric(deaths_us[1])
 # Calculate mortality rate
-us_MR = round((deaths_us/cases_us)*100,2)
+#us_MR = round((deaths_us/cases_us)*100,2)
 # Create table
-data = {'Cases': [cases_us],
-       'Deaths': [deaths_us],
-       'Calculated Mortality Rate': [us_MR]}
-us_data = pd.DataFrame(data)
+#data = {'Cases': [cases_us],
+#       'Deaths': [deaths_us],
+#       'Calculated Mortality Rate': [us_MR]}
+#us_data = pd.DataFrame(data)
 
 # Extract data for NY State cases
 # URL
 # 1 Request URL
-url = 'https://coronavirus.health.ny.gov/county-county-breakdown-positive-cases'
-page = requests.get(url)
+#url = 'https://coronavirus.health.ny.gov/county-county-breakdown-positive-cases'
+#page = requests.get(url)
 # 2 Parse HTML content
-soup = BeautifulSoup(page.text, 'html.parser')
+#soup = BeautifulSoup(page.text, 'html.parser')
 # 3 Get the table having the class country table
-table = soup.find("div", attrs={'class':"wysiwyg--field-webny-wysiwyg-body"})
-table_data = table.find_all("td")
+#table = soup.find("div", attrs={'class':"wysiwyg--field-webny-wysiwyg-body"})
+#table_data = table.find_all("td")
 # Get all the headings of Lists
-df = []
-for i in range(0,len(table_data)):
-    for td in table_data[i]:
-        df.append(table_data[i].text.replace('\n', ' ').strip())
+#df = []
+#for i in range(0,len(table_data)):
+#    for td in table_data[i]:
+#        df.append(table_data[i].text.replace('\n', ' ').strip())
         
 
 
-counties = pd.DataFrame([])
-for i in range(0, len(df), 2):
-    counties = counties.append(pd.DataFrame({'County': df[i], 'Cases': df[i+1]},
-                                              index =[0]), ignore_index=True)
+#counties = pd.DataFrame([])
+#for i in range(0, len(df), 2):
+#    counties = counties.append(pd.DataFrame({'County': df[i], 'Cases': df[i+1]},
+#                                              index =[0]), ignore_index=True)
 
 
 # NY state Modification for Counties and State Tables
-NYC = counties[counties['County']=='New York City'].reset_index()
-NYS = counties[counties['County']=='Total Number of Positive Cases'].reset_index()
-erie = counties[counties['County']=='Erie'].reset_index()
-counties_cases = counties[~(counties['County']=='New York City') & ~(counties['County']=='Total Number of Positive Cases')]
+#NYC = counties[counties['County']=='New York City'].reset_index()
+#NYS = counties[counties['County']=='Total Number of Positive Cases'].reset_index()
+#erie = counties[counties['County']=='Erie'].reset_index()
+#counties_cases = counties[~(counties['County']=='New York City') & ~(counties['County']=='Total Number of Positive Cases')]
 # Remove comma
-NYC['Cases'] = pd.to_numeric(NYC['Cases'].str.replace(',', ''))
-NYS['Cases'] = pd.to_numeric(NYS['Cases'].str.replace(',', ''))
+#NYC['Cases'] = pd.to_numeric(NYC['Cases'].str.replace(',', ''))
+#NYS['Cases'] = pd.to_numeric(NYS['Cases'].str.replace(',', ''))
 # Extract value
-cases_nys = NYC.Cases[0]
-cases_nyc = NYS.Cases[0]
-cases_erie = pd.to_numeric(erie.Cases[0])
+#cases_nys = NYC.Cases[0]
+#cases_nyc = NYS.Cases[0]
+#cases_erie = pd.to_numeric(erie.Cases[0])
 
 # Create table
-data = {'County': ['Erie', 'New York City', 'New York State'],
-       'Cases': [cases_erie, cases_nyc, cases_nys]}
-ny_data = pd.DataFrame(data)
+#data = {'County': ['Erie', 'New York City', 'New York State'],
+#       'Cases': [cases_erie, cases_nyc, cases_nys]}
+#ny_data = pd.DataFrame(data)
 
 # Adding ICU bed for county
 icu_county = 246
@@ -557,9 +557,9 @@ outbreak reduces the doubling time to **{doubling_time_t:.1f}** days, implying a
 # All credit goes to the PH team at Penn Medicine. We have adapted the code based on our current regional cases, county population and hospitals.
 # The **{initial_infections}** confirmed cases in the region imply a **{detection_prob:.0%}** rate of detection.
 
-st.subheader("Cases of COVID-19 in the United States")
+#st.subheader("Cases of COVID-19 in the United States")
 # Table of cases in the US
-st.table(us_data)
+#st.table(us_data)
 # Table of cases in NYS
 #st.subheader("Cases of COVID-19 in New York State")
 #counties.sort_values(by=['Cases'], ascending=False)

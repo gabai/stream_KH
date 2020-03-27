@@ -557,9 +557,9 @@ outbreak reduces the doubling time to **{doubling_time_t:.1f}** days, implying a
 # All credit goes to the PH team at Penn Medicine. We have adapted the code based on our current regional cases, county population and hospitals.
 # The **{initial_infections}** confirmed cases in the region imply a **{detection_prob:.0%}** rate of detection.
 
-st.subheader("Cases of COVID-19 in the United States")
+#st.subheader("Cases of COVID-19 in the United States")
 # Table of cases in the US
-st.table(us_data)
+#st.table(us_data)
 # Table of cases in NYS
 #st.subheader("Cases of COVID-19 in New York State")
 #counties.sort_values(by=['Cases'], ascending=False)

@@ -575,7 +575,7 @@ doubling_time = st.sidebar.number_input(
 )
 
 relative_contact_rate = st.sidebar.number_input(
-    "Social distancing (% reduction in social contact)", 0, 100, value=30, step=5, format="%i"
+    "Social distancing (% reduction in social contact)", 0, 100, value=0, step=5, format="%i"
 )/100.0
 
 hosp_rate = (
@@ -601,7 +601,7 @@ recovery_days =(
 )
 
 infectious_period =(
-    st.sidebar.number_input("Infectious Period", 0.0, 18.0, value=7.0,step=0.1, format="%f")
+    st.sidebar.number_input("Infectious Period", 0.0, 18.0, value=6.0,step=0.1, format="%f")
 )
 
 decay2 = st.sidebar.number_input(
@@ -613,11 +613,11 @@ decay3 = st.sidebar.number_input(
 )/100.0
 
 fatal = st.sidebar.number_input(
-    "Overall Fatality", 0, 100, value=1 ,step=5, format="%i"
+    "Overall Fatality (%)", 0.0, 100.0, value=1.0 ,step=0.1, format="%f"
 )/100.0
 
 fatal_hosp = st.sidebar.number_input(
-    "Hospital Fatality", 0, 100, value=4 ,step=5, format="%i"
+    "Hospital Fatality (%)", 0.0, 100.0, value=4.0 ,step=0.1, format="%f"
 )/100.0
 
 death_days = st.sidebar.number_input(
@@ -1108,7 +1108,7 @@ def regional_admissions_chart(
     # use_container_width=True)
 
 # st.subheader("New Admissions: SEIR Model")
-st.markdown("Projected number of **daily** COVID-19 admissions for Erie County")
+st.markdown("Projected number of **daily** COVID-19 admissions for Erie County without social distancing using the SEIR model")
 
 
 # Erie Graph of Cases: SEIR
@@ -1603,27 +1603,27 @@ if st.checkbox("Show Raw SEIR Similation Data with case fatality" ):
 
 
 # Show data
-days3 = np.array(range(0, n_days + 1))
-data_list3 = [days3, s_H, e_H, i_H, j_H, c_H, r_H, d_H]
-data_dict3 = dict(zip(["day", "susceptible", "exposed","infections", "hospitalized", "ICU", "recovered", "fatal"], data_list3))
-projection_area3 = pd.DataFrame.from_dict(data_dict3)
-infect_table3 = (projection_area3.iloc[::7, :]).apply(np.floor)
-infect_table3.index = range(infect_table3.shape[0])
+#days3 = np.array(range(0, n_days + 1))
+#data_list3 = [days3, s_H, e_H, i_H, j_H, c_H, r_H, d_H]
+#data_dict3 = dict(zip(["day", "susceptible", "exposed","infections", "hospitalized", "ICU", "recovered", "fatal"], data_list3))
+#projection_area3 = pd.DataFrame.from_dict(data_dict3)
+#infect_table3 = (projection_area3.iloc[::7, :]).apply(np.floor)
+#infect_table3.index = range(infect_table3.shape[0])
 
-if st.checkbox("Show Raw SEIJCR Similation Data" ):
-    st.dataframe(infect_table3)
+#if st.checkbox("Show Raw SEIJCR Similation Data" ):
+#    st.dataframe(infect_table3)
 
 
 # Show data
-days2 = np.array(range(0, n_days + 1))
-data_list2 = [days2, s_v, i_v, r_v]
-data_dict2 = dict(zip(["day", "susceptible", "infections", "recovered"], data_list2))
-projection_area2 = pd.DataFrame.from_dict(data_dict2)
-infect_table2 = (projection_area2.iloc[::7, :]).apply(np.floor)
-infect_table2.index = range(infect_table2.shape[0])
+#days2 = np.array(range(0, n_days + 1))
+#data_list2 = [days2, s_v, i_v, r_v]
+#data_dict2 = dict(zip(["day", "susceptible", "infections", "recovered"], data_list2))
+#projection_area2 = pd.DataFrame.from_dict(data_dict2)
+#infect_table2 = (projection_area2.iloc[::7, :]).apply(np.floor)
+#infect_table2.index = range(infect_table2.shape[0])
 
-if st.checkbox("Show Raw SIR Similation Data with case fatality" ):
-    st.dataframe(infect_table2)
+#if st.checkbox("Show Raw SIR Similation Data with case fatality" ):
+#    st.dataframe(infect_table2)
 
 
 

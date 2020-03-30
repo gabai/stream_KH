@@ -407,11 +407,10 @@ tonawanda = 14904
 cheektowaga = 87018
 amherst = 126082
 erie = 1500000
-cases_erie = 245
+cases_erie = 414
 S_default = erie
-known_infections = 245
-known_cases = 49
-#initial_infections = 47
+known_infections = 414
+known_cases = 90
 regional_hosp_share = 1.0
 S = erie
 

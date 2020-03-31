@@ -553,9 +553,9 @@ tonawanda = 14904
 cheektowaga = 87018
 amherst = 126082
 erie = 1500000
-cases_erie = 414
+cases_erie = 463
 S_default = erie
-known_infections = 414
+known_infections = 463
 known_cases = 90
 regional_hosp_share = 1.0
 S = erie
@@ -1124,7 +1124,7 @@ def ip_chart(
         alt
         .Chart(projection_admits.head(plot_projection_days))
         .transform_fold(fold=fold_comp)
-        .mark_line(point=True)
+        .mark_line(point=False)
         .encode(
             x=alt.X(**x_kwargs),
             y=alt.Y("value:Q", title="Daily admissions"),
@@ -1139,6 +1139,7 @@ def ip_chart(
     )
 
 #, scale=alt.Scale(domain=[0, 100])
+# alt.value('orange')
 
 sir_ip = ip_chart(projection_admits, plot_projection_days, as_date=as_date)
 seir_ip = ip_chart(projection_admits_e, plot_projection_days, as_date=as_date)
@@ -1149,8 +1150,8 @@ st.subheader("Projected number of **daily** COVID-19 admissions for Erie County:
 st.altair_chart(
     #alt.layer(sir_ip.mark_line())
     #+ 
-    alt.layer(seir_ip.mark_line())
-    + alt.layer(seir_r_ip.mark_line())
+    alt.layer(seir_ip.mark_line(color='red'))
+    + alt.layer(seir_r_ip.mark_line(color='blue'))
     + alt.layer(seir_d_ip.mark_line())
     , use_container_width=True)
 
@@ -1376,9 +1377,6 @@ if model_options == "Ventilated":
     columns_comp_census = {"vent": "Ventilated Census"}
     fold_comp_census = ["Ventilated Census"]
 
-# "hosp": "Hospital Census", "icu": "ICU Census", "vent": "Ventilated Census", 
-    # "expanded_beds_county":"Expanded IP Beds", "expanded_icu_county": "Expanded ICU Beds"
-
 def ip_census_chart(
     census: pd.DataFrame,
     plot_projection_days: int,
@@ -1397,7 +1395,7 @@ def ip_census_chart(
         alt
         .Chart(census)
         .transform_fold(fold=fold_comp_census)
-        .mark_line(point=True)
+        .mark_line(point=False)
         .encode(
             x=alt.X(**x_kwargs),
             y=alt.Y("value:Q", title="Census"),
@@ -1411,12 +1409,46 @@ def ip_census_chart(
         .interactive()
     )
 
+
+# def ip_census_chart(
+    # census: pd.DataFrame,
+    # plot_projection_days: int,
+    # as_date:bool = False) -> alt.Chart:
+    # """docstring"""
+    # census = census.rename(columns={"icu": "ICU Census"})
+
+    # tooltip_dict = {False: "day", True: "date:T"}
+    # if as_date:
+        # census = add_date_column(census.head(plot_projection_days))
+        # x_kwargs = {"shorthand": "date:T", "title": "Date"}
+    # else:
+        # x_kwargs = {"shorthand": "day", "title": "Days from today"}
+
+    # return (
+        # alt
+        # .Chart(census)
+        # .transform_fold(fold=["ICU Census"])
+        # .mark_line(point=False)
+        # .encode(
+            # x=alt.X(**x_kwargs),
+            # y=alt.Y("value:Q", title="Census", scale=alt.Scale(domain=[0, 1500])),
+            # color=alt.value('green'),
+            # tooltip=[
+                # tooltip_dict[as_date],
+                # alt.Tooltip("value:Q", format=".0f", title="Admissions"),
+                # "key:N",
+            # ],
+        # )
+        # .interactive()
+    # )
 #, scale=alt.Scale(domain=[0, 100])
 
 sir_ip_c = ip_census_chart(census_table, plot_projection_days, as_date=as_date)
 seir_ip_c = ip_census_chart(census_table_e, plot_projection_days, as_date=as_date)
 seir_r_ip_c = ip_census_chart(census_table_R, plot_projection_days, as_date=as_date)
 seir_d_ip_c = ip_census_chart(census_table_D, plot_projection_days, as_date=as_date)
+
+#st.altair_chart(bed_capacity)
 
 erie_days_line = alt.Chart(erie_df).mark_line(color='red').encode(
     x='days:T',
@@ -1545,9 +1577,9 @@ st.altair_chart(
 # if st.checkbox("Show Projected Census in tabular form"):
     # st.dataframe(census_table)
 
-# # Census - SEIR model Table
-# if st.checkbox("Show Projected Census in tabular form: SEIR Model"):
-    # st.dataframe(census_table_e)
+# Census - SEIR model Table
+if st.checkbox("Show Projected Census in tabular form: SEIR Model"):
+    st.dataframe(census_table_e)
 
 # # Census - SEIR model with adjusted R_0 Table
 # if st.checkbox("Show Projected Census in tabular form: SEIR Model with adjusted R_0"):

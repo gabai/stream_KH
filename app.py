@@ -1267,8 +1267,9 @@ seir_d_ip = ip_chart(projection_admits_D, plot_projection_days, as_date=as_date)
 
 st.subheader("Projected number of **daily** COVID-19 admissions for Erie County: Model Comparison")
 st.altair_chart(
-    alt.layer(sir_ip.mark_line())
-    + alt.layer(seir_ip.mark_line())
+    #alt.layer(sir_ip.mark_line())
+    #+ 
+    alt.layer(seir_ip.mark_line())
     + alt.layer(seir_r_ip.mark_line())
     + alt.layer(seir_d_ip.mark_line())
     , use_container_width=True)

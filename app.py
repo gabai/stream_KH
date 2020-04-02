@@ -503,10 +503,15 @@ def add_date_column(
 #ny_data = pd.DataFrame(data)
 
 # Adding ICU bed for Erie county
+# 3/25/20
 icu_county = 246
-expanded_icu_county = 369
 beds_county = 2380
+# 4/1/20
+expanded_icu_county = 369
 expanded_beds_county = 3570
+# Expected Growth + 0.5
+#expected_icu_county = 
+
 # PPE Values
 ppe_mild_val_lower = 14
 ppe_mild_val_upper = 15
@@ -527,25 +532,9 @@ data = {
 }
 bed_share = pd.DataFrame(data)
 
-# Erie's admission for comparison with current curve
-data_dict = {
-    "Admissions": [0,0,0,0,0,0,0,0,0,0,
-                   0,0,0,0,0,0,0,0,1,4,
-                   6,6,8,21,29,49,52,71,90, 102],
-    "Cases": [0,0,0,0,0,0,0,0,0,0,
-              0,0,0,0,0,3,7,20,34,47,
-              61,96,114,121,146,245,310,380,414,443],
-    "Deaths": [0,0,0,0,0,0,0,0,0,0,
-               0,0,0,0,0,0,0,0,0,0,
-               0,0,0,0,2,5,6,6,7,8],
-    "Date": ['3/1/20', '3/2/20', '3/3/20', '3/4/20', '3/5/20', '3/6/20', '3/7/20', '3/8/20', '3/9/20', '3/10/20',
-        '3/11/20', '3/12/20', '3/13/20', '3/14/20', '3/15/20', '3/16/20', '3/17/20', '3/18/20', '3/19/20', '3/20/20', 
-        '3/21/20', '3/22/20', '3/23/20', '3/24/20', '3/25/20', '3/26/20', '3/27/20', '3/28/20', '3/29/20', '3/30/20'],
-    "day": [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26, 27, 28, 29, 30]
-    }
-erie_df = pd.DataFrame.from_dict(data_dict)
-erie_df['Date'] = pd.to_datetime(erie_df['Date'])
-
+# Load erie county data
+url = "https://raw.githubusercontent.com/gabai/stream_KH/master/Cases_Erie.csv"
+erie_df = pd.read_csv(url)
 
 # Populations and Infections
 buffalo = 258612
@@ -640,9 +629,9 @@ vent_los = st.sidebar.number_input("Ventilator Length of Stay", value=7, step=1,
    # / 100.0
 # )
 
-# S = st.sidebar.number_input(
-   # "Regional Population", value=S_default, step=100000, format="%i"
-# )
+S = st.sidebar.number_input(
+   "Regional Population", value=S_default, step=100000, format="%i"
+)
 
 initial_infections = st.sidebar.number_input(
     "Currently Known Regional Infections (only used to compute detection rate - does not change projections)", value=known_infections, step=10, format="%i"
@@ -752,17 +741,68 @@ st.markdown(
 )
 #st.markdown(""" """)
 
+###################### First Graph ###################
 # Erie cases Graph
-erie_cases_bar = alt.Chart(erie_df).mark_bar().encode(
+
+erie_cases_bar = alt.Chart(erie_df).mark_bar(color='').encode(
     x='Date:T',
     y='Cases:Q')
 erie_admit_line = alt.Chart(erie_df).mark_line(color='red').encode(
     x='Date:T',
     y='Admissions:Q')
+erie_icu_line = alt.Chart(erie_df).mark_line(color='orange').encode(
+    x='Date:T',
+    y='ICU:Q')
 
-st.altair_chart(alt.layer(erie_cases_bar + erie_admit_line), use_container_width=True)
+st.altair_chart(alt.layer(erie_cases_bar + erie_admit_line + erie_icu_line), use_container_width=True)
 
 
+# Erie Graph of Cases # Lines of cases
+def erie_chart(
+    projection_admits: pd.DataFrame) -> alt.Chart:
+    """docstring"""
+    
+    projection_admits = projection_admits.rename(columns={"Admissions": "Admissions Inpatient", "ICU":"ICU", "Ventilated":"Ventilated"})
+    
+    return(
+        alt
+        .Chart(projection_admits)
+        .transform_fold(fold=["Admissions Inpatient", "ICU", "Ventilated"])
+        .mark_line(point=False)
+        .encode(
+            x=alt.X("day"),
+            y=alt.Y("value:Q", title="Daily admissions"),
+            color="key:N",
+            tooltip="key:N",
+        )
+        .interactive()
+    )
+
+# Erie Graph of Cases # Lines of cases
+def erie_inpatient(
+    projection_admits: pd.DataFrame) -> alt.Chart:
+    """docstring"""
+    
+    projection_admits = projection_admits.rename(columns={"Admissions": "Admissions Inpatient"})
+    
+    return(
+        alt
+        .Chart(projection_admits)
+        .transform_fold(fold=["Admissions Inpatient"])
+        .mark_line(strokeWidth=4, point=False)
+        .encode(
+            x=alt.X("day"),
+            y=alt.Y("value:Q", title="Daily admissions"),
+            color="key:N",
+            tooltip="key:N",
+        )
+        .interactive()
+    )
+
+erie_lines = erie_chart(erie_df)
+erie_lines_ip = erie_inpatient(erie_df)
+
+st.altair_chart(erie_lines, use_container_width=True)
 
 # if st.checkbox("Show more info about this tool"):
     # st.subheader(
@@ -1093,7 +1133,6 @@ def regional_admissions_chart(
  #+ alt.layer(regional_admissions_chart(projection_admits_e).mark_line()), use_container_width=True)    
 
 
-
 # Comparison of Single line graph - Hospitalized, ICU, Vent and All
 if model_options == "Inpatient":
     columns_comp = {"hosp": "Hospitalized"}
@@ -1146,15 +1185,15 @@ seir_ip = ip_chart(projection_admits_e, plot_projection_days, as_date=as_date)
 seir_r_ip = ip_chart(projection_admits_R, plot_projection_days, as_date=as_date)
 seir_d_ip = ip_chart(projection_admits_D, plot_projection_days, as_date=as_date)
 
+#st.altair_chart(erie_lines, use_container_width=True)
+
 st.subheader("Projected number of **daily** COVID-19 admissions for Erie County: Model Comparison")
 st.altair_chart(
-    #alt.layer(sir_ip.mark_line())
-    #+ 
-    alt.layer(seir_ip.mark_line(color='red'))
-    + alt.layer(seir_r_ip.mark_line(color='blue'))
+    alt.layer(sir_ip.mark_line())
+    + alt.layer(seir_ip.mark_line())
+    + alt.layer(seir_r_ip.mark_line())
     + alt.layer(seir_d_ip.mark_line())
     , use_container_width=True)
-
 
 # Erie County Admissions Chart: SIR
 # st.altair_chart(
@@ -1303,7 +1342,7 @@ st.altair_chart(
     hospital_admissions_chart(
         projection_admits_D, plot_projection_days, as_date=as_date), 
     use_container_width=True)
-    
+
 # if st.checkbox("Show Projected Admissions in tabular form: SEIR with Phase Adjusted R_0 and Case Fatality"):
     # admits_table_D = projection_admits_D[np.mod(projection_admits_D.index, 7) == 0].copy()
     # admits_table_D["day"] = admits_table_D.index
@@ -1457,12 +1496,22 @@ erie_days_line = alt.Chart(erie_df).mark_line(color='red').encode(
 st.subheader("Projected **census** of COVID-19 patients for Erie County: Model Comparison")
 
 st.altair_chart(
-    #alt.layer(sir_ip_c.mark_line())
-    #+
-    alt.layer(seir_ip_c.mark_line())
+    alt.layer(sir_ip_c.mark_line())
+    + alt.layer(seir_ip_c.mark_line())
     + alt.layer(seir_r_ip_c.mark_line())
     + alt.layer(seir_d_ip_c.mark_line())
     , use_container_width=True)
+
+
+################ Test ERIE Chart ###################
+st.subheader("Comparison of COVID-19 admissions for Erie County: Real vs Model Comparison")
+st.altair_chart(
+    alt.layer(seir_ip_c.mark_line())
+    + alt.layer(seir_r_ip_c.mark_line())
+    + alt.layer(seir_d_ip_c.mark_line())
+    + alt.layer(erie_lines_ip)
+    , use_container_width=True)
+
 
 if st.checkbox("Show Graph for Erie County Projected Census: SEIR Model"):
     # Erie County Census Graph - SEIR Model
@@ -1917,3 +1966,10 @@ st.altair_chart(additional_projections_chart(i_D, r_D, d_D), use_container_width
 # https://www.worldometers.info/coronavirus/coronavirus-age-sex-demographics/
     # """
 # )
+
+
+
+
+
+
+

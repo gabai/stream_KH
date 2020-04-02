@@ -535,6 +535,7 @@ bed_share = pd.DataFrame(data)
 # Load erie county data
 url = "https://raw.githubusercontent.com/gabai/stream_KH/master/Cases_Erie.csv"
 erie_df = pd.read_csv(url)
+erie_df['Date'] = pd.to_datetime(erie_df['Date'])
 
 # Populations and Infections
 buffalo = 258612
@@ -762,16 +763,16 @@ def erie_chart(
     projection_admits: pd.DataFrame) -> alt.Chart:
     """docstring"""
     
-    projection_admits = projection_admits.rename(columns={"Admissions": "Admissions Inpatient", "ICU":"ICU", "Ventilated":"Ventilated"})
+    projection_admits = projection_admits.rename(columns={"Admissions": "Inpatient Care", "ICU":"Intensive Care", "Ventilated":"Ventilated Patients"})
     
     return(
         alt
         .Chart(projection_admits)
-        .transform_fold(fold=["Admissions Inpatient", "ICU", "Ventilated"])
+        .transform_fold(fold=["Inpatient Care", "Intensive Care", "Ventilated Patients"])
         .mark_line(point=False)
         .encode(
-            x=alt.X("day"),
-            y=alt.Y("value:Q", title="Daily admissions"),
+            x=alt.X("Date", title="Date"),
+            y=alt.Y("value:Q", title="Erie County Census"),
             color="key:N",
             tooltip="key:N",
         )
@@ -783,16 +784,16 @@ def erie_inpatient(
     projection_admits: pd.DataFrame) -> alt.Chart:
     """docstring"""
     
-    projection_admits = projection_admits.rename(columns={"Admissions": "Admissions Inpatient"})
+    projection_admits = projection_admits.rename(columns={"Admissions": "Inpatient"})
     
     return(
         alt
         .Chart(projection_admits)
-        .transform_fold(fold=["Admissions Inpatient"])
-        .mark_line(strokeWidth=4, point=False)
+        .transform_fold(fold=["Inpatient"])
+        .mark_line(strokeWidth=3, strokeDash=[2,3], point=False)
         .encode(
             x=alt.X("day"),
-            y=alt.Y("value:Q", title="Daily admissions"),
+            y=alt.Y("value:Q", title="Census"),
             color="key:N",
             tooltip="key:N",
         )
@@ -1441,7 +1442,7 @@ def ip_census_chart(
             color="key:N",
             tooltip=[
                 tooltip_dict[as_date],
-                alt.Tooltip("value:Q", format=".0f", title="Admissions"),
+                alt.Tooltip("value:Q", format=".0f", title="Census"),
                 "key:N",
             ],
         )

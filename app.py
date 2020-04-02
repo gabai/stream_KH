@@ -763,12 +763,12 @@ def erie_chart(
     projection_admits: pd.DataFrame) -> alt.Chart:
     """docstring"""
     
-    projection_admits = projection_admits.rename(columns={"Admissions": "Inpatient Care", "ICU":"Intensive Care", "Ventilated":"Ventilated Patients"})
+    projection_admits = projection_admits.rename(columns={"Admissions": "Census Inpatient", "ICU":"Census Intensive", "Ventilated":"Census Ventilated"})
     
     return(
         alt
         .Chart(projection_admits)
-        .transform_fold(fold=["Inpatient Care", "Intensive Care", "Ventilated Patients"])
+        .transform_fold(fold=["Census Inpatient", "Census Intensive", "Census Ventilated"])
         .mark_line(point=False)
         .encode(
             x=alt.X("Date", title="Date"),
@@ -779,7 +779,7 @@ def erie_chart(
         .interactive()
     )
 
-# Erie Graph of Cases # Lines of cases
+# Erie Graph of Cases # Lines of cases # Hospital Census
 def erie_inpatient(
     projection_admits: pd.DataFrame) -> alt.Chart:
     """docstring"""
@@ -792,7 +792,7 @@ def erie_inpatient(
         .transform_fold(fold=["Inpatient"])
         .mark_line(strokeWidth=3, strokeDash=[2,3], point=False)
         .encode(
-            x=alt.X("day"),
+            x=alt.X("day1"),
             y=alt.Y("value:Q", title="Census"),
             color="key:N",
             tooltip="key:N",
@@ -879,6 +879,8 @@ st.altair_chart(erie_lines, use_container_width=True)
 
 # Slider and Date
 n_days = st.slider("Number of days to project", 30, 400, 120, 1, "%i")
+n_days_start = 1
+n_days_end = 120
 as_date = st.checkbox(label="Present result as dates", value=False)
 
 beta_decay = 0.0
@@ -979,11 +981,61 @@ hospitalized_D, icu_D, ventilated_D = (
 ## SEIJCRD model with phase adjusted R_0 and Disease Related Fatality
 
 
-s_H, e_H, i_H, j_H, c_H, r_H, d_H = sim_seijcrd_decay(S-total_infections-exposed, beta3*(S-total_infections-exposed)*(total_infections), total_infections , 0.0, 0.0, 0.0,0.0, beta3, gamma2,alpha, n_days,decay2,
-                                            decay3, fatal_hosp, hosp_rate, icu_rate, icu_days, crit_lag, death_days)
 
+
+
+
+
+total_infections_2 = 0.1
+gamma2_2=1/infectious_period
+exposed_start_2=beta2*S*total_infections_2
+##############
+### SEIR model from base case
+s_t2, e_t2, i_t2, r_t2 = sim_seir(S-total_infections_2-exposed-1, beta3*(S-total_infections_2-exposed-1)*(total_infections_2+1) ,total_infections_2+1 , recovered, beta2, gamma2_2,alpha, n_days)
+
+susceptible_t2, exposed_t2, infected_t2, recovered_t2 = s_t2, e_t2, i_t2, r_t2
+
+i_hospitalized_t2, i_icu_t2, i_ventilated_t2 = get_dispositions(i_t2, rates, regional_hosp_share)
+
+r_hospitalized_t2, r_icu_t2, r_ventilated_t2 = get_dispositions(r_t2, rates, regional_hosp_share)
+
+dispositions_t2 = (
+            i_hospitalized_t2 + r_hospitalized_t2,
+            i_icu_t2 + r_icu_t2,
+            i_ventilated_t2 + r_ventilated_t2)
+
+hospitalized_t2, icu_t2, ventilated_t2 = (
+            i_hospitalized_t2,
+            i_icu_t2,
+            i_ventilated_t2)
+            
+#####################################
+## SEIR model with phase adjusted R_0
+# Base for graph with 1 patient
+
+s_T, e_T, i_T, r_T = sim_seir_decay(S-total_infections_2-exposed-1, beta3*(S-total_infections_2-exposed-1)*(total_infections_2+1), total_infections_2+1 , 0.0, beta3, gamma2_2,alpha, n_days,decay2, decay3)
 ### Issue here
-susceptible_H, exposed_H, infected_H, recovered_H = s_H, e_H, i_H, r_H
+susceptible_T, exposed_T, infected_T, recovered_T = s_T, e_T, i_T, r_T
+
+i_hospitalized_T, i_icu_T, i_ventilated_T = get_dispositions(i_T, rates, regional_hosp_share)
+
+r_hospitalized_T, r_icu_T, r_ventilated_T = get_dispositions(r_T, rates, regional_hosp_share)
+
+dispositions_T = (
+            i_hospitalized_T + r_hospitalized_T,
+            i_icu_T + r_icu_T,
+            i_ventilated_T + r_ventilated_T)
+
+hospitalized_T, icu_T, ventilated_T = (
+            i_hospitalized_T,
+            i_icu_T,
+            i_ventilated_T)
+
+
+
+
+
+
 
 
 
@@ -1073,6 +1125,7 @@ census_table_e = build_census_df(projection_admits_e)
 
 # Projection days
 plot_projection_days = n_days - 10
+plot_projection_days_2 = n_days - 10
 ############################
 
 # SEIR Model with phase adjustment
@@ -1088,6 +1141,32 @@ census_table_R = build_census_df(projection_admits_R)
 projection_admits_D = build_admissions_df(dispositions_D)
 # Census Table
 census_table_D = build_census_df(projection_admits_D)
+
+# SEIR Model with phase adjustment and Disease Fatality
+###########################
+# New cases
+projection_admits_D = build_admissions_df(dispositions_D)
+# Census Table
+census_table_D = build_census_df(projection_admits_D)
+
+
+
+
+
+
+# SEIR Model with phase adjustment - Base Case for Graph
+###########################
+# New cases
+projection_admits_t2 = build_admissions_df(dispositions_t2)
+# Census Table
+census_table_t2 = build_census_df(projection_admits_t2)
+
+# SEIR Model with phase adjustment - Base Case for Graph
+###########################
+# New cases
+projection_admits_T = build_admissions_df(dispositions_T)
+# Census Table
+census_table_T = build_census_df(projection_admits_T)
 
 
 # Erie Graph of Cases: SIR, SEIR
@@ -1185,8 +1264,6 @@ sir_ip = ip_chart(projection_admits, plot_projection_days, as_date=as_date)
 seir_ip = ip_chart(projection_admits_e, plot_projection_days, as_date=as_date)
 seir_r_ip = ip_chart(projection_admits_R, plot_projection_days, as_date=as_date)
 seir_d_ip = ip_chart(projection_admits_D, plot_projection_days, as_date=as_date)
-
-#st.altair_chart(erie_lines, use_container_width=True)
 
 st.subheader("Projected number of **daily** COVID-19 admissions for Erie County: Model Comparison")
 st.altair_chart(
@@ -1363,7 +1440,6 @@ st.altair_chart(
 ################################################
 ################################################
 
-
 def admitted_patients_chart(
     census: pd.DataFrame,
     plot_projection_days: int,
@@ -1397,14 +1473,6 @@ def admitted_patients_chart(
         .interactive()
     )
 
-# Erie County Census Graph - SIR
-# st.altair_chart(
-    # admitted_patients_chart(
-        # census_table,
-        # plot_projection_days,
-        # as_date=as_date),
-    # use_container_width=True)
-
 
 # Comparison of Census Single line graph - Hospitalized, ICU, Vent
 if model_options == "Inpatient":
@@ -1416,6 +1484,8 @@ if model_options == "ICU":
 if model_options == "Ventilated":
     columns_comp_census = {"vent": "Ventilated Census"}
     fold_comp_census = ["Ventilated Census"]
+
+
 
 def ip_census_chart(
     census: pd.DataFrame,
@@ -1448,6 +1518,29 @@ def ip_census_chart(
         )
         .interactive()
     )
+
+
+# SEIR Model with Base Case at 1
+seir_d_ip_t2 = ip_census_chart(census_table_t2, plot_projection_days_2, as_date=as_date)
+seir_d_ip_t = ip_census_chart(census_table_T, plot_projection_days_2, as_date=as_date)
+
+
+st.subheader("Static Projected **census** of COVID-19 patients for Erie County: Data vs Model")
+st.altair_chart(alt.layer(seir_d_ip_t) 
+    + alt.layer(seir_d_ip_t2)
+    + alt.layer(erie_lines_ip), use_container_width=True)
+
+
+
+
+# Erie County Census Graph - SIR
+# st.altair_chart(
+    # admitted_patients_chart(
+        # census_table,
+        # plot_projection_days,
+        # as_date=as_date),
+    # use_container_width=True)
+
 
 
 # def ip_census_chart(
@@ -1488,23 +1581,20 @@ seir_ip_c = ip_census_chart(census_table_e, plot_projection_days, as_date=as_dat
 seir_r_ip_c = ip_census_chart(census_table_R, plot_projection_days, as_date=as_date)
 seir_d_ip_c = ip_census_chart(census_table_D, plot_projection_days, as_date=as_date)
 
-#st.altair_chart(bed_capacity)
 
-erie_days_line = alt.Chart(erie_df).mark_line(color='red').encode(
-    x='days:T',
-    y='Admissions:Q')
 
 st.subheader("Projected **census** of COVID-19 patients for Erie County: Model Comparison")
 
 st.altair_chart(
-    alt.layer(sir_ip_c.mark_line())
-    + alt.layer(seir_ip_c.mark_line())
+    #alt.layer(sir_ip_c.mark_line())
+    #+
+    alt.layer(seir_ip_c.mark_line())
     + alt.layer(seir_r_ip_c.mark_line())
     + alt.layer(seir_d_ip_c.mark_line())
     , use_container_width=True)
 
 
-################ Test ERIE Chart ###################
+############### Test ERIE Chart ###################
 st.subheader("Comparison of COVID-19 admissions for Erie County: Real vs Model Comparison")
 st.altair_chart(
     alt.layer(seir_ip_c.mark_line())
@@ -1550,6 +1640,14 @@ if st.checkbox("Show Graph for Erie County Projected Census: SEIR Model with adj
         use_container_width=True)
 
 # , scale=alt.Scale(domain=[0, 30000])
+
+######################## Test Base Model ##################
+
+
+
+
+
+
 
 
 

@@ -309,15 +309,15 @@ def sim_seird_decay(
 
 def seijcrd(
     s: float, e: float, i: float, j:float, c:float, r: float, d: float, beta: float, gamma: float, alpha: float, n: float, fatal_hosp: float, hosp_rate:float, icu_rate:float, icu_days:float,crit_lag:float, death_days:float
-    ) -> Tuple[float, float, float, float]:
+    ) -> Tuple[float, float, float, float, float, float, float]:
     """The SIR model, one time step."""
     s_n = (-beta * s * (i+j+c)) + s
     e_n = (beta * s * (i+j+c)) - alpha * e + e
     i_n = (alpha * e - gamma * i) + i
-    j_n = hosp_rate * i * gamma + (1-icu_rate)* c *icu_days + j
-    c_n = icu_rate * j * (1/crit_lag) - c *  (1/death_days)
+    j_n = hosp_rate * i * gamma + (1-icu_rate)* c *icu_days -j*(1/crit_lag)+j
+    c_n = icu_rate * j * (1/crit_lag) - c *  (1/death_days) +c
     r_n = (1-hosp_rate)*gamma * i + (1-icu_rate) * (1/crit_lag)* j + r
-    d_n = (fatal_hosp)* c * (1/crit_lag)+d
+    d_n = (fatal_hosp)* c * (1/death_days)+d
     if s_n < 0.0:
         s_n = 0.0
     if e_n < 0.0:
@@ -335,15 +335,23 @@ def seijcrd(
 
     scale = n / (s_n + e_n+ i_n + j_n+ c_n+ r_n + d_n)
     return s_n * scale, e_n * scale, i_n * scale, j_n* scale, c_n*scale, r_n * scale, d_n * scale
-# 
+# beta is rate of transmission
+# alpha is rate of incubation
+# hosp_rate is hospitalization rate
+# icu_rate is icu rate
+#icu_days is 1/ icu los
+# 1/crit_lag is the lag between being hospitalized and transitioning to ICU
+#fatal_hosp is the rate of those in ICU who die
+# 1/death days is rate of number of days until death
+
 
 def sim_seijcrd_decay(
     s: float, e:float, i: float, j:float, c: float, r: float, d: float, beta: float, gamma: float, alpha: float, n_days: int,
     decay2:float, decay3: float, fatal_hosp: float, hosp_rate: float, icu_rate: float, icu_days:float, crit_lag: float, death_days:float
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """Simulate the SIR model forward in time."""
-    s, e, i, j, c, r, d= (float(v) for v in (s, e, i, c, j, r, d))
-    n = s + e + i + j+r + d
+    s, e, i, j, c, r, d= (float(v) for v in (s, e, i, j, c, r, d))
+    n = s + e + i + j+c+ r + d
     s_v, e_v, i_v, j_v, c_v, r_v, d_v = [s], [e], [i], [j], [c], [r], [d]
     for day in range(n_days):
         if 0<=day<=21:
@@ -365,11 +373,75 @@ def sim_seijcrd_decay(
         np.array(s_v),
         np.array(e_v),
         np.array(i_v),
-        np.array(i_v),
+        np.array(j_v),
         np.array(c_v),
         np.array(r_v),
         np.array(d_v)
     )
+
+
+# Less complicated
+
+def seijcrd2(
+    s: float, e: float, i: float, j:float, r: float, d: float, beta: float, gamma: float, alpha: float, n: float, fatal: float, fatal_hosp: float, hosp_rate:float,
+    hosp_day_rate:float, l:float
+    ) -> Tuple[float, float, float, float, float,float]:
+    """The SIR model, one time step."""
+    s_n = -beta*s*(i + (l*j)) +s
+    e_n = beta*s*(i + (l*j)) - alpha * e + e
+    i_n = alpha * e - (hosp_rate + gamma) * i + i 
+    j_n = hosp_rate * i - hosp_day_rate*j +j
+    r_n = gamma * (1-fatal)*i + ((1-fatal_hosp) * hosp_day_rate * j) +r
+    d_n = gamma * (fatal)*i + ((fatal_hosp)*hosp_day_rate*j) +d
+    if s_n < 0.0:
+        s_n = 0.0
+    if e_n < 0.0:
+        e_n = 0.0
+    if i_n < 0.0:
+        i_n = 0.0
+    if j_n < 0.0:
+        j_n = 0.0
+    if r_n < 0.0:
+        r_n = 0.0
+    if d_n < 0.0:
+        d_n = 0.0
+
+    scale = n / (s_n + e_n+ i_n + j_n+ r_n + d_n)
+    return s_n * scale, e_n * scale, i_n * scale, j_n* scale, r_n * scale, d_n * scale
+# 
+
+def sim_seijcrd_decay2(
+    s: float, e:float, i: float, j:float, r: float, d: float, beta: float, gamma: float, alpha: float, n_days: int,
+    decay2:float, decay3: float, fatal: float, fatal_hosp: float, hosp_rate: float, hosp_day_rate:float, l:float
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray,np.ndarray, np.ndarray]:
+    """Simulate the SIR model forward in time."""
+    s, e, i, j, r, d= (float(v) for v in (s, e, i, j, r, d))
+    n = s + e + i + j+r + d
+    s_v, e_v, i_v, j_v, r_v, d_v = [s], [e], [i], [j], [r], [d]
+    for day in range(n_days):
+        if 0<=day<=21:
+            beta_decay=beta
+        elif 22<=day<=28:
+            beta_decay=beta*(1-decay2)
+        else: 
+            beta_decay=beta*(1-decay3)
+        s, e, i,j, r,d = seijcrd2(s, e, i,j, r, d, beta_decay, gamma, alpha, n, fatal, fatal_hosp, hosp_rate,hosp_day_rate, l)
+        s_v.append(s)
+        e_v.append(e)
+        i_v.append(i)
+        j_v.append(j)
+        r_v.append(r)
+        d_v.append(d)
+
+    return (
+        np.array(s_v),
+        np.array(e_v),
+        np.array(i_v),
+        np.array(j_v),
+        np.array(r_v),
+        np.array(d_v)
+    )
+ 
 
 # End Models # 
 
@@ -681,6 +753,9 @@ beta3 = (
     intrinsic_growth_rate + (1/infectious_period)
 ) / S 
 
+beta4 = (
+    (alpha+intrinsic_growth_rate)*(intrinsic_growth_rate + (1/infectious_period))
+) / (alpha*S) 
 
 # for SEIJRD
 gamma_hosp = 1 / hosp_los
@@ -837,7 +912,7 @@ st.altair_chart(alt.layer(erie_cases_bar + erie_admit_line), use_container_width
             # erie=erie))
 
 # Slider and Date
-n_days = st.slider("Number of days to project", 30, 400, 120, 1, "%i")
+n_days = st.slider("Number of days to project", 30, 550, 400, 1, "%i")
 as_date = st.checkbox(label="Present result as dates", value=False)
 
 beta_decay = 0.0
@@ -874,8 +949,10 @@ hospitalized_v, icu_v, ventilated_v = (
 ##############
 ### SEIR model
 gamma2=1/infectious_period
-exposed_start=beta2*S*total_infections
-s_e, e_e, i_e, r_e = sim_seir(S-total_infections-exposed-1, beta3*(S-total_infections-exposed-1)*(total_infections+1) ,total_infections+1 , recovered, beta2, gamma2,alpha, n_days)
+S2=S-total_infections-exposed-1
+exposed2=beta4*S*total_infections
+
+s_e, e_e, i_e, r_e = sim_seir(S2, exposed2 ,total_infections, recovered, beta4, gamma2,alpha, n_days)
 
 susceptible_e, exposed_e, infected_e, recovered_e = s_e, e_e, i_e, r_e
 
@@ -896,7 +973,7 @@ hospitalized_e, icu_e, ventilated_e = (
 #####################################
 ## SEIR model with phase adjusted R_0
 
-s_R, e_R, i_R, r_R = sim_seir_decay(S-total_infections-exposed-1, beta3*(S-total_infections-exposed-1)*(total_infections+1), total_infections+1 , 0.0, beta3, gamma2,alpha, n_days,decay2, decay3)
+s_R, e_R, i_R, r_R = sim_seir_decay(S2, exposed, total_infections , 0.0, beta4, gamma2,alpha, n_days,decay2, decay3)
 ### Issue here
 susceptible_R, exposed_R, infected_R, recovered_R = s_R, e_R, i_R, r_R
 
@@ -942,7 +1019,14 @@ s_H, e_H, i_H, j_H, c_H, r_H, d_H = sim_seijcrd_decay(S-total_infections-exposed
                                             decay3, fatal_hosp, hosp_rate, icu_rate, icu_days, crit_lag, death_days)
 
 ### Issue here
+l=0.8
+hosp_day_rate=1/hosp_los
+
+#beta5= (2.3/(gamma2+hosp_rate)+(2.3*alpha*l/((gamma2+hosp_rate)*hosp_day_rate))/S
 susceptible_H, exposed_H, infected_H, recovered_H = s_H, e_H, i_H, r_H
+
+        
+s_H2, e_H2, i_H2, j_H2, r_H2, d_H2 = sim_seijcrd_decay2(S2, exposed2, total_infections , 0.0, 0.0, 0.0, beta4, gamma2,alpha, n_days,decay2,decay3, fatal, fatal_hosp, hosp_day_rate, hosp_rate, l)
 
 
 
@@ -1163,36 +1247,36 @@ st.altair_chart(
         # as_date=as_date), 
     # use_container_width=True)
 
-if st.checkbox("Show Graph of Erie County Projected Admissions: SEIR Model"):
-    # Erie Graph of Cases: SEIR Model
-    # st.subheader("New Admissions: SEIR Model")
-    st.subheader("Projected number of **daily** COVID-19 admissions for Erie County without social distancing using the SEIR model")
-    # Erie Graph of Cases: SEIR
-    st.altair_chart(
-        regional_admissions_chart(projection_admits_e, 
-            plot_projection_days, 
-            as_date=as_date), 
-        use_container_width=True)
+##if st.checkbox("Show Graph of Erie County Projected Admissions: SEIR Model"):
+##    # Erie Graph of Cases: SEIR Model
+##    # st.subheader("New Admissions: SEIR Model")
+##    st.subheader("Projected number of **daily** COVID-19 admissions for Erie County without social distancing using the SEIR model")
+##    # Erie Graph of Cases: SEIR
+##    st.altair_chart(
+##        regional_admissions_chart(projection_admits_e, 
+##            plot_projection_days, 
+##            as_date=as_date), 
+##        use_container_width=True)
+##
+##if st.checkbox("Show Graph for Erie County Projected Admissions: SEIR Model with Adjusted R_0"):
+##    # Erie Graph of Cases: SEIR with phase adjustment
+##    # st.subheader("New Admissions: SEIR Model")
+##    st.subheader("Projected number of **daily** COVID-19 admissions for Erie County: Phase Adjusted R_0")
+##    st.altair_chart(
+##        regional_admissions_chart(projection_admits_R, 
+##            plot_projection_days, 
+##            as_date=as_date), 
+##        use_container_width=True)
 
-if st.checkbox("Show Graph for Erie County Projected Admissions: SEIR Model with Adjusted R_0"):
-    # Erie Graph of Cases: SEIR with phase adjustment
-    # st.subheader("New Admissions: SEIR Model")
-    st.subheader("Projected number of **daily** COVID-19 admissions for Erie County: Phase Adjusted R_0")
-    st.altair_chart(
-        regional_admissions_chart(projection_admits_R, 
-            plot_projection_days, 
-            as_date=as_date), 
-        use_container_width=True)
-
-if st.checkbox("Show Graph for Erie County Projected Admissions: SEIR Model with Adjusted R_0 and Case Fatality"):
+#if st.checkbox("Show Graph for Erie County Projected Admissions: SEIR Model with Adjusted R_0 and Case Fatality"):
     # Erie Graph of Cases: SEIR with phase adjustment with phase adjustment and case fatality
     # st.subheader("New Admissions: SEIR Model")
-    st.subheader("Projected number of **daily** COVID-19 admissions for Erie County: Phase Adjusted R_0 with Case Fatality")
-    st.altair_chart(
-        regional_admissions_chart(projection_admits_D, 
-            plot_projection_days, 
-            as_date=as_date), 
-        use_container_width=True)
+st.subheader("Projected number of **daily** COVID-19 admissions for Erie County: Phase Adjusted R_0 with Case Fatality")
+st.altair_chart(
+    regional_admissions_chart(projection_admits_D, 
+        plot_projection_days, 
+        as_date=as_date), 
+    use_container_width=True)
 
 
 ########### Tabular DATA ########    
@@ -1769,38 +1853,38 @@ float_formatter = "{:.2f}".format
 # st.table(ppe_needs)
 
 # Recovered/Infected table
-st.subheader("The number of infected and recovered individuals in the region at any given moment")
+#t.subheader("The number of infected and recovered individuals in the region at any given moment")
 
-def additional_projections_chart(i: np.ndarray, r: np.ndarray) -> alt.Chart:
-    dat = pd.DataFrame({"Infected": i, "Recovered": r})
-
-    return (
-        alt
-        .Chart(dat.reset_index())
-        .transform_fold(fold=["Infected", "Recovered"])
-        .mark_line(point=False)
-        .encode(
-            x=alt.X("index", title="Days from today"),
-            y=alt.Y("value:Q", title="Case Volume"),
-            tooltip=["key:N", "value:Q"], 
-            color="key:N"
-        )
-        .interactive()
-    )
-
-st.altair_chart(additional_projections_chart(i_R, r_R), use_container_width=True)
+#def additional_projections_chart(i: np.ndarray, r: np.ndarray) -> alt.Chart:
+#    dat = pd.DataFrame({"Infected": i, "Recovered": r})
+###
+###    return (
+##        alt
+##        .Chart(dat.reset_index())
+##        .transform_fold(fold=["Infected", "Recovered"])
+##        .mark_line(point=False)
+##        .encode(
+##            x=alt.X("index", title="Days from today"),
+##            y=alt.Y("value:Q", title="Case Volume"),
+##            tooltip=["key:N", "value:Q"], 
+##            color="key:N"
+##        )
+##        .interactive()
+##    )
+##
+##st.altair_chart(additional_projections_chart(i_R, r_R), use_container_width=True)
 
 
 # Recovered/Infected/Fatality table
-st.subheader("The number of infected,recovered, and fatal individuals in the region at any given moment")
+st.subheader("The number of infected and fatal individuals in the region at any given moment")
 
-def additional_projections_chart(i: np.ndarray, r: np.ndarray, d: np.ndarray) -> alt.Chart:
-    dat = pd.DataFrame({"Infected": i, "Recovered": r, "Fatal":d})
+def additional_projections_chart(i: np.ndarray, d: np.ndarray) -> alt.Chart:
+    dat = pd.DataFrame({"Infected": i, "Fatal":d})
 
     return (
         alt
         .Chart(dat.reset_index())
-        .transform_fold(fold=["Infected", "Recovered", "Fatal"])
+        .transform_fold(fold=["Infected", "Fatal"])
         .mark_line(point=False)
         .encode(
             x=alt.X("index", title="Days from today"),
@@ -1811,29 +1895,52 @@ def additional_projections_chart(i: np.ndarray, r: np.ndarray, d: np.ndarray) ->
         .interactive()
     )
 
-st.altair_chart(additional_projections_chart(i_D, r_D, d_D), use_container_width=True)
+st.altair_chart(additional_projections_chart(i_D, d_D), use_container_width=True)
 
-# # Recovered/Infected/Hospitalized/Fatality table
-# st.subheader("The number of infected,recovered, and fatal individuals in the region at any given moment")
+ # Recovered/Infected/Hospitalized/Fatality table
+st.subheader("The number of infected,recovered, and fatal individuals in the region at any given moment")
 
-# def additional_projections_chart(i: np.ndarray, j: np.ndarray, c: np.ndarray,r: np.ndarray, d: np.ndarray) -> alt.Chart:
-    # dat = pd.DataFrame({"Infected": i, "Hospitalized":j, "ICU":c, "Recovered": r, "Fatal":d})
+def additional_projections_chart(i: np.ndarray, j: np.ndarray, c: np.ndarray, d: np.ndarray) -> alt.Chart:
+    dat = pd.DataFrame({"Infected": i, "Hospitalized":j, "ICU":c, "Fatal":d})
 
-    # return (
-        # alt
-        # .Chart(dat.reset_index())
-        # .transform_fold(fold=["Infected", "Hospitalized", "ICU", "Recovered", "Fatal"])
-        # .mark_line(point=False)
-        # .encode(
-            # x=alt.X("index", title="Days from today"),
-            # y=alt.Y("value:Q", title="Case Volume"),
-            # tooltip=["key:N", "value:Q"], 
-            # color="key:N"
-        # )
-        # .interactive()
-    # )
+    return (
+        alt
+        .Chart(dat.reset_index())
+        .transform_fold(fold=["Infected", "Hospitalized", "ICU", "Fatal"])
+        .mark_line(point=False)
+        .encode(
+            x=alt.X("index", title="Days from today"),
+            y=alt.Y("value:Q", title="Case Volume"),
+            tooltip=["key:N", "value:Q"], 
+            color="key:N"
+        )
+        .interactive()
+    )
 
-# st.altair_chart(additional_projections_chart(i_H, j_H, c_H, r_H, d_H), use_container_width=True)
+st.altair_chart(additional_projections_chart(i_H, j_H, c_H, d_H), use_container_width=True)
+
+# Recovered/Infected/Hospitalized/Fatality table
+st.subheader("The number of infected,recovered, and fatal individuals in the region at any given moment")
+
+def additional_projections_chart(i: np.ndarray, j: np.ndarray, d: np.ndarray) -> alt.Chart:
+    dat = pd.DataFrame({"Infected": i, "Hospitalized":j, "Fatal":d})
+
+    return (
+        alt
+        .Chart(dat.reset_index())
+        .transform_fold(fold=["Infected", "Hospitalized", "Fatal"])
+        .mark_line(point=False)
+        .encode(
+            x=alt.X("index", title="Days from today"),
+            y=alt.Y("value:Q", title="Case Volume"),
+            tooltip=["key:N", "value:Q"], 
+            color="key:N"
+        )
+        .interactive()
+    )
+
+st.altair_chart(additional_projections_chart(i_H2, j_H2, d_H2), use_container_width=True)
+
 
 
 
@@ -1867,28 +1974,39 @@ st.altair_chart(additional_projections_chart(i_D, r_D, d_D), use_container_width
     # st.dataframe(infect_table)
 
 # # Show data
-# days1 = np.array(range(0, n_days + 1))
-# data_list1 = [days1, s_D, e_D, i_D, r_D, d_D]
-# data_dict1 = dict(zip(["day", "susceptible", "exposed","infections", "recovered", "fatal"], data_list1))
-# projection_area1 = pd.DataFrame.from_dict(data_dict1)
-# infect_table1 = (projection_area1.iloc[::7, :]).apply(np.floor)
-# infect_table1.index = range(infect_table1.shape[0])
+days1 = np.array(range(0, n_days + 1))
+data_list1 = [days1, s_D, e_D, i_D, r_D, d_D]
+data_dict1 = dict(zip(["day", "susceptible", "exposed","infections", "recovered", "fatal"], data_list1))
+projection_area1 = pd.DataFrame.from_dict(data_dict1)
+infect_table1 = (projection_area1.iloc[::7, :]).apply(np.floor)
+infect_table1.index = range(infect_table1.shape[0])
 
-# if st.checkbox("Show Raw SEIR Similation Data with case fatality" ):
-    # st.dataframe(infect_table1)
+if st.checkbox("Show Raw SEIR Similation Data with case fatality" ):
+    st.dataframe(infect_table1)
 
 
 # Show data
-#days3 = np.array(range(0, n_days + 1))
-#data_list3 = [days3, s_H, e_H, i_H, j_H, c_H, r_H, d_H]
-#data_dict3 = dict(zip(["day", "susceptible", "exposed","infections", "hospitalized", "ICU", "recovered", "fatal"], data_list3))
-#projection_area3 = pd.DataFrame.from_dict(data_dict3)
-#infect_table3 = (projection_area3.iloc[::7, :]).apply(np.floor)
-#infect_table3.index = range(infect_table3.shape[0])
+days3 = np.array(range(0, n_days + 1))
+data_list3 = [days3, s_H, e_H, i_H, j_H, c_H, r_H, d_H]
+data_dict3 = dict(zip(["day", "susceptible", "exposed","infections", "hospitalized", "ICU", "recovered", "fatal"], data_list3))
+projection_area3 = pd.DataFrame.from_dict(data_dict3)
+infect_table3 = (projection_area3.iloc[::7, :]).apply(np.floor)
+infect_table3.index = range(infect_table3.shape[0])
 
-#if st.checkbox("Show Raw SEIJCR Similation Data" ):
-#    st.dataframe(infect_table3)
+if st.checkbox("Show Raw SEIJCR Similation Data" ):
+    st.dataframe(infect_table3)
 
+
+# Show data
+days4 = np.array(range(0, n_days + 1))
+data_list4 = [days4, s_H2, e_H2, i_H2, j_H2, r_H2, d_H2]
+data_dict4 = dict(zip(["day", "susceptible", "exposed","infections", "hospitalized", "recovered", "fatal"], data_list4))
+projection_area4 = pd.DataFrame.from_dict(data_dict4)
+infect_table4 = (projection_area4.iloc[::7, :]).apply(np.floor)
+infect_table4.index = range(infect_table4.shape[0])
+
+if st.checkbox("Show Raw SEIJR Similation Data2 "):
+    st.dataframe(infect_table4)
 
 # Show data
 #days2 = np.array(range(0, n_days + 1))

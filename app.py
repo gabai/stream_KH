@@ -571,10 +571,12 @@ def add_date_column(
 icu_county = 246
 beds_county = 2380
 # 4/1/20
-expanded_icu_county = 369
-expanded_beds_county = 3570
+#expanded_icu_county = 369
+#expanded_beds_county = 3570
 # Expected Growth + 0.5
-#expected_icu_county = 
+# 4/2/20
+expanded_icu_county = 553
+expanded_beds_county = 5355
 
 # PPE Values
 ppe_mild_val_lower = 14
@@ -829,24 +831,33 @@ erie_icu_line = alt.Chart(erie_df).mark_line(color='orange').encode(
 
 st.altair_chart(alt.layer(erie_cases_bar + erie_admit_line + erie_icu_line), use_container_width=True)
 
-
 # Erie Graph of Cases # Lines of cases
 def erie_chart(
     projection_admits: pd.DataFrame) -> alt.Chart:
     """docstring"""
     
-    projection_admits = projection_admits.rename(columns={"Admissions": "Census Inpatient", "ICU":"Census Intensive", "Ventilated":"Census Ventilated"})
+    projection_admits = projection_admits.rename(columns={"Admissions": "Census Inpatient", 
+                                                            "ICU":"Census Intensive", 
+                                                            "Ventilated":"Census Ventilated",
+                                                            "New_admits":"New Admissions",
+                                                            "New_discharge":"New Discharges",
+                                                            })
     
     return(
         alt
         .Chart(projection_admits)
-        .transform_fold(fold=["Census Inpatient", "Census Intensive", "Census Ventilated"])
-        .mark_line(point=False)
+        .transform_fold(fold=["Census Inpatient", 
+                                "Census Intensive", 
+                                "Census Ventilated",
+                                "New Admissions",
+                                "New Discharges"
+                                ])
+        .mark_line(point=True)
         .encode(
             x=alt.X("Date", title="Date"),
             y=alt.Y("value:Q", title="Erie County Census"),
             color="key:N",
-            tooltip="key:N",
+            tooltip=[alt.Tooltip("value:Q", format=".0f"),"key:N"]
         )
         .interactive()
     )
@@ -862,19 +873,21 @@ def erie_inpatient(
         alt
         .Chart(projection_admits)
         .transform_fold(fold=["Inpatient"])
-        .mark_line(strokeWidth=3, strokeDash=[2,3], point=False)
+        .mark_line(strokeWidth=3, strokeDash=[2,3], point=True)
         .encode(
             x=alt.X("day1"),
             y=alt.Y("value:Q", title="Census"),
             color="key:N",
-            tooltip="key:N",
+            tooltip=[alt.Tooltip("value:Q", format=".0f"),"key:N"]
         )
         .interactive()
     )
-
+# alt.Tooltip("value:Q", format=".0f", title="Admissions"),
+                # "key:N"
 erie_lines = erie_chart(erie_df)
 erie_lines_ip = erie_inpatient(erie_df)
 
+st.altair_chart(erie_cases_bar+erie_lines, use_container_width=True)
 st.altair_chart(erie_lines, use_container_width=True)
 
 

@@ -1789,8 +1789,8 @@ st.altair_chart(
     # st.dataframe(census_table)
 
 # Census - SEIR model Table
-if st.checkbox("Show Projected Census in tabular form: SEIR Model"):
-    st.dataframe(census_table_e)
+# if st.checkbox("Show Projected Census in tabular form: SEIR Model"):
+    # st.dataframe(census_table_e)
 
 # # Census - SEIR model with adjusted R_0 Table
 # if st.checkbox("Show Projected Census in tabular form: SEIR Model with adjusted R_0"):

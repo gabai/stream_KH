@@ -154,8 +154,13 @@ def build_census_df(
     census_df['expanded_beds_county2'] = expanded_beds_county_1
     census_df['icu_beds'] = icu_val
     census_df['total_beds'] = total_beds_val
+    census_df['total_vents'] = vent_val
     census_df['expanded_beds'] = expanded_beds_val
     census_df['expanded_icu_beds'] = expanded_icu_val
+    census_df['expanded_vent_beds'] = expanded_vent_val
+    census_df['expanded_beds2'] = expanded_beds2_val
+    census_df['expanded_icu_beds2'] = expanded_icu2_val
+    census_df['expanded_vent_beds2'] = expanded_vent2_val
     
     # PPE for hosp/icu
     census_df['ppe_mild_d'] = census_df['hosp'] * ppe_mild_val_lower
@@ -622,10 +627,10 @@ vent_los = st.sidebar.number_input("Ventilator Length of Stay", value=7, step=1,
    # / 100.0
 # )
 
-#S = st.sidebar.number_input(
-#   "Regional Population", value=S_default, step=100000, format="%i"
-#)
-#
+S = st.sidebar.number_input(
+  "Regional Population", value=S_default, step=100000, format="%i"
+)
+
 initial_infections = st.sidebar.number_input(
     "Currently Known Regional Infections (only used to compute detection rate - does not change projections)", value=known_infections, step=10, format="%i"
 )
@@ -1079,62 +1084,80 @@ if hosp_options == 'Kaleida':
     # Added expanded beds
     #col_name2 = {"hosp_kh": "Hospitalized - Kaleida", "icu_kh": "ICU - Kaleida", "vent_kh": "Ventilated - Kaleida", "total_beds":"Total Beds", "icu_beds": "Total ICU Beds"}
     #fold_name2 = ["Hospitalized - Kaleida", "ICU - Kaleida", "Ventilated - Kaleida", "Total Beds", "Total ICU Beds"]
-    col_name2 = {"hosp_kh": "Hospitalized - Kaleida", "icu_kh": "ICU - Kaleida", "vent_kh": "Ventilated - Kaleida",
-        "expanded_beds":"Expanded IP Beds", "expanded_icu_beds": "Expanded ICU Beds"}
-    fold_name2 = ["Hospitalized - Kaleida", "ICU - Kaleida", "Ventilated - Kaleida", "Expanded IP Beds", "Expanded ICU Beds"]
+    col_name2 = {"hosp_kh": "Hospitalized - Kaleida", "icu_kh": "ICU - Kaleida", "vent_kh": "Ventilated - Kaleida"}
+    fold_name2 = ["Hospitalized - Kaleida", "ICU - Kaleida", "Ventilated - Kaleida"]
     #col_name3 = {"ppe_mild_d_kh": "PPE Mild Cases - Lower Range", "ppe_mild_u_kh": "PPE Mild Cases - Upper Range", 
     #"ppe_severe_d_kh": "PPE Severe Cases - Lower Range", "ppe_severe_u_kh": "PPE Severe Cases - Upper Range"}
     #fold_name3 = ["PPE Mild Cases - Lower Range", "PPE Mild Cases - Upper Range", "PPE Severe Cases - Lower Range", "PPE Severe Cases - Upper Range"]
     icu_val = 122
     total_beds_val = 879
+    vent_val = 206
     expanded_beds_val = 1319
     expanded_icu_val = 183
+    expanded_vent_val = 309
+    expanded_beds2_val = 1758
+    expanded_icu2_val = 244
+    expanded_vent2_val = 412
 if hosp_options == 'ECMC':
     col_name1 = {"hosp_ecmc": "Hospitalized - ECMC", "icu_ecmc": "ICU - ECMC", "vent_ecmc": "Ventilated - ECMC"}
     fold_name1 = ["Hospitalized - ECMC", "ICU - ECMC", "Ventilated - ECMC"]
     #col_name2 = {"hosp_ecmc": "Hospitalized - ECMC", "icu_ecmc": "ICU - ECMC", "vent_ecmc": "Ventilated - ECMC", "total_beds":"Total Beds", "icu_beds": "Total ICU Beds"}
     #fold_name2 = ["Hospitalized - ECMC", "ICU - ECMC", "Ventilated - ECMC", "Total Beds", "Total ICU Beds"]
-    col_name2 = {"hosp_ecmc": "Hospitalized - ECMC", "icu_ecmc": "ICU - ECMC", "vent_ecmc": "Ventilated - ECMC", 
-        "expanded_beds":"Expanded IP Beds", "expanded_icu_beds": "Expanded ICU Beds"}
-    fold_name2 = ["Hospitalized - ECMC", "ICU - ECMC", "Ventilated - ECMC", "Expanded IP Beds", "Expanded ICU Beds"]
+    col_name2 = {"hosp_ecmc": "Hospitalized - ECMC", "icu_ecmc": "ICU - ECMC", "vent_ecmc": "Ventilated - ECMC"}
+    fold_name2 = ["Hospitalized - ECMC", "ICU - ECMC", "Ventilated - ECMC"]
     # col_name3 ={"ppe_mild_d_ecmc": "PPE Mild Cases - Lower Range", "ppe_mild_u_ecmc": "PPE Mild Cases - Upper Range", 
     # "ppe_severe_d_ecmc": "PPE Severe Cases - Lower Range", "ppe_severe_u_ecmc": "PPE Severe Cases - Upper Range"}
     # fold_name3 = ["PPE Mild Cases - Lower Range", "PPE Mild Cases - Upper Range", "PPE Severe Cases - Lower Range", "PPE Severe Cases - Upper Range"]
     icu_val = 36
     total_beds_val = 573
+    vent_val = 0
     expanded_beds_val = 860
     expanded_icu_val = 54
+    expanded_vent_val = 0
+    expanded_beds2_val = 1146
+    expanded_icu2_val = 72
+    expanded_vent2_val = 0
 if hosp_options == 'CHS':
     col_name1 = {"hosp_chs": "Hospitalized - CHS", "icu_chs": "ICU - CHS", "vent_chs": "Ventilated - CHS"}
     fold_name1 = ["Hospitalized - CHS", "ICU - CHS", "Ventilated - CHS"]
     #col_name2 = {"hosp_chs": "Hospitalized - CHS", "icu_chs": "ICU - CHS", "vent_chs": "Ventilated - CHS", "total_beds":"Total Beds", "icu_beds": "Total ICU Beds"}
     #fold_name2 = ["Hospitalized - CHS", "ICU - CHS", "Ventilated - CHS", "Total Beds", "Total ICU Beds"]
-    col_name2 = {"hosp_chs": "Hospitalized - CHS", "icu_chs": "ICU - CHS", "vent_chs": "Ventilated - CHS",
-        "expanded_beds":"Expanded IP Beds", "expanded_icu_beds": "Expanded ICU Beds"}
-    fold_name2 = ["Hospitalized - CHS", "ICU - CHS", "Ventilated - CHS", "Expanded IP Beds", "Expanded ICU Beds"]
+    col_name2 = {"hosp_chs": "Hospitalized - CHS", "icu_chs": "ICU - CHS", "vent_chs": "Ventilated - CHS"}
+    fold_name2 = ["Hospitalized - CHS", "ICU - CHS", "Ventilated - CHS"]
     # col_name3 ={"ppe_mild_d_chs": "PPE Mild Cases - Lower Range", "ppe_mild_u_chs": "PPE Mild Cases - Upper Range", 
     # "ppe_severe_d_chs": "PPE Severe Cases - Lower Range", "ppe_severe_u_chs": "PPE Severe Cases - Upper Range"}
     # fold_name3 = ["PPE Mild Cases - Lower Range", "PPE Mild Cases - Upper Range", "PPE Severe Cases - Lower Range", "PPE Severe Cases - Upper Range"]
     icu_val = 74
     total_beds_val = 795
+    vent_val = 0
     expanded_beds_val = 1193
     expanded_icu_val = 111
+    expanded_vent_val = 0
+    expanded_beds2_val = 1590 
+    expanded_icu2_val = 148
+    expanded_vent2_val = 0
 if hosp_options == 'RPCI':
     col_name1 = {"hosp_rpci": "Hospitalized - Roswell", "icu_rpci": "ICU - Roswell", "vent_rpci": "Ventilated - Roswell"}
     fold_name1 = ["Hospitalized - Roswell", "ICU - Roswell", "Ventilated - Roswell"]
     #col_name2 = {"hosp_rpci": "Hospitalized - Roswell", "icu_rpci": "ICU - Roswell", "vent_rpci": "Ventilated - Roswell", "total_beds":"Total Beds", "icu_beds": "Total ICU Beds"}
     #fold_name2 = ["Hospitalized - Roswell", "ICU - Roswell", "Ventilated - Roswell", "Total Beds", "Total ICU Beds"]
-    col_name2 = {"hosp_rpci": "Hospitalized - Roswell", "icu_rpci": "ICU - Roswell", "vent_rpci": "Ventilated - Roswell", 
-        "expanded_beds":"Expanded IP Beds", "expanded_icu_beds": "Expanded ICU Beds"}
-    fold_name2 = ["Hospitalized - Roswell", "ICU - Roswell", "Ventilated - Roswell", "Expanded IP Beds", "Expanded ICU Beds"]
+    col_name2 = {"hosp_rpci": "Hospitalized - Roswell", "icu_rpci": "ICU - Roswell", "vent_rpci": "Ventilated - Roswell"}
+    fold_name2 = ["Hospitalized - Roswell", "ICU - Roswell", "Ventilated - Roswell"]
     # col_name3 ={"ppe_mild_d_rpci": "PPE Mild Cases - Lower Range", "ppe_mild_u_rpci": "PPE Mild Cases - Upper Range", 
     # "ppe_severe_d_rpci": "PPE Severe Cases - Lower Range", "ppe_severe_u_rpci": "PPE Severe Cases - Upper Range"}
     # fold_name3 = ["PPE Mild Cases - Lower Range", "PPE Mild Cases - Upper Range", "PPE Severe Cases - Lower Range", "PPE Severe Cases - Upper Range"]
-    icu_val = 16
-    total_beds_val = 110
-    expanded_beds_val = 165
+    icu_val = 14
+    total_beds_val = 133
+    vent_val = 0
+    expanded_beds_val = 200
     expanded_icu_val = 24
+    expanded_vent_val = 0
+    expanded_beds2_val = 266
+    expanded_icu2_val = 28
+    expanded_vent2_val = 0
     
+
+
  
 # Graphs of new admissions for Erie
 # st.subheader("New Admissions: SIR Model")
@@ -1222,12 +1245,18 @@ def regional_admissions_chart(
 if model_options == "Inpatient":
     columns_comp = {"hosp": "Hospitalized"}
     fold_comp = ["Hospitalized"]
+    capacity_col = {"expanded_beds":"Expanded IP Beds (50%)", "expanded_beds2":"Expanded IP Beds (100%)"}
+    capacity_fol = ["Expanded IP Beds (50%)", "Expanded IP Beds (100%)"]
 if model_options == "ICU":
     columns_comp = {"icu": "ICU"}
     fold_comp = ["ICU"]
+    capacity_col = {"expanded_icu_beds": "Expanded ICU Beds (50%)", "expanded_icu_beds2": "Expanded ICU Beds (100%)"}
+    capacity_fol = ["Expanded ICU Beds (50%)", "Expanded ICU Beds (100%)"]
 if model_options == "Ventilated":
     columns_comp = {"vent": "Ventilated"}
     fold_comp = ["Ventilated"]
+    capacity_col = {"expanded_vent_beds": "Expanded Ventilators (50%)", "expanded_vent_beds2": "Expanded Ventilators (100%)"}
+    capacity_fol = ["Expanded Ventilators (50%)", "Expanded Ventilators (100%)"]
 
 def ip_chart(
     projection_admits: pd.DataFrame, 
@@ -1235,7 +1264,7 @@ def ip_chart(
     as_date:bool = False) -> alt.Chart:
     """docstring"""
     
-    projection_admits = projection_admits.rename(columns=columns_comp)
+    projection_admits = projection_admits.rename(columns=columns_comp|capaity_col)
     
     tooltip_dict = {False: "day", True: "date:T"}
     if as_date:
@@ -1247,7 +1276,7 @@ def ip_chart(
     return (
         alt
         .Chart(projection_admits.head(plot_projection_days))
-        .transform_fold(fold=fold_comp)
+        .transform_fold(fold=fold_comp+capacity_fol)
         .mark_line(point=False)
         .encode(
             x=alt.X(**x_kwargs),
@@ -1320,7 +1349,7 @@ def additional_projections_chart(i: np.ndarray, r: np.ndarray, d: np.ndarray) ->
     return (
         alt
         .Chart(dat.reset_index())
-        .transform_fold(fold=["Infected", "Recovered", "Fatal"])
+        .transform_fold(fold=["Infected"])
         .mark_line(point=False)
         .encode(
             x=alt.X("index", title="Days from initial case"),
@@ -1331,7 +1360,33 @@ def additional_projections_chart(i: np.ndarray, r: np.ndarray, d: np.ndarray) ->
         .interactive()
     )
 
-st.altair_chart(additional_projections_chart(i_D, r_D, d_D), use_container_width=True)
+recov_infec = additional_projections_chart(i_D, r_D, d_D)
+
+
+def death_chart(i: np.ndarray, r: np.ndarray, d: np.ndarray) -> alt.Chart:
+    dat = pd.DataFrame({"Infected": i, "Recovered": r, "Fatal":d})
+
+    return (
+        alt
+        .Chart(dat.reset_index())
+        .transform_fold(fold=["Fatal"])
+        .mark_bar()
+        .encode(
+            x=alt.X("index", title="Days from initial case"),
+            y=alt.Y("value:Q", title="Case Volume"),
+            tooltip=["key:N", "value:Q"], 
+            color=alt.value('red')
+        )
+        .interactive()
+    )
+
+deaths = death_chart(i_D, r_D, d_D)
+
+st.altair_chart(recov_infec + deaths, use_container_width=True)
+
+
+if st.checkbox("Show Projected deaths in tabular form"):
+    st.dataframe(d_D)
 
 
 total_fatalities=max(d_D)
@@ -1544,7 +1599,7 @@ def admitted_patients_chart(
             color="key:N",
             tooltip=[
                 tooltip_dict[as_date],
-                alt.Tooltip("value:Q", format=".0f", title="Admissions"),
+                alt.Tooltip("value:Q", format=".0f"),
                 "key:N",
             ],
         )
@@ -1721,7 +1776,7 @@ def hosp_admitted_patients_chart(
     census: pd.DataFrame, 
     as_date:bool = False) -> alt.Chart:
     """docstring"""
-    census = census.rename(columns=col_name2)
+    census = census.rename(columns=dict(col_name2.items()|capacity_col.items()))
 
     tooltip_dict = {False: "day", True: "date:T"}
     if as_date:
@@ -1733,7 +1788,7 @@ def hosp_admitted_patients_chart(
     return (
         alt
         .Chart(census)
-        .transform_fold(fold=fold_name2)
+        .transform_fold(fold=fold_name2+capacity_fol)
         .mark_line(point=False)
         .encode(
             x=alt.X(**x_kwargs),
@@ -1741,7 +1796,7 @@ def hosp_admitted_patients_chart(
             color="key:N",
             tooltip=[
                 tooltip_dict[as_date],
-                alt.Tooltip("value:Q", format=".0f", title="Admissions"),
+                alt.Tooltip("value:Q", format=".0f"),
                 "key:N",
             ],
         )

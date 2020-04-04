@@ -859,106 +859,139 @@ def erie_chart(
         .interactive()
     )
 
+  
 #Erie Graph of Cases # Lines of cases # Inpatient Census
-def erie_inpatient(
-    projection_admits: pd.DataFrame,
-    as_date:bool = False) -> alt.Chart:
-    """docstring"""
+
+if as_date:
+    erie_df = add_date_column(erie_df)
+    day_date = 'date:T'
+    def erie_inpatient(projection_admits: pd.DataFrame) -> alt.Chart:
+        """docstring"""
     
-    tooltip_dict = {False: "day", True: "date:T"}
-    if as_date:
-        projection_admits = add_date_column(projection_admits)
-        x_kwargs = {"shorthand": "date:T", "title": "date"}
-    else:
-        x_kwargs = {"shorthand": "day", "title": "Days from initial infection"}
+        projection_admits = projection_admits.rename(columns={"Admissions": "Erie County Inpatient"})
+    
+        return(
+            alt
+            .Chart(projection_admits)
+            .transform_fold(fold=["Erie County Inpatient"])
+            .mark_line(strokeWidth=3, strokeDash=[2,3], point=True)
+            .encode(
+                x=alt.X(day_date),
+                y=alt.Y("value:Q", title="Census"),
+                color="key:N",
+                tooltip=[alt.Tooltip("value:Q", format=".0f"),"key:N"]
+            )
+            .interactive()
+        )
+else:
+    day_date = 'day'
+    def erie_inpatient(
+        projection_admits: pd.DataFrame) -> alt.Chart:
+        """docstring"""
+    
+        projection_admits = projection_admits.rename(columns={"Admissions": "Erie County Inpatient"})
+    
+        return(
+            alt
+            .Chart(projection_admits)
+            .transform_fold(fold=["Erie County Inpatient"])
+            .mark_line(strokeWidth=3, strokeDash=[2,3], point=True)
+            .encode(
+                x=alt.X(day_date),
+                y=alt.Y("value:Q", title="Census"),
+                color="key:N",
+                tooltip=[alt.Tooltip("value:Q", format=".0f"),"key:N"]
+            )
+            .interactive()
+        )
+
+
+# Erie Graph of Cases # Lines of cases # ICU Census
+if as_date:
+    erie_df = add_date_column(erie_df)
+    day_date = 'date:T'
+    def erie_icu(projection_admits: pd.DataFrame) -> alt.Chart:
+        """docstring"""
         
-    projection_admits = projection_admits.rename(columns={"Admissions": "Erie County Inpatient"})
-    
-
-    return(
-        alt
-        .Chart(projection_admits)
-        .transform_fold(fold=["Erie County Inpatient"])
-        .mark_line(strokeWidth=3, strokeDash=[2,3], point=True)
-        .encode(
-            x=alt.X(**x_kwargs),
-            y=alt.Y("value:Q", title="Census"),
-            color="key:N",
-            tooltip=[
-                tooltip_dict[as_date],
-                alt.Tooltip("value:Q", format=".0f"),
-                "key:N"
-            ],
+        projection_admits = projection_admits.rename(columns={"ICU": "Erie County ICU"})
+        
+        return(
+            alt
+            .Chart(projection_admits)
+            .transform_fold(fold=["Erie County ICU"])
+            .mark_line(strokeWidth=3, strokeDash=[2,3], point=True)
+            .encode(
+                x=alt.X(day_date),
+                y=alt.Y("value:Q", title="Census"),
+                color="key:N",
+                tooltip=[alt.Tooltip("value:Q", format=".0f"),"key:N"]
+            )
+            .interactive()
         )
-        .interactive()
-    )
-
-
-# Erie Graph of Cases # Lines of cases # ICU Census
-def erie_icu(
-    projection_admits: pd.DataFrame,
-    as_date:bool = False) -> alt.Chart:
-    """docstring"""
-    
-    projection_admits = projection_admits.rename(columns={"ICU": "Erie County ICU"})
-    
-    tooltip_dict = {False: "day", True: "date:T"}
-    if as_date:
-        projection_admits = add_date_column(projection_admits)
-        x_kwargs = {"shorthand": "date:T", "title": "Date"}
-    else:
-        x_kwargs = {"shorthand": "day", "title": "Days from initial infection"}
-    
-    return(
-        alt
-        .Chart(projection_admits)
-        .transform_fold(fold=["Erie County ICU"])
-        .mark_line(strokeWidth=3, strokeDash=[2,3], point=True)
-        .encode(
-            x=alt.X(**x_kwargs),
-            y=alt.Y("value:Q", title="Census"),
-            color="key:N",
-            tooltip=[
-                tooltip_dict[as_date],
-                alt.Tooltip("value:Q", format=".0f"),
-                "key:N"
-            ],
+else:
+    day_date = 'day'
+    def erie_icu(projection_admits: pd.DataFrame) -> alt.Chart:
+        """docstring"""
+        
+        projection_admits = projection_admits.rename(columns={"ICU": "Erie County ICU"})
+        
+        return(
+            alt
+            .Chart(projection_admits)
+            .transform_fold(fold=["Erie County ICU"])
+            .mark_line(strokeWidth=3, strokeDash=[2,3], point=True)
+            .encode(
+                x=alt.X(day_date),
+                y=alt.Y("value:Q", title="Census"),
+                color="key:N",
+                tooltip=[alt.Tooltip("value:Q", format=".0f"),"key:N"]
+            )
+            .interactive()
         )
-        .interactive()
-    )
-
-# Erie Graph of Cases # Lines of cases # ICU Census
-def erie_vent(
-    projection_admits: pd.DataFrame,
-    as_date:bool = False) -> alt.Chart:
-    """docstring"""
     
-    projection_admits = projection_admits.rename(columns={"Ventilated": "Erie County Ventilated"})
-    
-    tooltip_dict = {False: "day", True: "date:T"}
-    if as_date:
-        projection_admits = add_date_column(projection_admits)
-        x_kwargs = {"shorthand": "Date:T", "title": "Date"}
-    else:
-        x_kwargs = {"shorthand": "day", "title": "Days from initial infection"}
-    
-    return(
-        alt
-        .Chart(projection_admits)
-        .transform_fold(fold=["Erie County Ventilated"])
-        .mark_line(strokeWidth=3, strokeDash=[2,3], point=True)
-        .encode(
-            x=alt.X(**x_kwargs),
-            y=alt.Y("value:Q", title="Census"),
-            color="key:N",
-            tooltip=[
-                tooltip_dict[as_date],
-                alt.Tooltip("value:Q", format=".0f"),
-                "key:N"
-            ],
+# Erie Graph of Cases # Lines of cases # Ventilator Census
+if as_date:
+    erie_df = add_date_column(erie_df)
+    day_date = 'date:T'
+    def erie_vent(projection_admits: pd.DataFrame) -> alt.Chart:
+        """docstring"""
+        
+        projection_admits = projection_admits.rename(columns={"Ventilated": "Erie County Ventilated"})
+          
+        return(
+            alt
+            .Chart(projection_admits)
+            .transform_fold(fold=["Erie County Ventilated"])
+            .mark_line(strokeWidth=3, strokeDash=[2,3], point=True)
+            .encode(
+                x=alt.X(day_date),
+                y=alt.Y("value:Q", title="Census"),
+                color="key:N",
+                tooltip=[alt.Tooltip("value:Q", format=".0f"),"key:N"]
+            )
+            .interactive()
         )
-        .interactive()
-    )
+else:
+    day_date = 'day'
+    def erie_vent(projection_admits: pd.DataFrame) -> alt.Chart:
+        """docstring"""
+        
+        projection_admits = projection_admits.rename(columns={"Ventilated": "Erie County Ventilated"})
+          
+        return(
+            alt
+            .Chart(projection_admits)
+            .transform_fold(fold=["Erie County Ventilated"])
+            .mark_line(strokeWidth=3, strokeDash=[2,3], point=True)
+            .encode(
+                x=alt.X(day_date),
+                y=alt.Y("value:Q", title="Census"),
+                color="key:N",
+                tooltip=[alt.Tooltip("value:Q", format=".0f"),"key:N"]
+            )
+            .interactive()
+        )
+
 
 erie_lines = erie_chart(erie_df)
 erie_lines_ip = erie_inpatient(erie_df)
@@ -1352,7 +1385,7 @@ def additional_projections_chart(i: np.ndarray, r: np.ndarray, d: np.ndarray) ->
         .transform_fold(fold=["Infected"])
         .mark_line(point=False)
         .encode(
-            x=alt.X("index", title="Days from initial case"),
+            x=alt.X("index", title="Days from initial infection"),
             y=alt.Y("value:Q", title="Case Volume"),
             tooltip=["key:N", "value:Q"], 
             color="key:N"
@@ -1372,7 +1405,7 @@ def death_chart(i: np.ndarray, r: np.ndarray, d: np.ndarray) -> alt.Chart:
         .transform_fold(fold=["Fatal"])
         .mark_bar()
         .encode(
-            x=alt.X("index", title="Days from initial case"),
+            x=alt.X("index", title="Days from initial infection"),
             y=alt.Y("value:Q", title="Case Volume"),
             tooltip=["key:N", "value:Q"], 
             color=alt.value('red')
@@ -1382,11 +1415,8 @@ def death_chart(i: np.ndarray, r: np.ndarray, d: np.ndarray) -> alt.Chart:
 
 deaths = death_chart(i_D, r_D, d_D)
 
-st.altair_chart(recov_infec + deaths, use_container_width=True)
+st.altair_chart(deaths + recov_infec, use_container_width=True)
 
-
-if st.checkbox("Show Projected deaths in tabular form"):
-    st.dataframe(d_D)
 
 
 total_fatalities=max(d_D)
@@ -1493,7 +1523,7 @@ def hospital_admissions_chart(
         projection_admits = add_date_column(projection_admits)
         x_kwargs = {"shorthand": "date:T", "title": "Date"}
     else:
-        x_kwargs = {"shorthand": "day", "title": "Days from initial case"}
+        x_kwargs = {"shorthand": "day", "title": "Days from initial infection"}
     
     return (
         alt
@@ -1586,7 +1616,7 @@ def admitted_patients_chart(
         census = add_date_column(census.head(plot_projection_days))
         x_kwargs = {"shorthand": "date:T", "title": "Date"}
     else:
-        x_kwargs = {"shorthand": "day", "title": "Days from initial case"}
+        x_kwargs = {"shorthand": "day", "title": "Days from initial infection"}
 
     return (
         alt
@@ -1633,7 +1663,7 @@ def ip_census_chart(
         census = add_date_column(census.head(plot_projection_days))
         x_kwargs = {"shorthand": "date:T", "title": "Date"}
     else:
-        x_kwargs = {"shorthand": "day", "title": "Days from initial case"}
+        x_kwargs = {"shorthand": "day", "title": "Days from initial infection"}
 
     return (
         alt
@@ -1783,7 +1813,7 @@ def hosp_admitted_patients_chart(
         census = add_date_column(census)
         x_kwargs = {"shorthand": "date:T", "title": "Date"}
     else:
-        x_kwargs = {"shorthand": "day", "title": "Days from initial case"}
+        x_kwargs = {"shorthand": "day", "title": "Days from initial infection"}
 
     return (
         alt
@@ -1923,7 +1953,7 @@ def ppe_chart(
         census = add_date_column(census)
         x_kwargs = {"shorthand": "date:T", "title": "Date"}
     else:
-        x_kwargs = {"shorthand": "day", "title": "Days from initial case"}
+        x_kwargs = {"shorthand": "day", "title": "Days from initial infection"}
 
     return (
         alt

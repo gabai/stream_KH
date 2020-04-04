@@ -1351,8 +1351,6 @@ st.altair_chart(
     use_container_width=True)
 
 
-
-
 if st.checkbox("Show more info about this tool"):
     st.subheader(
      "[Deterministic SEIR model](https://www.tandfonline.com/doi/full/10.1080/23737867.2018.1509026)")
@@ -1373,74 +1371,6 @@ The epidemic proceeds via a growth and decline process. This is the core model o
 and $$\\beta$$ is the rate of transmission. More information, including parameter specifications and reasons for model choice can be found [here]("https://github.com/gabai/stream_KH/wiki).""")
 
 
-# Recovered/Infected/Fatality table
-st.subheader("Infected,recovered,and fatal individuals in the region across time")
-
-def additional_projections_chart(i: np.ndarray, r: np.ndarray, d: np.ndarray) -> alt.Chart:
-    dat = pd.DataFrame({"Infected": i, "Recovered": r, "Fatal":d})
-
-    return (
-        alt
-        .Chart(dat.reset_index())
-        .transform_fold(fold=["Infected"])
-        .mark_line(point=False)
-        .encode(
-            x=alt.X("index", title="Days from initial infection"),
-            y=alt.Y("value:Q", title="Case Volume"),
-            tooltip=["key:N", "value:Q"], 
-            color="key:N"
-        )
-        .interactive()
-    )
-
-recov_infec = additional_projections_chart(i_D, r_D, d_D)
-
-
-def death_chart(i: np.ndarray, r: np.ndarray, d: np.ndarray) -> alt.Chart:
-    dat = pd.DataFrame({"Infected": i, "Recovered": r, "Fatal":d})
-
-    return (
-        alt
-        .Chart(dat.reset_index())
-        .transform_fold(fold=["Fatal"])
-        .mark_bar()
-        .encode(
-            x=alt.X("index", title="Days from initial infection"),
-            y=alt.Y("value:Q", title="Case Volume"),
-            tooltip=["key:N", "value:Q"], 
-            color=alt.value('red')
-        )
-        .interactive()
-    )
-
-deaths = death_chart(i_D, r_D, d_D)
-
-st.altair_chart(deaths + recov_infec, use_container_width=True)
-
-
-
-total_fatalities=max(d_D)
-infection_total_t=max(d_D)+max(r_D)
-st.markdown(
-    """There is a projected number of **{total_fatalities:.0f}** fatalities due to COVID-19.""".format(
-        total_fatalities=total_fatalities 
-    ))
-
-st.markdown("""There is a projected number of **{infection_total_t:.0f}** infections due to COVID-19.""".format(
-        infection_total_t=infection_total_t
-    )
-            )
-AAA=beta4*(1/gamma2)*1500000
-R2=AAA*(1-decay2)
-R3=AAA*(1-decay3)
-
-st.markdown("""The initial $R_0$ is **{AAA:.1f}** the $R_0$ after 2 weeks is **{R2:.1f}** and the $R_0$ after 3 weeks is **{R3:.1f}**.  This is based on a doubling rate of **{doubling_time:.0f}** and the calculation of the [basic reproduction number](https://www.sciencedirect.com/science/article/pii/S2468042719300491).  """.format(
-        AAA=AAA,
-        R2=R2,
-        R3=R3,
-        doubling_time=doubling_time
-    )
-            )
 
 
 sir = regional_admissions_chart(projection_admits, plot_projection_days, as_date=as_date)
@@ -2246,3 +2176,73 @@ float_formatter = "{:.2f}".format
     # """
 # )
 
+
+
+# Recovered/Infected/Fatality table
+st.subheader("Infected,recovered,and fatal individuals in the **region** across time")
+
+def additional_projections_chart(i: np.ndarray, r: np.ndarray, d: np.ndarray) -> alt.Chart:
+    dat = pd.DataFrame({"Infected": i, "Recovered": r, "Fatal":d})
+
+    return (
+        alt
+        .Chart(dat.reset_index())
+        .transform_fold(fold=["Infected"])
+        .mark_line(point=False)
+        .encode(
+            x=alt.X("index", title="Days from initial infection"),
+            y=alt.Y("value:Q", title="Case Volume"),
+            tooltip=["key:N", "value:Q"], 
+            color="key:N"
+        )
+        .interactive()
+    )
+
+recov_infec = additional_projections_chart(i_D, r_D, d_D)
+
+
+def death_chart(i: np.ndarray, r: np.ndarray, d: np.ndarray) -> alt.Chart:
+    dat = pd.DataFrame({"Infected": i, "Recovered": r, "Fatal":d})
+
+    return (
+        alt
+        .Chart(dat.reset_index())
+        .transform_fold(fold=["Fatal"])
+        .mark_bar()
+        .encode(
+            x=alt.X("index", title="Days from initial infection"),
+            y=alt.Y("value:Q", title="Case Volume"),
+            tooltip=["key:N", "value:Q"], 
+            color=alt.value('red')
+        )
+        .interactive()
+    )
+
+deaths = death_chart(i_D, r_D, d_D)
+
+st.altair_chart(deaths + recov_infec, use_container_width=True)
+
+
+
+total_fatalities=max(d_D)
+infection_total_t=max(d_D)+max(r_D)
+st.markdown(
+    """There is a projected number of **{total_fatalities:.0f}** fatalities due to COVID-19.""".format(
+        total_fatalities=total_fatalities 
+    ))
+
+st.markdown("""There is a projected number of **{infection_total_t:.0f}** infections due to COVID-19.""".format(
+        infection_total_t=infection_total_t
+    )
+            )
+AAA=beta4*(1/gamma2)*1500000
+R2=AAA*(1-decay2)
+R3=AAA*(1-decay3)
+
+st.markdown("""The initial $R_0$ is **{AAA:.1f}** the $R_0$ after 2 weeks is **{R2:.1f}** and the $R_0$ after 3 weeks is **{R3:.1f}**.  This is based on a doubling rate of **{doubling_time:.0f}** and the calculation of the [basic reproduction number](https://www.sciencedirect.com/science/article/pii/S2468042719300491).  """.format(
+        AAA=AAA,
+        R2=R2,
+        R3=R3,
+        doubling_time=doubling_time
+    )
+            )

@@ -1532,38 +1532,38 @@ def hospital_admissions_chart(
 ################################################
 ################################################
 st.header("""Projected Census Models for Erie County""")
-def admitted_patients_chart(
-    census: pd.DataFrame,
-    plot_projection_days: int,
-    as_date:bool = False) -> alt.Chart:
-    """docstring"""
-    census = census.rename(columns={"hosp": "Hospital Census", "icu": "ICU Census", "vent": "Ventilated Census", 
-    "expanded_beds_county":"Expanded IP Beds", "expanded_icu_county": "Expanded ICU Beds"})
+# def admitted_patients_chart(
+    # census: pd.DataFrame,
+    # plot_projection_days: int,
+    # as_date:bool = False) -> alt.Chart:
+    # """docstring"""
+    # census = census.rename(columns={"hosp": "Hospital Census", "icu": "ICU Census", "vent": "Ventilated Census", 
+    # "expanded_beds_county":"Expanded IP Beds", "expanded_icu_county": "Expanded ICU Beds"})
 
-    tooltip_dict = {False: "day", True: "date:T"}
-    if as_date:
-        census = add_date_column(census.head(plot_projection_days))
-        x_kwargs = {"shorthand": "date:T", "title": "Date"}
-    else:
-        x_kwargs = {"shorthand": "day", "title": "Days from initial infection"}
+    # tooltip_dict = {False: "day", True: "date:T"}
+    # if as_date:
+        # census = add_date_column(census.head(plot_projection_days))
+        # x_kwargs = {"shorthand": "date:T", "title": "Date"}
+    # else:
+        # x_kwargs = {"shorthand": "day", "title": "Days from initial infection"}
 
-    return (
-        alt
-        .Chart(census)
-        .transform_fold(fold=["Hospital Census", "ICU Census", "Ventilated Census", "Expanded IP Beds", "Expanded ICU Beds"])
-        .mark_line(point=False)
-        .encode(
-            x=alt.X(**x_kwargs),
-            y=alt.Y("value:Q", title="Census"),
-            color="key:N",
-            tooltip=[
-                tooltip_dict[as_date],
-                alt.Tooltip("value:Q", format=".0f"),
-                "key:N",
-            ],
-        )
-        .interactive()
-    )
+    # return (
+        # alt
+        # .Chart(census)
+        # .transform_fold(fold=["Hospital Census", "ICU Census", "Ventilated Census", "Expanded IP Beds", "Expanded ICU Beds"])
+        # .mark_line(point=False)
+        # .encode(
+            # x=alt.X(**x_kwargs),
+            # y=alt.Y("value:Q", title="Census"),
+            # color="key:N",
+            # tooltip=[
+                # tooltip_dict[as_date],
+                # alt.Tooltip("value:Q", format=".0f"),
+                # "key:N",
+            # ],
+        # )
+        # .interactive()
+    # )
 
 
 # Comparison of Census Single line graph - Hospitalized, ICU, Vent
@@ -1613,52 +1613,9 @@ def ip_census_chart(
     )
 
 
-# Erie County Census Graph - SIR
-# st.altair_chart(
-    # admitted_patients_chart(
-        # census_table,
-        # plot_projection_days,
-        # as_date=as_date),
-    # use_container_width=True)
-
-
-
-# def ip_census_chart(
-    # census: pd.DataFrame,
-    # plot_projection_days: int,
-    # as_date:bool = False) -> alt.Chart:
-    # """docstring"""
-    # census = census.rename(columns={"icu": "ICU Census"})
-
-    # tooltip_dict = {False: "day", True: "date:T"}
-    # if as_date:
-        # census = add_date_column(census.head(plot_projection_days))
-        # x_kwargs = {"shorthand": "date:T", "title": "Date"}
-    # else:
-        # x_kwargs = {"shorthand": "day", "title": "Days from today"}
-
-    # return (
-        # alt
-        # .Chart(census)
-        # .transform_fold(fold=["ICU Census"])
-        # .mark_line(point=False)
-        # .encode(
-            # x=alt.X(**x_kwargs),
-            # y=alt.Y("value:Q", title="Census", scale=alt.Scale(domain=[0, 1500])),
-            # color=alt.value('green'),
-            # tooltip=[
-                # tooltip_dict[as_date],
-                # alt.Tooltip("value:Q", format=".0f", title="Admissions"),
-                # "key:N",
-            # ],
-        # )
-        # .interactive()
-    # )
-#, scale=alt.Scale(domain=[0, 100])
-
-sir_ip_c = ip_census_chart(census_table, plot_projection_days, as_date=as_date)
+#sir_ip_c = ip_census_chart(census_table, plot_projection_days, as_date=as_date)
 seir_ip_c = ip_census_chart(census_table_e, plot_projection_days, as_date=as_date)
-seir_r_ip_c = ip_census_chart(census_table_R, plot_projection_days, as_date=as_date)
+#seir_r_ip_c = ip_census_chart(census_table_R, plot_projection_days, as_date=as_date)
 seir_d_ip_c = ip_census_chart(census_table_D, plot_projection_days, as_date=as_date)
 
 
@@ -1677,7 +1634,7 @@ seir_d_ip_c = ip_census_chart(census_table_D, plot_projection_days, as_date=as_d
 st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs Model")
 st.altair_chart(
     alt.layer(seir_ip_c.mark_line())
-    + alt.layer(seir_d_ip_c.mark_line(color='green'))
+    + alt.layer(seir_d_ip_c.mark_line())
     + alt.layer(graph_selection)
     , use_container_width=True)
 
@@ -1718,7 +1675,7 @@ st.altair_chart(
 # , scale=alt.Scale(domain=[0, 30000])
 
 
-st.header("""Hospital Specific Reported Cases and Admissions""")
+st.header("""Hospital Specific Projected Admissions and Census""")
 # By Hospital Admissions Chart - SEIR model with Phase Adjusted R_0 and Case Fatality
 st.subheader("Projected number of **daily** COVID-19 admissions by Hospital: SEIR model with Phase Adjusted R_0 and Case Fatality")
 st.markdown("Distribution of regional cases based on total bed percentage (CCU/ICU/MedSurg).")

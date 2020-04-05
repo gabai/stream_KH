@@ -110,7 +110,7 @@ def build_admissions_df(
         projection[groups[1]+"_"+i] = projection.icu*bed_share.iloc[3,counter]
         projection[groups[2]+"_"+i] = projection.vent*bed_share.iloc[3,counter]
         counter +=1
-        if counter == 8: break
+        if counter == 4: break
     
     # New cases
     projection_admits = projection.iloc[:-1, :] - projection.shift(1)
@@ -556,7 +556,7 @@ current_hosp = st.sidebar.number_input(
 )
 
 doubling_time = st.sidebar.number_input(
-    "Doubling Time (days)", value=3.0, step=1.0, format="%f"
+    "Doubling Time (days)", value=2.5, step=1.0, format="%f"
 )
 
 relative_contact_rate = st.sidebar.number_input(
@@ -576,16 +576,16 @@ decay3 = st.sidebar.number_input(
 )/100.0
 
 hosp_rate = (
-    st.sidebar.number_input("Hospitalization %", 0.0, 100.0, value=10.0, step=1.0, format="%f")
+    st.sidebar.number_input("Hospitalization %", 0.0, 100.0, value=3.0, step=1.0, format="%f")
     / 100.0
 )
 
 icu_rate = (
-    st.sidebar.number_input("ICU %", 0.0, 100.0, value=4.0, step=0.5, format="%f") / 100.0
+    st.sidebar.number_input("ICU %", 0.0, 100.0, value=1.0, step=1.5, format="%f") / 100.0
 )
 
 vent_rate = (
-    st.sidebar.number_input("Ventilated %", 0.0, 100.0, value=2.0, step=0.5, format="%f")
+    st.sidebar.number_input("Ventilated %", 0.0, 100.0, value=1.5, step=0.5, format="%f")
     / 100.0
 )
 
@@ -617,7 +617,7 @@ crit_lag = st.sidebar.number_input(
     "Days person takes to go to critical care", 0, 20, value=4 ,step=1, format="%f"
 )
 
-hosp_los = st.sidebar.number_input("Hospital Length of Stay", value=10, step=1, format="%i")
+hosp_los = st.sidebar.number_input("Hospital Length of Stay", value=7, step=1, format="%i")
 icu_los = st.sidebar.number_input("ICU Length of Stay", value=9, step=1, format="%i")
 vent_los = st.sidebar.number_input("Ventilator Length of Stay", value=7, step=1, format="%i")
 

@@ -536,10 +536,10 @@ erie_df['Date'] = pd.to_datetime(erie_df['Date'])
 
 # Populations and Infections
 erie = 1500000
-cases_erie = 802
+cases_erie = 945
 S_default = erie
-known_infections = 802
-known_cases = 181
+known_infections = 945
+known_cases = 201
 regional_hosp_share = 1.0
 S = erie
 
@@ -750,7 +750,7 @@ st.header("""Erie County: Reported Cases and Admissions""")
 ###################### First Graph ###################
 # Erie cases Graph
 
-erie_cases_bar = alt.Chart(erie_df).mark_bar(color='gray').encode(
+erie_cases_bar = alt.Chart(erie_df).mark_bar(color='lightgray').encode(
     x='Date:T',
     y='Cases:Q',
     tooltip=[alt.Tooltip("Cases:Q", format=".0f", title="Cases")])
@@ -849,7 +849,7 @@ def erie_chart(
                                 "New Admissions",
                                 "New Discharges"
                                 ])
-        .mark_line(point=True)
+        .mark_line(strokeWidth=3, point=True)
         .encode(
             x=alt.X("Date", title="Date"),
             y=alt.Y("value:Q", title="Erie County Census"),
@@ -904,7 +904,6 @@ else:
             )
             .interactive()
         )
-
 
 # Erie Graph of Cases # Lines of cases # ICU Census
 if as_date:

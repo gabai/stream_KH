@@ -735,10 +735,6 @@ st.title("Great Lakes Healthcare COVID-19 Disease Model - Erie County, NY")
 #st.subheader("Cases of COVID-19 in Erie County")
 
 
-
-st.header("""Erie County: Reported Cases and Admissions""")
-
-
 # st.markdown(
     # """Erie county has reported **{cases_erie:.0f}** cases of COVID-19.""".format(
         # cases_erie=cases_erie 
@@ -827,6 +823,9 @@ erie_icu_line = alt.Chart(erie_df).mark_line(color='orange', point=True).encode(
 # Slider and Date
 n_days = st.slider("Number of days to project", 30, 200, 120, 1, "%i")
 as_date = st.checkbox(label="Present result as dates", value=False)
+
+
+st.header("""Erie County: Reported Cases, Census and Admissions""")
 
 # Erie Graph of Cases # Lines of cases
 def erie_chart(

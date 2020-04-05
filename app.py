@@ -556,7 +556,7 @@ current_hosp = st.sidebar.number_input(
 )
 
 doubling_time = st.sidebar.number_input(
-    "Doubling Time (days)", value=2.5, step=1.0, format="%f"
+    "Doubling Time (days)", value=3.0, step=1.0, format="%f"
 )
 
 relative_contact_rate = st.sidebar.number_input(

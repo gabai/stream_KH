@@ -552,74 +552,56 @@ model_options = st.sidebar.radio(
     "Service", ('Inpatient', 'ICU', 'Ventilated'))
 
 current_hosp = st.sidebar.number_input(
-    "Total Hospitalized Cases", value=known_cases, step=1, format="%i"
-)
+    "Total Hospitalized Cases", value=known_cases, step=1, format="%i")
 
 doubling_time = st.sidebar.number_input(
-    "Doubling Time (days)", value=3.0, step=1.0, format="%f"
-)
+    "Doubling Time (days)", value=3.0, step=1.0, format="%f")
 
 relative_contact_rate = st.sidebar.number_input(
-    "Social distancing (% reduction in social contact) Unadjusted Model", 0, 100, value=0, step=5, format="%i"
-)/100.0
+    "Social distancing (% reduction in social contact) Unadjusted Model", 0, 100, value=0, step=5, format="%i")/100.0
 
 decay1 = st.sidebar.number_input(
-    "Social distancing (% reduction in social contact) in Week 0-2", 0, 100, value=0, step=5, format="%i"
-)/100.0
+    "Social distancing (% reduction in social contact) in Week 0-2", 0, 100, value=0, step=5, format="%i")/100.0
 
 decay2 = st.sidebar.number_input(
-    "Social distancing (% reduction in social contact) in Week 3", 0, 100, value=15, step=5, format="%i"
-)/100.0
+    "Social distancing (% reduction in social contact) in Week 3", 0, 100, value=15, step=5, format="%i")/100.0
 
 decay3 = st.sidebar.number_input(
-    "Social distancing (% reduction in social contact) after Week 3", 0, 100, value=40 ,step=5, format="%i"
-)/100.0
+    "Social distancing (% reduction in social contact) after Week 3", 0, 100, value=30 ,step=5, format="%i")/100.0
 
 hosp_rate = (
-    st.sidebar.number_input("Hospitalization %", 0.0, 100.0, value=3.0, step=1.0, format="%f")
-    / 100.0
-)
+    st.sidebar.number_input("Hospitalization %", 0.0, 100.0, value=5.0, step=1.0, format="%f")/ 100.0)
 
 icu_rate = (
-    st.sidebar.number_input("ICU %", 0.0, 100.0, value=1.0, step=1.5, format="%f") / 100.0
-)
+    st.sidebar.number_input("ICU %", 0.0, 100.0, value=1.0, step=1.5, format="%f") / 100.0)
 
 vent_rate = (
-    st.sidebar.number_input("Ventilated %", 0.0, 100.0, value=1.5, step=0.5, format="%f")
-    / 100.0
-)
+    st.sidebar.number_input("Ventilated %", 0.0, 100.0, value=1.5, step=0.5, format="%f")/ 100.0)
 
 incubation_period =(
-    st.sidebar.number_input("Incubation Period", 0.0, 12.0, value=5.2, step=0.1, format="%f")
-)
+    st.sidebar.number_input("Incubation Period", 0.0, 12.0, value=5.2, step=0.1, format="%f"))
 
 recovery_days =(
-    st.sidebar.number_input("Recovery Period", 0.0, 21.0, value=11.0 ,step=0.1, format="%f")
-)
+    st.sidebar.number_input("Recovery Period", 0.0, 21.0, value=11.0 ,step=0.1, format="%f"))
 
 infectious_period =(
-    st.sidebar.number_input("Infectious Period", 0.0, 18.0, value=3.0,step=0.1, format="%f")
-)
+    st.sidebar.number_input("Infectious Period", 0.0, 18.0, value=3.0,step=0.1, format="%f"))
 
 fatal = st.sidebar.number_input(
-    "Overall Fatality (%)", 0.0, 100.0, value=0.5 ,step=0.1, format="%f"
-)/100.0
+    "Overall Fatality (%)", 0.0, 100.0, value=0.5 ,step=0.1, format="%f")/100.0
 
 fatal_hosp = st.sidebar.number_input(
-    "Hospital Fatality (%)", 0.0, 100.0, value=4.0 ,step=0.1, format="%f"
-)/100.0
+    "Hospital Fatality (%)", 0.0, 100.0, value=4.0 ,step=0.1, format="%f")/100.0
 
 death_days = st.sidebar.number_input(
-    "Days person remains in critical care or dies", 0, 20, value=4 ,step=1, format="%f"
-)
+    "Days person remains in critical care or dies", 0, 20, value=4 ,step=1, format="%f")
 
 crit_lag = st.sidebar.number_input(
-    "Days person takes to go to critical care", 0, 20, value=4 ,step=1, format="%f"
-)
+    "Days person takes to go to critical care", 0, 20, value=4 ,step=1, format="%f")
 
-hosp_los = st.sidebar.number_input("Hospital Length of Stay", value=7, step=1, format="%i")
-icu_los = st.sidebar.number_input("ICU Length of Stay", value=9, step=1, format="%i")
-vent_los = st.sidebar.number_input("Ventilator Length of Stay", value=7, step=1, format="%i")
+hosp_los = st.sidebar.number_input("Hospital Length of Stay", value=10, step=1, format="%i")
+icu_los = st.sidebar.number_input("ICU Length of Stay", value=11, step=1, format="%i")
+vent_los = st.sidebar.number_input("Ventilator Length of Stay", value=6, step=1, format="%i")
 
 # regional_hosp_share = (
    # st.sidebar.number_input(
@@ -628,12 +610,10 @@ vent_los = st.sidebar.number_input("Ventilator Length of Stay", value=7, step=1,
 # )
 
 S = st.sidebar.number_input(
-  "Regional Population", value=S_default, step=100000, format="%i"
-)
+  "Regional Population", value=S_default, step=100000, format="%i")
 
 initial_infections = st.sidebar.number_input(
-    "Currently Known Regional Infections (only used to compute detection rate - does not change projections)", value=known_infections, step=10, format="%i"
-)
+    "Currently Known Regional Infections (only used to compute detection rate - does not change projections)", value=known_infections, step=10, format="%i")
 
 total_infections = current_hosp / regional_hosp_share / hosp_rate
 detection_prob = initial_infections / total_infections
@@ -743,9 +723,18 @@ st.title("Great Lakes Healthcare COVID-19 Disease Model - Erie County, NY")
 #)
 #st.markdown(""" The charts below show the cumulative cases of total confirmed, hospitalized, critical care, and ventilator use for COVID-19 cases.""")
 
+
+
+
+
+
+
+
+
+
+
 ###################### First Graph ###################
 # Erie cases Graph
-
 erie_cases_bar = alt.Chart(erie_df).mark_bar(color='lightgray').encode(
     x='Date:T',
     y='Cases:Q',
@@ -759,7 +748,6 @@ erie_icu_line = alt.Chart(erie_df).mark_line(color='orange', point=True).encode(
 
 # Bar graph - Removing this one to show new graph below. 
 #st.altair_chart(alt.layer(erie_cases_bar + erie_admit_line + erie_icu_line), use_container_width=True)
-
 
     # st.markdown(
         # """To project the expected impact to Erie County Hospitals, we estimate the terms of the model.
@@ -1228,10 +1216,26 @@ projection_admits_D = build_admissions_df(dispositions_D)
 census_table_D = build_census_df(projection_admits_D)
 
 
+if relative_contact_rate >= 0:
+    SD10 = relative_contact_rate + 10
+    gamma = 1 / recovery_days
+    beta = (intrinsic_growth_rate + gamma) / S * (1-SD10) # {rate based on doubling time} / {initial S}
+    r_t = beta / gamma * S # r_t is r_0 after distancing
+    r_naught = (intrinsic_growth_rate + gamma) / gamma
+    doubling_time_t = 1/np.log2(beta*S - gamma +1) # doubling time after distancing
+    projection_admits_e10 = build_admissions_df(dispositions_e)
+    census_table_e10 = build_census_df(projection_admits_e10)
+    ##################################
+    SD20 = relative_contact_rate + 20
+    gamma = 1 / recovery_days
+    beta = (intrinsic_growth_rate + gamma) / S * (1-SD20) # {rate based on doubling time} / {initial S}
+    r_t = beta / gamma * S # r_t is r_0 after distancing
+    r_naught = (intrinsic_growth_rate + gamma) / gamma
+    projection_admits_e20 = build_admissions_df(dispositions_e)
+    census_table_e20 = build_census_df(projection_admits_e20)
+
 # Erie Graph of Cases: SIR, SEIR
-###
-### Admissions Graphs
-###
+# Admissions Graphs
 # Erie Graph of Cases
 def regional_admissions_chart(
     projection_admits: pd.DataFrame, 
@@ -1336,6 +1340,13 @@ def ip_chart(
 #if st.checkbox("Show Graph for Erie County Projected Admissions: SEIR Model with Adjusted R_0 and Case Fatality"):
     # Erie Graph of Cases: SEIR with phase adjustment with phase adjustment and case fatality
     # st.subheader("New Admissions: SEIR Model")
+
+
+
+
+
+
+
 
 ##############################
 #4/3/20 First Projection Graph - Admissions
@@ -1525,6 +1536,11 @@ def hospital_admissions_chart(
 
 
 
+
+
+
+
+
 ################################################
 ################################################
 #############    Census Graphs        ##########
@@ -1600,7 +1616,7 @@ def ip_census_chart(
         .mark_line(point=False)
         .encode(
             x=alt.X(**x_kwargs),
-            y=alt.Y("value:Q", title="Census"),
+            y=alt.Y("value:Q", title="Census", scale=alt.Scale(domain=[0, 40000])),
             color="key:N",
             tooltip=[
                 tooltip_dict[as_date],
@@ -1612,11 +1628,20 @@ def ip_census_chart(
     )
 
 
+################# Add 0% 10% 20% SD graph of SEIR MODEL ###################
+
+    
+    
+
+
 #sir_ip_c = ip_census_chart(census_table, plot_projection_days, as_date=as_date)
 seir_ip_c = ip_census_chart(census_table_e, plot_projection_days, as_date=as_date)
 #seir_r_ip_c = ip_census_chart(census_table_R, plot_projection_days, as_date=as_date)
 seir_d_ip_c = ip_census_chart(census_table_D, plot_projection_days, as_date=as_date)
-
+###
+# Added SEIR 10, 20 SD
+seir_ip_c10 = ip_census_chart(census_table_e10, plot_projection_days, as_date=as_date)
+seir_ip_c20 = ip_census_chart(census_table_e20, plot_projection_days, as_date=as_date)
 
 
 # st.subheader("Projected **census** of COVID-19 patients for Erie County: Model Comparison")
@@ -1637,6 +1662,18 @@ st.altair_chart(
     + alt.layer(graph_selection)
     , use_container_width=True)
 
+
+
+# 4/6/20 New Model with added 10-20 SD
+# Chart of Model Comparison for SEIR and Adjusted with Erie County Data
+# st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs Model")
+# st.altair_chart(
+    # alt.layer(seir_ip_c.mark_line())
+    # + alt.layer(seir_ip_c10.mark_line())
+    # + alt.layer(seir_ip_c20.mark_line())
+    # + alt.layer(seir_d_ip_c.mark_line())
+    # + alt.layer(graph_selection)
+    # , use_container_width=True)
 
 #if st.checkbox("Show Graph for Erie County Projected Census: SEIR Model"):
     # Erie County Census Graph - SEIR Model

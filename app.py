@@ -536,10 +536,10 @@ erie_df['Date'] = pd.to_datetime(erie_df['Date'])
 
 # Populations and Infections
 erie = 1500000
-cases_erie = 945
+cases_erie = 1059
 S_default = erie
-known_infections = 945
-known_cases = 201
+known_infections = 1059
+known_cases = 214
 regional_hosp_share = 1.0
 S = erie
 

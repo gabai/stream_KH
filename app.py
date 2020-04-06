@@ -1616,7 +1616,7 @@ def ip_census_chart(
         .mark_line(point=False)
         .encode(
             x=alt.X(**x_kwargs),
-            y=alt.Y("value:Q", title="Census", scale=alt.Scale(domain=[0, 40000])),
+            y=alt.Y("value:Q", title="Census"),
             color="key:N",
             tooltip=[
                 tooltip_dict[as_date],
@@ -1630,7 +1630,8 @@ def ip_census_chart(
 
 ################# Add 0% 10% 20% SD graph of SEIR MODEL ###################
 
-    
+    #, scale=alt.Scale(domain=[0, 40000])
+    # scale=alt.Scale(domain=[-5, 9000])
     
 
 

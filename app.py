@@ -27,8 +27,9 @@ hide_menu_style = """
 st.markdown(hide_menu_style, unsafe_allow_html=True)
 
 
+###########################
 # Models and base functions
-########
+###########################
 def sir(
     s: float, i: float, r: float, beta: float, gamma: float, n: float
     ) -> Tuple[float, float, float]:
@@ -236,7 +237,7 @@ def gen_seir(
    
 def sim_seir_decay(
     s: float, e:float, i: float, r: float, beta: float, gamma: float, alpha: float, n_days: int,
-    decay1:float, decay2:float, decay3: float
+    decay1:float, decay2:float, decay3: float, decay4: float, end_delta: int
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """Simulate the SIR model forward in time."""
     s, e, i, r = (float(v) for v in (s, e, i, r))
@@ -247,8 +248,10 @@ def sim_seir_decay(
             beta_decay=beta*(1-decay1)
         elif 22<=day<=28:
             beta_decay=beta*(1-decay2)
-        else: 
+        elif 29<=day<=end_delta:
             beta_decay=beta*(1-decay3)
+        else:
+            beta_decay=beta*(1-decay4)
         s, e, i, r = seir(s, e, i, r, beta_decay, gamma, alpha, n)
         s_v.append(s)
         e_v.append(e)
@@ -288,7 +291,7 @@ def seird(
 
 def sim_seird_decay(
     s: float, e:float, i: float, r: float, d: float, beta: float, gamma: float, alpha: float, n_days: int,
-    decay1:float, decay2:float, decay3: float, fatal: float
+    decay1:float, decay2:float, decay3: float, decay4: float, end_delta: int, fatal: float
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """Simulate the SIR model forward in time."""
     s, e, i, r, d= (float(v) for v in (s, e, i, r, d))
@@ -299,8 +302,10 @@ def sim_seird_decay(
             beta_decay=beta*(1-decay1)
         elif 22<=day<=28:
             beta_decay=beta*(1-decay2)
-        else: 
+        elif 29<=day<=end_delta:
             beta_decay=beta*(1-decay3)
+        else:
+            beta_decay=beta*(1-decay4)
         s, e, i, r,d = seird(s, e, i, r, d, beta_decay, gamma, alpha, n, fatal)
         s_v.append(s)
         e_v.append(e)
@@ -347,7 +352,7 @@ def seijcrd(
 
 def sim_seijcrd_decay(
     s: float, e:float, i: float, j:float, c: float, r: float, d: float, beta: float, gamma: float, alpha: float, n_days: int,
-    decay1:float, decay2:float, decay3: float, fatal_hosp: float, hosp_rate: float, icu_rate: float, icu_days:float, crit_lag: float, death_days:float
+    decay1:float, decay2:float, decay3: float, decay4: float, end_delta: int, fatal_hosp: float, hosp_rate: float, icu_rate: float, icu_days:float, crit_lag: float, death_days:float
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """Simulate the SIR model forward in time."""
     s, e, i, j, c, r, d= (float(v) for v in (s, e, i, c, j, r, d))
@@ -358,8 +363,10 @@ def sim_seijcrd_decay(
             beta_decay=beta*(1-decay1)
         elif 22<=day<=28:
             beta_decay=beta*(1-decay2)
-        else: 
+        elif 29<=day<=end_delta: 
             beta_decay=beta*(1-decay3)
+        else:
+            beta_decay=beta*(1-decay4)
         s, e, i,j, c, r,d = seijcrd(s, e, i,j, c, r, d, beta_decay, gamma, alpha, n, fatal_hosp, hosp_rate, icu_rate, icu_days, crit_lag, death_days)
         s_v.append(s)
         e_v.append(e)
@@ -475,7 +482,7 @@ def add_date_column(
 
     # Allocate (day) continous range for dates
     n_days = int(df.day.max())
-    start = datetime(2020, 3, 1)
+    start = start_date
     end = start + timedelta(days=n_days + 1)
     # And pick dates present in frame
     dates = pd.date_range(start=start, end=end, freq="D")[df.day.tolist()]
@@ -536,10 +543,10 @@ erie_df['Date'] = pd.to_datetime(erie_df['Date'])
 
 # Populations and Infections
 erie = 1500000
-cases_erie = 1059
+cases_erie = erie_df['Cases'].iloc[-1]
 S_default = erie
-known_infections = 1059
-known_cases = 214
+known_infections = erie_df['Cases'].iloc[-1]
+known_cases = erie_df['Admissions'].iloc[-1]
 regional_hosp_share = 1.0
 S = erie
 
@@ -552,11 +559,14 @@ model_options = st.sidebar.radio(
     "Service", ('Inpatient', 'ICU', 'Ventilated'))
 
 current_hosp = st.sidebar.number_input(
-    "Total Hospitalized Cases", value=known_cases, step=1, format="%i")
+    "Total Hospitalized Cases", value=known_cases, step=1.0, format="%f")
 
 doubling_time = st.sidebar.number_input(
     "Doubling Time (days)", value=3.0, step=1.0, format="%f")
 
+start_date = st.sidebar.date_input(
+    "Suspected first contact", datetime(2020,3,1))
+    
 relative_contact_rate = st.sidebar.number_input(
     "Social distancing (% reduction in social contact) Unadjusted Model", 0, 100, value=0, step=5, format="%i")/100.0
 
@@ -567,7 +577,15 @@ decay2 = st.sidebar.number_input(
     "Social distancing (% reduction in social contact) in Week 3", 0, 100, value=15, step=5, format="%i")/100.0
 
 decay3 = st.sidebar.number_input(
-    "Social distancing (% reduction in social contact) after Week 3", 0, 100, value=30 ,step=5, format="%i")/100.0
+    "Social distancing (% reduction in social contact) from Week 3 to change in SD%", 0, 100, value=30 ,step=5, format="%i")/100.0
+
+end_date = st.sidebar.date_input(
+    "End date or change in social distancing", datetime(2020,5,1))
+# Delta from start and end date for decay4
+end_delta = (end_date - start_date).days
+
+decay4 = st.sidebar.number_input(
+    "Social distancing after end date", 0, 100, value=30 ,step=5, format="%i")/100.0
 
 hosp_rate = (
     st.sidebar.number_input("Hospitalization %", 0.0, 100.0, value=2.5, step=0.50, format="%f")/ 100.0)
@@ -613,7 +631,7 @@ S = st.sidebar.number_input(
   "Regional Population", value=S_default, step=100000, format="%i")
 
 initial_infections = st.sidebar.number_input(
-    "Currently Known Regional Infections (only used to compute detection rate - does not change projections)", value=known_infections, step=10, format="%i")
+    "Currently Known Regional Infections (only used to compute detection rate - does not change projections)", value=known_infections, step=10.0, format="%f")
 
 total_infections = current_hosp / regional_hosp_share / hosp_rate
 detection_prob = initial_infections / total_infections
@@ -661,76 +679,6 @@ gamma_hosp = 1 / hosp_los
 icu_days = 1 / icu_los
 
 st.title("Great Lakes Healthcare COVID-19 Disease Model - Erie County, NY")
-# st.markdown(
-    # """*This tool was initially developed by the [Predictive Healthcare team](http://predictivehealthcare.pennmedicine.org/) at
-# Penn Medicine and has been modified for our community. 
-
-# We have modified the model to include:
-# - "Exposure", creating a SEIR model. 
-# - We present distribution of cases by each hospital based on bed-share percentage.
-# - Protective Equipment Equipment needs for Erie County, NY.
-
-# For questions about this page, contact ganaya@buffalo.edu. """)
-
-
-# st.markdown(
-    # """
-# The first graph includes the COVID-19 cases in Erie County, NY. A county wide and hospital based analysis using both SIR and SEIR models is presented afterwards. 
-# Each Hospital is represented as a percent from the total bed-share distribution (CCU, ICU, MedSurg - Pending update of 'expanded' per hospital beds).
-
-# An initial doubling time of **{doubling_time}** days and a recovery time of **{recovery_days}** days imply an $R_0$ of 
-# **{r_naught:.2f}**.
-
-# **Mitigation**: A **{relative_contact_rate:.0%}** reduction in social contact after the onset of the 
-# outbreak reduces the doubling time to **{doubling_time_t:.1f}** days, implying an effective $R_t$ of **${r_t:.2f}$**.""".format(
-        # total_infections=total_infections,
-        # current_hosp=current_hosp,
-        # hosp_rate=hosp_rate,
-        # S=S,
-        # regional_hosp_share=regional_hosp_share,
-        # initial_infections=initial_infections,
-        # detection_prob=detection_prob,
-        # recovery_days=recovery_days,
-        # r_naught=r_naught,
-        # doubling_time=doubling_time,
-        # relative_contact_rate=relative_contact_rate,
-        # r_t=r_t,
-        # doubling_time_t=doubling_time_t
-    # )
-# )
-
-# The estimated number of currently infected individuals in Erie County is **{total_infections:.0f}**. The **{initial_infections}** 
-# confirmed cases in the region imply a **{detection_prob:.0%}** rate of detection. This is based on current inputs for 
-# Hospitalizations (**{current_hosp}**), Hospitalization rate (**{hosp_rate:.0%}**) and Region size (**{S}**). 
-# All credit goes to the PH team at Penn Medicine. We have adapted the code based on our current regional cases, county population and hospitals.
-# The **{initial_infections}** confirmed cases in the region imply a **{detection_prob:.0%}** rate of detection.
-
-#st.subheader("Cases of COVID-19 in the United States")
-# Table of cases in the US
-#st.table(us_data)
-# Table of cases in NYS
-#st.subheader("Cases of COVID-19 in New York State")
-#counties.sort_values(by=['Cases'], ascending=False)
-#st.table(ny_data)
-#st.subheader("Cases of COVID-19 in Erie County")
-
-
-# st.markdown(
-    # """Erie county has reported **{cases_erie:.0f}** cases of COVID-19.""".format(
-        # cases_erie=cases_erie 
-    # )
-
-#)
-#st.markdown(""" The charts below show the cumulative cases of total confirmed, hospitalized, critical care, and ventilator use for COVID-19 cases.""")
-
-
-
-
-
-
-
-
-
 
 
 ###################### First Graph ###################
@@ -745,67 +693,6 @@ erie_admit_line = alt.Chart(erie_df).mark_line(color='red', point=True).encode(
 erie_icu_line = alt.Chart(erie_df).mark_line(color='orange', point=True).encode(
     x='Date:T',
     y='ICU:Q')
-
-# Bar graph - Removing this one to show new graph below. 
-#st.altair_chart(alt.layer(erie_cases_bar + erie_admit_line + erie_icu_line), use_container_width=True)
-
-    # st.markdown(
-        # """To project the expected impact to Erie County Hospitals, we estimate the terms of the model.
-# To do this, we use a combination of estimates from other locations, informed estimates based on logical reasoning, and best guesses from the American Hospital Association.
-# ### Parameters
-# The model's parameters, $\\beta$ and $\\gamma$, determine the virulence of the epidemic.
-# $$\\beta$$ can be interpreted as the _effective contact rate_:
-# """)
-    # st.latex("\\beta = \\tau \\times c")
-
-    # st.markdown(
-# """which is the transmissibility ($\\tau$) multiplied by the average number of people exposed ($$c$$).  The transmissibility is the basic virulence of the pathogen.  The number of people exposed $c$ is the parameter that can be changed through social distancing.
-# $\\gamma$ is the inverse of the mean recovery time, in days.  I.e.: if $\\gamma = 1/{recovery_days}$, then the average infection will clear in {recovery_days} days.
-# An important descriptive parameter is the _basic reproduction number_, or $R_0$.  This represents the average number of people who will be infected by any given infected person.  When $R_0$ is greater than 1, it means that a disease will grow.  Higher $R_0$'s imply more rapid growth.  It is defined as """.format(recovery_days=int(recovery_days)    , c='c'))
-    # st.latex("R_0 = \\beta /\\gamma")
-
-    # st.markdown("""
-# $R_0$ gets bigger when
-# - there are more contacts between people
-# - when the pathogen is more virulent
-# - when people have the pathogen for longer periods of time
-# A doubling time of {doubling_time} days and a recovery time of {recovery_days} days imply an $R_0$ of {r_naught:.2f}.
-# #### Effect of social distancing
-# After the beginning of the outbreak, actions to reduce social contact will lower the parameter $c$.  If this happens at 
-# time $t$, then the number of people infected by any given infected person is $R_t$, which will be lower than $R_0$.  
-# A {relative_contact_rate:.0%} reduction in social contact would increase the time it takes for the outbreak to double, 
-# to {doubling_time_t:.2f} days from {doubling_time:.2f} days, with a $R_t$ of {r_t:.2f}.
-# #### Using the model
-# We need to express the two parameters $\\beta$ and $\\gamma$ in terms of quantities we can estimate.
-# - $\\gamma$:  the CDC is recommending 14 days of self-quarantine, we'll use $\\gamma = 1/{recovery_days}$.
-# - To estimate $$\\beta$$ directly, we'd need to know transmissibility and social contact rates.  since we don't know these things, we can extract it from known _doubling times_.  The AHA says to expect a doubling time $T_d$ of 7-10 days. That means an early-phase rate of growth can be computed by using the doubling time formula:
-# """.format(doubling_time=doubling_time,
-           # recovery_days=recovery_days,
-           # r_naught=r_naught,
-           # relative_contact_rate=relative_contact_rate,
-           # doubling_time_t=doubling_time_t,
-           # r_t=r_t)
-    # )
-    # st.latex("g = 2^{1/T_d} - 1")
-
-    # st.markdown(
-        # """
-# - Since the rate of new infections in the SIR model is $g = \\beta S - \\gamma$, and we've already computed $\\gamma$, $\\beta$ becomes a function of the initial population size of susceptible individuals.
-# $$\\beta = (g + \\gamma)$$.
-
-# ### Initial Conditions
-
-# - The total size of the susceptible population will be the entire catchment area for Erie County.
-# - Erie = {erie}
-# - Buffalo General Hospital with 25% of bed share, calculated based on 456 CCU/ICU/MedSurg beds. Excluded MRU beds. 
-# - Erie County Medical Center with 16% of beds share, calculated based on 285 CCU/ICU/MedSurg beds. Excluded burns care, chemical dependence, pediatric, MRU, prisoner and psychiatric beds. 
-# - Mercy Hospital with 17% of bed share, calculated based on 306 CCU/ICU/MedSurg beds. Excluded maternity beds, neonatal, pediatric and MRU beds. 
-# - Millard Fillmore Suburban Hospital with 13% of bed share, calculated based on 227 CCU/ICU/MedSurg beds. Excluded maternity and neonatal beds. 
-# - Oishei Hospital Children's with 5% of bed share, calculated based on 89 ICU/MedSurg beds. Excluded bone marrow transplant beds and neonatal beds. 
-# - Roswell Park Cancer Institute with 6% of bed share, calculated based on 110 ICU/MedSurg beds. Excluded bone marrow transplant beds and pediatric beds. 
-# - Sisters of Charity Hospital with 12% of bed share, calculated based on 215 CCU/ICU/MedSurg beds. Excluded maternity, neonatal and MRU beds.
-# - Sisters of Charity St. Joeseph Hospital with 6% of beds share, calculated based on 103 CCU/ICU/MedSurg beds. """.format(
-            # erie=erie))
 
 
 # Slider and Date
@@ -986,12 +873,8 @@ erie_lines_vent = erie_vent(erie_df)
 
 # Bar chart of Erie cases with layer of HERDS DAta Erie
 st.altair_chart(erie_cases_bar + erie_lines, use_container_width=True)
-# Line chart of HERDS Data for Erie
-#st.altair_chart(erie_lines_ip, use_container_width=True)
 
 beta_decay = 0.0
-#s, i, r = sim_sir(S, I, R, beta, gamma, n_days)
-
 
 RateLos = namedtuple("RateLos", ("rate", "length_of_stay"))
 hospitalized=RateLos(hosp_rate, hosp_los)
@@ -1051,7 +934,7 @@ hospitalized_e, icu_e, ventilated_e = (
 #####################################
 ## SEIR model with phase adjusted R_0
 
-s_R, e_R, i_R, r_R = sim_seir_decay(S-2, 1 ,1, 0.0, beta4, gamma2,alpha, n_days, decay1, decay2, decay3)
+s_R, e_R, i_R, r_R = sim_seir_decay(S-2, 1 ,1, 0.0, beta4, gamma2,alpha, n_days, decay1, decay2, decay3, decay4, end_delta)
 
 susceptible_R, exposed_R, infected_R, recovered_R = s_R, e_R, i_R, r_R
 
@@ -1073,7 +956,7 @@ hospitalized_R, icu_R, ventilated_R = (
 ##################################################################
 ## SEIR model with phase adjusted R_0 and Disease Related Fatality
 
-s_D, e_D, i_D, r_D, d_D = sim_seird_decay(S-2, 1, 1 , 0.0, 0.0, beta4, gamma2,alpha, n_days, decay1, decay2, decay3, fatal)
+s_D, e_D, i_D, r_D, d_D = sim_seird_decay(S-2, 1, 1 , 0.0, 0.0, beta4, gamma2,alpha, n_days, decay1, decay2, decay3, decay4, end_delta, fatal)
 
 susceptible_D, exposed_D, infected_D, recovered_D = s_D, e_D, i_D, r_D
 
@@ -1348,8 +1231,35 @@ def ip_chart(
 
 
 
+###################### Vertical Lines Graph ###################
+# Schools 18th
+# Non-essential business 22nd
+vertical = pd.DataFrame({'day': [21, 28, end_delta]})
 
+def vertical_chart(
+    projection_admits: pd.DataFrame, 
+    as_date:bool = False) -> alt.Chart:
+    """docstring"""
+    
+    tooltip_dict = {False: "day", True: "date:T"}
+    if as_date:
+        projection_admits = add_date_column(projection_admits)
+        x_kwargs = {"shorthand": "date:T", "title": "Date"}
+    else:
+        x_kwargs = {"shorthand": "day", "title": "Days from initial infection"}
+    
+    return (
+        alt
+        .Chart(projection_admits)
+        .mark_rule(color='gray')
+        .encode(
+            x=alt.X(**x_kwargs),
+            tooltip=[
+                tooltip_dict[as_date]],
+        )
+    )
 
+vertical1 = vertical_chart(vertical, as_date=as_date)
 
 
 
@@ -1358,11 +1268,11 @@ def ip_chart(
 #############
 st.header("""Projected Admissions Models for Erie County""")
 st.subheader("Projected number of **daily** COVID-19 admissions for Erie County: SEIR - Phase Adjusted R_0 with Case Fatality")
-st.altair_chart(
-    regional_admissions_chart(projection_admits_D, 
+admits_graph = regional_admissions_chart(projection_admits_D, 
         plot_projection_days, 
-        as_date=as_date), 
-    use_container_width=True)
+        as_date=as_date)
+
+st.altair_chart(admits_graph + vertical1, use_container_width=True)
 
 
 if st.checkbox("Show more info about this tool"):
@@ -1385,24 +1295,22 @@ The epidemic proceeds via a growth and decline process. This is the core model o
 and $$\\beta$$ is the rate of transmission. More information, including parameter specifications and reasons for model choice can be found [here]("https://github.com/gabai/stream_KH/wiki).""")
 
 
-
-
 sir = regional_admissions_chart(projection_admits, plot_projection_days, as_date=as_date)
 seir = regional_admissions_chart(projection_admits_e, plot_projection_days, as_date=as_date)
 seir_r = regional_admissions_chart(projection_admits_R, plot_projection_days, as_date=as_date)
 seir_d = regional_admissions_chart(projection_admits_D, plot_projection_days, as_date=as_date)
 
-# sir_ip = ip_chart(projection_admits, plot_projection_days, as_date=as_date)
-# seir_ip = ip_chart(projection_admits_e, plot_projection_days, as_date=as_date)
-# seir_r_ip = ip_chart(projection_admits_R, plot_projection_days, as_date=as_date)
-# seir_d_ip = ip_chart(projection_admits_D, plot_projection_days, as_date=as_date)
 
 if st.checkbox("Show Graph of Erie County Projected Admissions with Model Comparison of Social Distancing"):
     st.subheader("Projected number of **daily** COVID-19 admissions for Erie County: Model Comparison (Left: 0% Social Distancing, Right: Step-Wise Social Distancing)")
     st.altair_chart(
         alt.layer(seir.mark_line())
         + alt.layer(seir_d.mark_line())
+        + alt.layer(vertical1.mark_rule())
         , use_container_width=True)
+
+
+
 
 
 # if st.checkbox("Show Graph of Erie County Projected Admissions: SEIR Model with no social distancing"):
@@ -1663,6 +1571,8 @@ seir_ip_c20 = ip_census_chart(census_table_e20, plot_projection_days, as_date=as
    # + alt.layer(seir_r_ip_c.mark_line())
    # + alt.layer(seir_d_ip_c.mark_line())
    # , use_container_width=True)
+   
+  
 
 # Chart of Model Comparison for SEIR and Adjusted with Erie County Data
 st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs Model")
@@ -1670,8 +1580,8 @@ st.altair_chart(
     alt.layer(seir_ip_c.mark_line())
     + alt.layer(seir_d_ip_c.mark_line())
     + alt.layer(graph_selection)
+    + alt.layer(vertical1)
     , use_container_width=True)
-
 
 
 # 4/6/20 New Model with added 10-20 SD
@@ -1933,11 +1843,11 @@ def ppe_chart(
     
 # SEIR Model with adjusted R_0 with Case Fatality - PPE predictions
 st.subheader("Projected personal protective equipment needs for mild and severe cases of COVID-19: SEIR Model with Adjutes R_0 and Case Fatality")
-st.altair_chart(
-    ppe_chart(
-    census_table_D,
-    as_date=as_date),
-    use_container_width=True)
+
+ppe_graph = ppe_chart(census_table_D, as_date=as_date)
+
+st.altair_chart(alt.layer(ppe_graph.mark_line()) + alt.layer(vertical1), use_container_width=True)
+
 
 #############################
 # PPE needs summary variables
@@ -2240,11 +2150,14 @@ st.markdown("""There is a projected number of **{infection_total_t:.0f}** infect
 AAA=beta4*(1/gamma2)*1500000
 R2=AAA*(1-decay2)
 R3=AAA*(1-decay3)
+R4=AAA*(1-decay4)
 
-st.markdown("""The initial $R_0$ is **{AAA:.1f}** the $R_0$ after 2 weeks is **{R2:.1f}** and the $R_0$ after 3 weeks is **{R3:.1f}**.  This is based on a doubling rate of **{doubling_time:.0f}** and the calculation of the [basic reproduction number](https://www.sciencedirect.com/science/article/pii/S2468042719300491).  """.format(
+st.markdown("""The initial $R_0$ is **{AAA:.1f}** the $R_0$ after 2 weeks is **{R2:.1f}** and the $R_0$ after 3 weeks is **{R3:.1f}**.  
+            This is based on a doubling rate of **{doubling_time:.0f}** and the calculation of the [basic reproduction number](https://www.sciencedirect.com/science/article/pii/S2468042719300491).  """.format(
         AAA=AAA,
         R2=R2,
         R3=R3,
+        R4=R4,
         doubling_time=doubling_time
     )
             )

@@ -585,7 +585,7 @@ end_date = st.sidebar.date_input(
 end_delta = (end_date - start_date).days
 
 decay4 = st.sidebar.number_input(
-    "Social distancing after end date", 0, 100, value=30 ,step=5, format="%i")/100.0
+    "Social distancing after end date", 0, 100, value=15 ,step=5, format="%i")/100.0
 
 hosp_rate = (
     st.sidebar.number_input("Hospitalization %", 0.0, 100.0, value=2.5, step=0.50, format="%f")/ 100.0)

@@ -386,68 +386,6 @@ def sim_seijcrd_decay(
         np.array(d_v)
     )
 
-### Less complicated
-##
-##def seijcrd2(
-##    s: float, e: float, i: float, j:float, r: float, d: float, beta: float, gamma: float, alpha: float, n: float, fatal: float, fatal_hosp: float, hosp_rate:float,
-##    hosp_day_rate:float, l:float
-##    ) -> Tuple[float, float, float, float, float,float]:
-##    """The SIR model, one time step."""
-##    s_n = -beta*s*(i + (l*j)) +s
-##    e_n = beta*s*(i + (l*j)) - alpha * e + e
-##    i_n = alpha * e - (hosp_rate + gamma) * i + i 
-##    j_n = hosp_rate * i - hosp_day_rate*j +j
-##    r_n = gamma * (1-fatal)*i + ((1-fatal_hosp) * hosp_day_rate * j) +r
-##    d_n = gamma * (fatal)*i + ((fatal_hosp)*hosp_day_rate*j) +d
-##    if s_n < 0.0:
-##        s_n = 0.0
-##    if e_n < 0.0:
-##        e_n = 0.0
-##    if i_n < 0.0:
-##        i_n = 0.0
-##    if j_n < 0.0:
-##        j_n = 0.0
-##    if r_n < 0.0:
-##        r_n = 0.0
-##    if d_n < 0.0:
-##        d_n = 0.0
-##
-##    scale = n / (s_n + e_n+ i_n + j_n+ r_n + d_n)
-##    return s_n * scale, e_n * scale, i_n * scale, j_n* scale, r_n * scale, d_n * scale
-### 
-##
-##def sim_seijcrd_decay2(
-##    s: float, e:float, i: float, j:float, r: float, d: float, beta: float, gamma: float, alpha: float, n_days: int,
-##    decay2:float, decay3: float, fatal: float, fatal_hosp: float, hosp_rate: float, hosp_day_rate:float, l:float
-##    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray,np.ndarray, np.ndarray]:
-##    """Simulate the SIR model forward in time."""
-##    s, e, i, j, r, d= (float(v) for v in (s, e, i, j, r, d))
-##    n = s + e + i + j+r + d
-##    s_v, e_v, i_v, j_v, r_v, d_v = [s], [e], [i], [j], [r], [d]
-##    for day in range(n_days):
-##        if 0<=day<=21:
-##            beta_decay=beta
-##        elif 22<=day<=28:
-##            beta_decay=beta*(1-decay2)
-##        else: 
-##            beta_decay=beta*(1-decay3)
-##        s, e, i,j, r,d = seijcrd2(s, e, i,j, r, d, beta_decay, gamma, alpha, n, fatal, fatal_hosp, hosp_rate,hosp_day_rate, l)
-##        s_v.append(s)
-##        e_v.append(e)
-##        i_v.append(i)
-##        j_v.append(j)
-##        r_v.append(r)
-##        d_v.append(d)
-##
-##    return (
-##        np.array(s_v),
-##        np.array(e_v),
-##        np.array(i_v),
-##        np.array(j_v),
-##        np.array(r_v),
-##        np.array(d_v)
-##    )
-## 
 
 # End Models # 
 
@@ -974,8 +912,6 @@ hospitalized_D, icu_D, ventilated_D = (
             i_icu_D,
             i_ventilated_D)
 
-## SEIJCRD model with phase adjusted R_0 and Disease Related Fatality
-
 
 
 
@@ -1059,12 +995,6 @@ if hosp_options == 'RPCI':
     expanded_icu2_val = 28
     expanded_vent2_val = 0
     
-
-
- 
-# Graphs of new admissions for Erie
-# st.subheader("New Admissions: SIR Model")
-# st.markdown("Projected number of **daily** COVID-19 admissions for Erie County")
 
 # Projection days
 plot_projection_days = n_days - 10
@@ -1156,9 +1086,6 @@ def regional_admissions_chart(
 
 # , scale=alt.Scale(domain=[0, 3250])
 
-#st.altair_chart(alt.layer(altair_chart(regional_admissions_chart(projection_admits).mark_line()))
- #+ alt.layer(regional_admissions_chart(projection_admits_e).mark_line()), use_container_width=True)    
-
 
 # Comparison of Single line graph - Hospitalized, ICU, Vent and All
 if model_options == "Inpatient":
@@ -1217,24 +1144,11 @@ def ip_chart(
 #, scale=alt.Scale(domain=[0, 100])
 # alt.value('orange')
 
-# Erie County Admissions Chart: SIR
-# st.altair_chart(
-    # regional_admissions_chart(projection_admits, 
-        # plot_projection_days, 
-        # as_date=as_date), 
-    # use_container_width=True)
-
-
-#if st.checkbox("Show Graph for Erie County Projected Admissions: SEIR Model with Adjusted R_0 and Case Fatality"):
-    # Erie Graph of Cases: SEIR with phase adjustment with phase adjustment and case fatality
-    # st.subheader("New Admissions: SEIR Model")
-
-
 
 ###################### Vertical Lines Graph ###################
 # Schools 18th
 # Non-essential business 22nd
-vertical = pd.DataFrame({'day': [21, 28, end_delta]})
+vertical = pd.DataFrame({'day': [22, 29, end_delta]})
 
 def vertical_chart(
     projection_admits: pd.DataFrame, 
@@ -1309,60 +1223,6 @@ if st.checkbox("Show Graph of Erie County Projected Admissions with Model Compar
         + alt.layer(vertical1.mark_rule())
         , use_container_width=True)
 
-
-
-
-
-# if st.checkbox("Show Graph of Erie County Projected Admissions: SEIR Model with no social distancing"):
-    # # Erie Graph of Cases: SEIR Model
-    # # st.subheader("New Admissions: SEIR Model")
-    # st.subheader("Projected number of **daily** COVID-19 admissions for Erie County without social distancing using the SEIR model")
-    # # Erie Graph of Cases: SEIR
-    # st.altair_chart(
-        # regional_admissions_chart(projection_admits_e, 
-            # plot_projection_days, 
-            # as_date=as_date), 
-        # use_container_width=True)
-
-##if st.checkbox("Show Graph for Erie County Projected Admissions: SEIR Model with Adjusted R_0"):
-##    # Erie Graph of Cases: SEIR with phase adjustment
-##    # st.subheader("New Admissions: SEIR Model")
-##    st.subheader("Projected number of **daily** COVID-19 admissions for Erie County: Phase Adjusted R_0")
-##    st.altair_chart(
-##        regional_admissions_chart(projection_admits_R, 
-##            plot_projection_days, 
-##            as_date=as_date), 
-##        use_container_width=True)
-
-########### Tabular DATA ########    
-# if st.checkbox("Show Projected Admissions in tabular form: SEIR"):
-    # admits_table_e = projection_admits_e[np.mod(projection_admits_e.index, 7) == 0].copy()
-    # admits_table_e["day"] = admits_table_e.index
-    # admits_table_e.index = range(admits_table_e.shape[0])
-    # admits_table_e = admits_table_e.fillna(0).astype(int)
-    
-    # st.dataframe(admits_table_e)
-
-# if st.checkbox("Show Projected Admissions in tabular form: SEIR with Phase Adjusted R_0"):
-    # admits_table_R = projection_admits_R[np.mod(projection_admits_R.index, 7) == 0].copy()
-    # admits_table_R["day"] = admits_table_R.index
-    # admits_table_R.index = range(admits_table_R.shape[0])
-    # admits_table_R = admits_table_R.fillna(0).astype(int)
-    
-    # st.dataframe(admits_table_R)
-    
-# if st.checkbox("Show Projected Admissions in tabular form: SEIR with Phase Adjusted R_0 and Case Fatality"):
-    # admits_table_D = projection_admits_D[np.mod(projection_admits_D.index, 7) == 0].copy()
-    # admits_table_D["day"] = admits_table_D.index
-    # admits_table_D.index = range(admits_table_D.shape[0])
-    # admits_table_D = admits_table_D.fillna(0).astype(int)
-    
-    # st.dataframe(admits_table_D)
-    
-    
-
-# st.subheader("Projected number of **daily** COVID-19 admissions by Hospital: SIR model")
-# st.markdown("Distribution of regional cases based on total bed percentage (CCU/ICU/MedSurg).")
 def hospital_admissions_chart(
     projection_admits: pd.DataFrame, 
     plot_projection_days: int,
@@ -1396,102 +1256,12 @@ def hospital_admissions_chart(
     )
     
 
-# By Hospital Admissions Chart - SIR
-# st.altair_chart(
-    # hospital_admissions_chart(
-        # projection_admits, plot_projection_days, as_date=as_date), 
-    # use_container_width=True)
-
-# if st.checkbox("Show Projected Admissions in tabular form:SIR"):
-    # admits_table = projection_admits[np.mod(projection_admits.index, 7) == 0].copy()
-    # admits_table["day"] = admits_table.index
-    # admits_table.index = range(admits_table.shape[0])
-    # admits_table = admits_table.fillna(0).astype(int)
-    
-    # st.dataframe(admits_table)
-
-# By Hospital Admissions Chart - SEIR model
-# st.subheader("Projected number of **daily** COVID-19 admissions by Hospital: SEIR model")
-# st.markdown("Distribution of regional cases based on total bed percentage (CCU/ICU/MedSurg).")
-# st.altair_chart(
-    # hospital_admissions_chart(
-        # projection_admits_e, plot_projection_days, as_date=as_date), 
-    # use_container_width=True)
-
-
-# By Hospital Admissions Chart - SEIR model with Phase Adjusted R_0
-# st.subheader("Projected number of **daily** COVID-19 admissions by Hospital: SEIR model with Phase Adjusted R_0")
-# st.markdown("Distribution of regional cases based on total bed percentage (CCU/ICU/MedSurg).")
-# st.altair_chart(
-    # hospital_admissions_chart(
-        # projection_admits_R, plot_projection_days, as_date=as_date), 
-    # use_container_width=True)
-    
-# if st.checkbox("Show Projected Admissions in tabular form: SEIR with Phase Adjusted R_0"):
-    # admits_table_R = projection_admits_R[np.mod(projection_admits_R.index, 7) == 0].copy()
-    # admits_table_R["day"] = admits_table_R.index
-    # admits_table_R.index = range(admits_table_R.shape[0])
-    # admits_table_R = admits_table_R.fillna(0).astype(int)
-    
-    # st.dataframe(admits_table_R)
-
-
-# if st.checkbox("Show Projected Admissions in tabular form: SEIR with Phase Adjusted R_0 and Case Fatality"):
-    # admits_table_D = projection_admits_D[np.mod(projection_admits_D.index, 7) == 0].copy()
-    # admits_table_D["day"] = admits_table_D.index
-    # admits_table_D.index = range(admits_table_D.shape[0])
-    # admits_table_D = admits_table_D.fillna(0).astype(int)
-    
-    # st.dataframe(admits_table_D)
-
-# st.subheader("Admitted Patients (Census)")
-# st.subheader("Projected **census** of COVID-19 patients for Erie County, accounting for arrivals and discharges: **SIR Model**")
-
-
-
-
-
-
-
-
 ################################################
 ################################################
 #############    Census Graphs        ##########
 ################################################
 ################################################
 st.header("""Projected Census Models for Erie County""")
-# def admitted_patients_chart(
-    # census: pd.DataFrame,
-    # plot_projection_days: int,
-    # as_date:bool = False) -> alt.Chart:
-    # """docstring"""
-    # census = census.rename(columns={"hosp": "Hospital Census", "icu": "ICU Census", "vent": "Ventilated Census", 
-    # "expanded_beds_county":"Expanded IP Beds", "expanded_icu_county": "Expanded ICU Beds"})
-
-    # tooltip_dict = {False: "day", True: "date:T"}
-    # if as_date:
-        # census = add_date_column(census.head(plot_projection_days))
-        # x_kwargs = {"shorthand": "date:T", "title": "Date"}
-    # else:
-        # x_kwargs = {"shorthand": "day", "title": "Days from initial infection"}
-
-    # return (
-        # alt
-        # .Chart(census)
-        # .transform_fold(fold=["Hospital Census", "ICU Census", "Ventilated Census", "Expanded IP Beds", "Expanded ICU Beds"])
-        # .mark_line(point=False)
-        # .encode(
-            # x=alt.X(**x_kwargs),
-            # y=alt.Y("value:Q", title="Census"),
-            # color="key:N",
-            # tooltip=[
-                # tooltip_dict[as_date],
-                # alt.Tooltip("value:Q", format=".0f"),
-                # "key:N",
-            # ],
-        # )
-        # .interactive()
-    # )
 
 
 # Comparison of Census Single line graph - Hospitalized, ICU, Vent
@@ -1562,16 +1332,6 @@ seir_ip_c10 = ip_census_chart(census_table_e10, plot_projection_days, as_date=as
 seir_ip_c20 = ip_census_chart(census_table_e20, plot_projection_days, as_date=as_date)
 
 
-# st.subheader("Projected **census** of COVID-19 patients for Erie County: Model Comparison")
-
-# st.altair_chart(
-   # #alt.layer(sir_ip_c.mark_line())
-   # #+
-   # alt.layer(seir_ip_c.mark_line())
-   # + alt.layer(seir_r_ip_c.mark_line())
-   # + alt.layer(seir_d_ip_c.mark_line())
-   # , use_container_width=True)
-   
   
 
 # Chart of Model Comparison for SEIR and Adjusted with Erie County Data
@@ -1582,53 +1342,6 @@ st.altair_chart(
     + alt.layer(graph_selection)
     + alt.layer(vertical1)
     , use_container_width=True)
-
-
-# 4/6/20 New Model with added 10-20 SD
-# Chart of Model Comparison for SEIR and Adjusted with Erie County Data
-# st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs Model")
-# st.altair_chart(
-    # alt.layer(seir_ip_c.mark_line())
-    # + alt.layer(seir_ip_c10.mark_line())
-    # + alt.layer(seir_ip_c20.mark_line())
-    # + alt.layer(seir_d_ip_c.mark_line())
-    # + alt.layer(graph_selection)
-    # , use_container_width=True)
-
-#if st.checkbox("Show Graph for Erie County Projected Census: SEIR Model"):
-    # Erie County Census Graph - SEIR Model
-    # st.subheader("Projected **census** of COVID-19 patients for Erie County, accounting for arrivals and discharges: **SEIR Model**")
-    # st.altair_chart(
-        # admitted_patients_chart(
-            # census_table_e,
-            # plot_projection_days,
-            # as_date=as_date),
-        # use_container_width=True)
-
-##if st.checkbox("Show Graph for Erie County Projected Census: SEIR Model with adjusted R_0"):
-##    # Erie County Census Graph - SEIR Model
-##    st.subheader("Projected **census** of COVID-19 patients for Erie County, accounting for arrivals and discharges: **SEIR Model**")
-##    st.altair_chart(
-##        admitted_patients_chart(
-##            census_table_R,
-##            plot_projection_days,
-##            as_date=as_date),
-##        use_container_width=True)
-##
-### , scale=alt.Scale(domain=[0, 30000])
-
-
-# if st.checkbox("Show Graph for Erie County Projected Census: SEIR Model with adjusted R_0 and Case Fatality"):
-    # # Erie County Census Graph - SEIR Model
-    # st.subheader("Projected **census** of COVID-19 patients for Erie County, accounting for arrivals and discharges: **SEIR Model**")
-    # st.altair_chart(
-        # admitted_patients_chart(
-            # census_table_D,
-            # plot_projection_days,
-            # as_date=as_date),
-        # use_container_width=True)
-
-# , scale=alt.Scale(domain=[0, 30000])
 
 
 st.header("""Hospital Specific Projected Admissions and Census""")
@@ -1676,32 +1389,6 @@ def hosp_admitted_patients_chart(
     )
 
 
-# Projected Hospital census SIR Model
-# st.subheader("Projected **census** of COVID-19 patients by Hospital, accounting for arrivals and discharges: SIR Model")
-# st.altair_chart(
-    # hosp_admitted_patients_chart(
-        # census_table, 
-        # as_date=as_date), 
-    # use_container_width=True)
-
-# Projected Hospital census SEIR Model
-# st.subheader("Projected **census** of COVID-19 patients by Hospital, accounting for arrivals and discharges: SEIR Model")
-# st.altair_chart(
-    # hosp_admitted_patients_chart(
-        # census_table_e, 
-        # as_date=as_date), 
-    # use_container_width=True)
-
-# , scale=alt.Scale(domain=[0, 30000])
-
-# Projected Hospital census SEIR Model with adjusted R_0
-# st.subheader("Projected **census** of COVID-19 patients by Hospital, accounting for arrivals and discharges: SEIR Model with Adjusted R_0")
-# st.altair_chart(
-    # hosp_admitted_patients_chart(
-        # census_table_R, 
-        # as_date=as_date), 
-    # use_container_width=True)
-
 # Projected Hospital census SEIR Model with adjusted R_0 and Case Mortality    
 st.subheader("Projected **census** of COVID-19 patients by Hospital, accounting for arrivals and discharges: SEIR Model with Adjusted R_0 and Case Fatality")
 st.altair_chart(
@@ -1709,28 +1396,6 @@ st.altair_chart(
         census_table_D, 
         as_date=as_date), 
     use_container_width=True)
-
-
-# Census - SIR model Table
-# if st.checkbox("Show Projected Census in tabular form"):
-    # st.dataframe(census_table)
-
-# Census - SEIR model Table
-# if st.checkbox("Show Projected Census in tabular form: SEIR Model"):
-    # st.dataframe(census_table_e)
-
-# # Census - SEIR model with adjusted R_0 Table
-# if st.checkbox("Show Projected Census in tabular form: SEIR Model with adjusted R_0"):
-    # st.dataframe(census_table_R)
-    
-# # Census - SEIR model with adjusted R_0 and case fatality Table
-# if st.checkbox("Show Projected Census in tabular form: SEIR Model with adjusted R_0 and case fatality."):
-    # st.dataframe(census_table_D)
-
-
-
-
-
 
 
 # Erie Graph of Beds
@@ -1765,18 +1430,6 @@ def bed_lines(
         )
         .interactive()
     )
-
-# beds = bed_lines(census_table)
-# st.altair_chart(beds, use_container_width=True)
-
-
-
-
-
-
-
-
-
 
 
 ##########################################################
@@ -1816,30 +1469,6 @@ def ppe_chart(
     )
 
 # , scale=alt.Scale(domain=[0, 450000])
-
-#SIR Model with PPE predictions
-# st.subheader("Projected personal protective equipment needs for mild and severe cases of COVID-19: SIR Model")
-# st.altair_chart(
-    # ppe_chart(
-    # census_table,
-    # as_date=as_date),
-    # use_container_width=True)
-    
-# # SEIR Model with PPE predictions
-# st.subheader("Projected personal protective equipment needs for mild and severe cases of COVID-19: SEIR Model")
-# st.altair_chart(
-    # ppe_chart(
-    # census_table_e,
-    # as_date=as_date),
-    # use_container_width=True)
-
-# # SEIR Model with adjusted R_0 with - PPE predictions
-# st.subheader("Projected personal protective equipment needs for mild and severe cases of COVID-19: SEIR Model with Adjuted R_0")
-# st.altair_chart(
-    # ppe_chart(
-    # census_table_R,
-    # as_date=as_date),
-    # use_container_width=True)
     
 # SEIR Model with adjusted R_0 with Case Fatality - PPE predictions
 st.subheader("Projected personal protective equipment needs for mild and severe cases of COVID-19: SEIR Model with Adjutes R_0 and Case Fatality")
@@ -1847,248 +1476,6 @@ st.subheader("Projected personal protective equipment needs for mild and severe 
 ppe_graph = ppe_chart(census_table_D, as_date=as_date)
 
 st.altair_chart(alt.layer(ppe_graph.mark_line()) + alt.layer(vertical1), use_container_width=True)
-
-
-#############################
-# PPE needs summary variables
-def get_key(dic, val): 
-    for key, value in dic.items(): 
-         if val == value: 
-             return key 
-
-float_formatter = "{:.2f}".format
-
-# ppe_7d_mild_lower = census_table['ppe_mild_d'][1:8]
-# ppe_7d_mild_upper = census_table['ppe_mild_u'][1:8]
-# ppe_7d_severe_lower = census_table['ppe_severe_d'][1:8]
-# ppe_7d_severe_upper = census_table['ppe_severe_u'][1:8]
-
-# st.table(ppe_7d_mild_lower)
-# st.table(ppe_7d_mild_upper)
-# st.table(ppe_7d_severe_lower)
-# st.table(ppe_7d_severe_upper)
-
-
-# # One day
-# ppe_1d_mild_lower = current_hosp * 14.0
-# ppe_1d_mild_upper = current_hosp * 15.0
-# ppe_1d_severe_lower = current_hosp *15.0
-# ppe_1d_severe_upper = current_hosp *24.0
-# # 7 Days
-# ppe_7d_mild_lower = ppe_1d_mild_lower+sum(census_table['ppe_mild_d'][1:8])
-# ppe_7d_mild_upper = ppe_1d_mild_upper+sum(census_table['ppe_mild_u'][1:8])
-# ppe_7d_severe_lower = ppe_1d_severe_lower+sum(census_table['ppe_severe_d'][1:8])
-# ppe_7d_severe_upper = ppe_1d_severe_upper+sum(census_table['ppe_severe_u'][1:8])
-# # 2nd week
-# ppe_14d_mild_lower = sum(census_table['ppe_mild_d'][1:15])
-# ppe_14d_mild_upper = sum(census_table['ppe_mild_u'][1:15])
-# ppe_14d_severe_lower = sum(census_table['ppe_severe_d'][1:15])
-# ppe_14d_severe_upper = sum(census_table['ppe_severe_u'][1:15])
-# # 3rd week
-# ppe_21d_mild_lower = sum(census_table['ppe_mild_d'][1:22])
-# ppe_21d_mild_upper = sum(census_table['ppe_mild_u'][1:22])
-# ppe_21d_severe_lower = sum(census_table['ppe_severe_d'][1:22])
-# ppe_21d_severe_upper = sum(census_table['ppe_severe_u'][1:22])
-# # Month one
-# ppe_1m_mild_lower = sum(census_table['ppe_mild_d'][1:29])
-# ppe_1m_mild_upper = sum(census_table['ppe_mild_u'][1:29])
-# ppe_1m_severe_lower = sum(census_table['ppe_severe_d'][1:29])
-# ppe_1m_severe_upper = sum(census_table['ppe_severe_u'][1:29])
-
-
-# SEIR Model
-
-# # One day
-# ppe_1d_mild_lower = current_hosp * 14.0
-# ppe_1d_mild_upper = current_hosp * 15.0
-# ppe_1d_severe_lower = current_hosp *15.0
-# ppe_1d_severe_upper = current_hosp *24.0
-# # 7 Days
-# ppe_7d_mild_lower = ppe_1d_mild_lower+sum(census_table_e['ppe_mild_d'][1:8])
-# ppe_7d_mild_upper = ppe_1d_mild_upper+sum(census_table_e['ppe_mild_u'][1:8])
-# ppe_7d_severe_lower = ppe_1d_severe_lower+sum(census_table_e['ppe_severe_d'][1:8])
-# ppe_7d_severe_upper = ppe_1d_severe_upper+sum(census_table_e['ppe_severe_u'][1:8])
-# # 2nd week
-# ppe_14d_mild_lower = sum(census_table_e['ppe_mild_d'][1:15])
-# ppe_14d_mild_upper = sum(census_table_e['ppe_mild_u'][1:15])
-# ppe_14d_severe_lower = sum(census_table_e['ppe_severe_d'][1:15])
-# ppe_14d_severe_upper = sum(census_table_e['ppe_severe_u'][1:15])
-# # 3rd week
-# ppe_21d_mild_lower = sum(census_table_e['ppe_mild_d'][1:22])
-# ppe_21d_mild_upper = sum(census_table_e['ppe_mild_u'][1:22])
-# ppe_21d_severe_lower = sum(census_table_e['ppe_severe_d'][1:22])
-# ppe_21d_severe_upper = sum(census_table_e['ppe_severe_u'][1:22])
-# # Month one
-# ppe_1m_mild_lower = sum(census_table_e['ppe_mild_d'][1:29])
-# ppe_1m_mild_upper = sum(census_table_e['ppe_mild_u'][1:29])
-# ppe_1m_severe_lower = sum(census_table_e['ppe_severe_d'][1:29])
-# ppe_1m_severe_upper = sum(census_table_e['ppe_severe_u'][1:29])
-
-# st.markdown("""The estimated **daily** PPE needs for the currently admitted COVID-19 patients is **{ppe_1d_mild_lower:.0f}**-**{ppe_1d_mild_upper:.0f}** for mild cases of COVID-19, 
-            # and **{ppe_1d_severe_lower:.0f}**-**{ppe_1d_severe_upper:.0f}** for severe cases. The estimated PPE needs for the **first month** of COVID-19 patients is
-            # **{ppe_1m_mild_lower:.0f}**-**{ppe_1m_mild_upper:.0f}** for mild cases of COVID-19, and **{ppe_1m_severe_lower:.0f}**-**{ppe_1m_severe_upper:.0f}** for severe cases.""".format(
-                # ppe_1d_mild_lower = ppe_1d_mild_lower,
-                # ppe_1d_mild_upper = ppe_1d_mild_upper,
-                # ppe_1d_severe_lower = ppe_1d_severe_lower,
-                # ppe_1d_severe_upper = ppe_1d_severe_upper,
-                # ppe_1m_mild_lower = ppe_1m_mild_lower,
-                # ppe_1m_mild_upper = ppe_1m_mild_upper,
-                # ppe_1m_severe_lower = ppe_1m_severe_lower,
-                # ppe_1m_severe_upper = ppe_1m_severe_upper
-# ))
-
-# # PPE Needs by day, 7d, 14, 21, 28d
-# data = {
-    # 'PPE Needs': ['Today', 'Week 1', 'Week2', 'Week3', 'First Month'],
-    # 'Mild Cases' : [
-        # float_formatter(np.mean([ppe_1d_mild_lower, ppe_1d_mild_upper])), 
-        # float_formatter(np.mean([ppe_7d_mild_lower, ppe_7d_mild_upper])), 
-        # float_formatter(np.mean([ppe_14d_mild_lower, ppe_14d_mild_upper])), 
-        # float_formatter(np.mean([ppe_21d_mild_lower, ppe_21d_mild_upper])), 
-        # float_formatter(np.mean([ppe_1m_mild_lower, ppe_1m_mild_upper]))
-        # ],
-    # 'Severe Cases': [
-        # float_formatter(np.mean([ppe_1d_severe_lower, ppe_1d_severe_upper])), 
-        # float_formatter(np.mean([ppe_7d_severe_lower, ppe_7d_severe_upper])), 
-        # float_formatter(np.mean([ppe_14d_severe_lower, ppe_14d_severe_upper])),
-        # float_formatter(np.mean([ppe_21d_severe_lower, ppe_21d_severe_upper])), 
-        # float_formatter(np.mean([ppe_1m_severe_lower, ppe_1m_severe_upper]))
-        # ], 
-# }
-# ppe_needs = pd.DataFrame(data)
-# st.table(ppe_needs)
-
-### Recovered/Infected table
-##st.subheader("The number of infected and recovered individuals in the region at any given moment")
-##
-##def additional_projections_chart(i: np.ndarray, r: np.ndarray) -> alt.Chart:
-##    dat = pd.DataFrame({"Infected": i, "Recovered": r})
-##
-##    return (
-##        alt
-##        .Chart(dat.reset_index())
-##        .transform_fold(fold=["Infected", "Recovered"])
-##        .mark_line(point=False)
-##        .encode(
-##            x=alt.X("index", title="Days from today"),
-##            y=alt.Y("value:Q", title="Case Volume"),
-##            tooltip=["key:N", "value:Q"], 
-##            color="key:N"
-##        )
-##        .interactive()
-##    )
-##
-##st.altair_chart(additional_projections_chart(i_R, r_R), use_container_width=True)
-##
-
-
-
-# # Recovered/Infected/Hospitalized/Fatality table
-# st.subheader("The number of infected,recovered, and fatal individuals in the region at any given moment")
-
-# def additional_projections_chart(i: np.ndarray, j: np.ndarray, c: np.ndarray,r: np.ndarray, d: np.ndarray) -> alt.Chart:
-    # dat = pd.DataFrame({"Infected": i, "Hospitalized":j, "ICU":c, "Recovered": r, "Fatal":d})
-
-    # return (
-        # alt
-        # .Chart(dat.reset_index())
-        # .transform_fold(fold=["Infected", "Hospitalized", "ICU", "Recovered", "Fatal"])
-        # .mark_line(point=False)
-        # .encode(
-            # x=alt.X("index", title="Days from today"),
-            # y=alt.Y("value:Q", title="Case Volume"),
-            # tooltip=["key:N", "value:Q"], 
-            # color="key:N"
-        # )
-        # .interactive()
-    # )
-
-# st.altair_chart(additional_projections_chart(i_H, j_H, c_H, r_H, d_H), use_container_width=True)
-
-
-
-##if st.checkbox("Show Additional Information"):
-##
-## st.subheader("Guidance on Selecting Inputs")
-## st.markdown(
-##     """* **Hospitalized COVID-19 Patients:** The number of patients currently hospitalized with COVID-19. This number is used in conjunction with Hospital Market Share and Hospitalization % to estimate the total number of infected individuals in your region.
-##     * **Currently Known Regional Infections**: The number of infections reported in your hospital's catchment region. This input is used to estimate the detection rate of infected individuals. 
-##     * **Doubling Time (days):** This parameter drives the rate of new cases during the early phases of the outbreak. The American Hospital Association currently projects doubling rates between 7 and 10 days. This is the doubling time you expect under status quo conditions. To account for reduced contact and other public health interventions, modify the _Social distancing_ input. 
-##     * **Social distancing (% reduction in person-to-person physical contact):** This parameter allows users to explore how reduction in interpersonal contact & transmission (hand-washing) might slow the rate of new infections. It is your estimate of how much social contact reduction is being achieved in your region relative to the status quo. While it is unclear how much any given policy might affect social contact (eg. school closures or remote work), this parameter lets you see how projections change with percentage reductions in social contact.
-##     * **Hospitalization %(total infections):** Percentage of **all** infected cases which will need hospitalization.
-##     * **ICU %(total infections):** Percentage of **all** infected cases which will need to be treated in an ICU.
-##     * **Ventilated %(total infections):** Percentage of **all** infected cases which will need mechanical ventilation.
-##     * **Hospital Length of Stay:** Average number of days of treatment needed for hospitalized COVID-19 patients. 
-##     * **ICU Length of Stay:** Average number of days of ICU treatment needed for ICU COVID-19 patients.
-##     * **Vent Length of Stay:**  Average number of days of ventilation needed for ventilated COVID-19 patients.
-##     * **Hospital Market Share (%):** The proportion of patients in the region that are likely to come to your hospital (as opposed to other hospitals in the region) when they get sick. One way to estimate this is to look at all of the hospitals in your region and add up all of the beds. The number of beds at your hospital divided by the total number of beds in the region times 100 will give you a reasonable starting estimate.
-##     * **Regional Population:** Total population size of the catchment region of your hospital(s). 
-##     """)
-
-# # Show data
-# days = np.array(range(0, n_days + 1))
-# data_list = [days, s_R, e_R, i_R, r_R]
-# data_dict = dict(zip(["day", "susceptible", "exposed","infections", "recovered"], data_list))
-# projection_area = pd.DataFrame.from_dict(data_dict)
-# infect_table = (projection_area.iloc[::7, :]).apply(np.floor)
-# infect_table.index = range(infect_table.shape[0])
-
-# if st.checkbox("Show Raw SEIR Similation Data"):
-    # st.dataframe(infect_table)
-
-## # Show data
-##days1 = np.array(range(0, n_days + 1))
-##data_list1 = [days1, s_D, e_D, i_D, r_D, d_D]
-##data_dict1 = dict(zip(["day", "susceptible", "exposed","infections", "recovered", "fatal"], data_list1))
-##projection_area1 = pd.DataFrame.from_dict(data_dict1)
-##infect_table1 = (projection_area1.iloc[::7, :]).apply(np.floor)
-##infect_table1.index = range(infect_table1.shape[0])
-##
-##if st.checkbox("Show Raw SEIR Similation Data with case fatality" ):
-##    st.dataframe(infect_table1)
-
-
-# Show data
-#days3 = np.array(range(0, n_days + 1))
-#data_list3 = [days3, s_H, e_H, i_H, j_H, c_H, r_H, d_H]
-#data_dict3 = dict(zip(["day", "susceptible", "exposed","infections", "hospitalized", "ICU", "recovered", "fatal"], data_list3))
-#projection_area3 = pd.DataFrame.from_dict(data_dict3)
-#infect_table3 = (projection_area3.iloc[::7, :]).apply(np.floor)
-#infect_table3.index = range(infect_table3.shape[0])
-
-#if st.checkbox("Show Raw SEIJCR Similation Data" ):
-#    st.dataframe(infect_table3)
-
-
-# Show data
-#days2 = np.array(range(0, n_days + 1))
-#data_list2 = [days2, s_v, i_v, r_v]
-#data_dict2 = dict(zip(["day", "susceptible", "infections", "recovered"], data_list2))
-#projection_area2 = pd.DataFrame.from_dict(data_dict2)
-#infect_table2 = (projection_area2.iloc[::7, :]).apply(np.floor)
-#infect_table2.index = range(infect_table2.shape[0])
-
-#if st.checkbox("Show Raw SIR Similation Data with case fatality" ):
-#    st.dataframe(infect_table2)
-
-
-
-# st.subheader("References & Acknowledgements")
-# st.markdown(
-    # """
-    # We appreciate the great work done by Predictive Healthcare team (http://predictivehealthcare.pennmedicine.org/) at
-# Penn Medicine who created the predictive model used.
-    # https://www.worldometers.info/coronavirus/coronavirus-incubation-period/
-# Lauer SA, Grantz KH, Bi Q, et al. The Incubation Period of Coronavirus Disease 2019 (COVID-19) From Publicly Reported Confirmed Cases: Estimation and Application. Ann Intern Med. 2020; [Epub ahead of print 10 March 2020]. doi: https://doi.org/10.7326/M20-0504
-# http://www.centerforhealthsecurity.org/resources/COVID-19/index.html
-# http://www.centerforhealthsecurity.org/resources/fact-sheets/pdfs/coronaviruses.pdf'
-# https://coronavirus.jhu.edu/
-# https://www.who.int/emergencies/diseases/novel-coronavirus-2019/situation-reports
-# https://www.worldometers.info/coronavirus/coronavirus-age-sex-demographics/
-    # """
-# )
-
-
 
 # Recovered/Infected/Fatality table
 st.subheader("Infected,recovered,and fatal individuals in the **region** across time")
@@ -2152,7 +1539,7 @@ R2=AAA*(1-decay2)
 R3=AAA*(1-decay3)
 R4=AAA*(1-decay4)
 
-st.markdown("""The initial $R_0$ is **{AAA:.1f}** the $R_0$ after 2 weeks is **{R2:.1f}** and the $R_0$ after 3 weeks is **{R3:.1f}**.  
+st.markdown("""The initial $R_0$ is **{AAA:.1f}** the $R_0$ after 2 weeks is **{R2:.1f}** and the $R_0$ after 3 weeks to end of social distancing is **{R3:.1f}**. After reducing social distancing the $R_0$ is **{R4:.1f}**
             This is based on a doubling rate of **{doubling_time:.0f}** and the calculation of the [basic reproduction number](https://www.sciencedirect.com/science/article/pii/S2468042719300491).  """.format(
         AAA=AAA,
         R2=R2,
@@ -2161,3 +1548,7 @@ st.markdown("""The initial $R_0$ is **{AAA:.1f}** the $R_0$ after 2 weeks is **{
         doubling_time=doubling_time
     )
             )
+
+st.markdown("""The SEIR model and application were developed by the University at Buffalo's [Biomedical Informatics Department](http://medicine.buffalo.edu/departments/biomedical-informatics.html) with special help from [Matthew Bonner](http://sphhp.buffalo.edu/epidemiology-and-environmental-health/faculty-and-staff/faculty-directory/mrbonner.html) in the Department of Epidemiology, [Greg Wilding](http://sphhp.buffalo.edu/biostatistics/faculty-and-staff/faculty-directory/gwilding.html) in the Department of Biostatistics, and [Great Lakes Healthcare](https://www.greatlakeshealth.com) with [Peter Winkelstein](http://medicine.buffalo.edu/faculty/profile.html?ubit=pwink). 
+            Building off of the core application from the [CHIME model](https://github.com/CodeForPhilly/chime/), our model adds compartments for _Exposed_ and _Death_ and fine-tunes the model for Erie County and hospital specific estimates.
+            Documentation of parameter choices and model choices can be found in the github Wiki.  For questions, please email [Gabriel Anaya](ganaya@buffalo.edu) or [Sarah Mullin](sarahmul@buffalo.edu).  """)

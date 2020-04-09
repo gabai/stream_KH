@@ -244,11 +244,11 @@ def sim_seir_decay(
     n = s + e + i + r
     s_v, e_v, i_v, r_v = [s], [e], [i], [r]
     for day in range(n_days):
-        if 0<=day<=21:
+        if start_day<=day<=int1_delta:
             beta_decay=beta*(1-decay1)
-        elif 22<=day<=28:
+        elif int1_delta<=day<=int2_delta:
             beta_decay=beta*(1-decay2)
-        elif 29<=day<=end_delta:
+        elif int2_delta<=day<=end_delta:
             beta_decay=beta*(1-decay3)
         else:
             beta_decay=beta*(1-decay4)
@@ -298,11 +298,11 @@ def sim_seird_decay(
     n = s + e + i + r + d
     s_v, e_v, i_v, r_v, d_v = [s], [e], [i], [r], [d]
     for day in range(n_days):
-        if 0<=day<=21:
+        if start_day<=day<=int1_delta:
             beta_decay=beta*(1-decay1)
-        elif 22<=day<=28:
+        elif int1_delta<=day<=int2_delta:
             beta_decay=beta*(1-decay2)
-        elif 29<=day<=end_delta:
+        elif int2_delta<=day<=end_delta:
             beta_decay=beta*(1-decay3)
         else:
             beta_decay=beta*(1-decay4)
@@ -504,6 +504,7 @@ doubling_time = st.sidebar.number_input(
 
 start_date = st.sidebar.date_input(
     "Suspected first contact", datetime(2020,3,1))
+start_day = 1
     
 relative_contact_rate = st.sidebar.number_input(
     "Social distancing (% reduction in social contact) Unadjusted Model", 0, 100, value=0, step=5, format="%i")/100.0
@@ -511,14 +512,22 @@ relative_contact_rate = st.sidebar.number_input(
 decay1 = st.sidebar.number_input(
     "Social distancing (% reduction in social contact) in Week 0-2", 0, 100, value=0, step=5, format="%i")/100.0
 
+intervention1 = st.sidebar.date_input(
+    "Date of change Social Distancing - School Closure", datetime(2020,3,22))
+int1_delta = (intervention1 - start_date).days
+    
 decay2 = st.sidebar.number_input(
-    "Social distancing (% reduction in social contact) in Week 3", 0, 100, value=15, step=5, format="%i")/100.0
+    "Social distancing (% reduction in social contact) in Week 3 - School Closure", 0, 100, value=15, step=5, format="%i")/100.0
+
+intervention2 = st.sidebar.date_input(
+    "Date of change in Social Distancing - Closure Businesses, Shelter in Place", datetime(2020,3,28))
+int2_delta = (intervention2 - start_date).days
 
 decay3 = st.sidebar.number_input(
-    "Social distancing (% reduction in social contact) from Week 3 to change in SD%", 0, 100, value=30 ,step=5, format="%i")/100.0
+    "Social distancing (% reduction in social contact) from Week 3 to change in SD - After Business Closure%", 0, 100, value=30 ,step=5, format="%i")/100.0
 
 end_date = st.sidebar.date_input(
-    "End date or change in social distancing", datetime(2020,5,1))
+    "End date or change in social distancing", datetime(2020,5,15))
 # Delta from start and end date for decay4
 end_delta = (end_date - start_date).days
 
@@ -675,8 +684,8 @@ def erie_chart(
 #Erie Graph of Cases # Lines of cases # Inpatient Census
 
 if as_date:
-    erie_df = add_date_column(erie_df)
-    day_date = 'date:T'
+    #erie_df = add_date_column(erie_df)
+    day_date = 'Date:T'
     def erie_inpatient(projection_admits: pd.DataFrame) -> alt.Chart:
         """docstring"""
     
@@ -719,8 +728,8 @@ else:
 
 # Erie Graph of Cases # Lines of cases # ICU Census
 if as_date:
-    erie_df = add_date_column(erie_df)
-    day_date = 'date:T'
+    #erie_df = add_date_column(erie_df)
+    day_date = 'Date:T'
     def erie_icu(projection_admits: pd.DataFrame) -> alt.Chart:
         """docstring"""
         
@@ -762,8 +771,8 @@ else:
     
 # Erie Graph of Cases # Lines of cases # Ventilator Census
 if as_date:
-    erie_df = add_date_column(erie_df)
-    day_date = 'date:T'
+    #erie_df = add_date_column(erie_df)
+    day_date = 'Date:T'
     def erie_vent(projection_admits: pd.DataFrame) -> alt.Chart:
         """docstring"""
         
@@ -1148,7 +1157,7 @@ def ip_chart(
 ###################### Vertical Lines Graph ###################
 # Schools 18th
 # Non-essential business 22nd
-vertical = pd.DataFrame({'day': [22, 29, end_delta]})
+vertical = pd.DataFrame({'day': [int1_delta, int2_delta, end_delta]})
 
 def vertical_chart(
     projection_admits: pd.DataFrame, 

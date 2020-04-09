@@ -16,6 +16,8 @@ import time
 import altair as alt
 from collections import namedtuple
 
+404
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 

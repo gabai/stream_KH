@@ -1,3 +1,4 @@
+
 # Modified version for Erie County, New York
 # Contact: ganaya@buffalo.edu
 
@@ -15,8 +16,6 @@ from datetime import date, datetime, timedelta
 import time
 import altair as alt
 from collections import namedtuple
-
-404
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -477,7 +476,7 @@ data = {
 bed_share = pd.DataFrame(data)
 
 # Load erie county data
-url = "https://raw.githubusercontent.com/gabai/stream_KH/master/Cases_Erie.csv"
+url = "https://raw.githubusercontent.com/gabai/stream_KH/master/Cases_Erie.csv?token=ADABH7OHBYOJUM4ORVA4C5S6R6KCW"
 erie_df = pd.read_csv(url)
 erie_df['Date'] = pd.to_datetime(erie_df['Date'])
 

@@ -475,9 +475,21 @@ data = {
 }
 bed_share = pd.DataFrame(data)
 
-# Load erie county data
-url = "https://raw.githubusercontent.com/gabai/stream_KH/master/Cases_Erie.csv?token=ADABH7OHBYOJUM4ORVA4C5S6R6KCW"
-erie_df = pd.read_csv(url)
+data_dict = {
+    "Date": ['3/1/2020', '3/2/2020', '3/3/2020', '3/4/2020', '3/5/2020', '3/6/2020', '3/7/2020', '3/8/2020', '3/9/2020', '3/10/2020',
+            '3/11/2020', '3/12/2020', '3/13/2020', '3/14/2020',	'3/15/2020', '3/16/2020', '3/17/2020', '3/18/2020',	'3/19/2020', '3/20/2020',
+            '3/21/2020', '3/22/2020', '3/23/2020',	'3/24/2020', '3/25/2020', '3/26/2020', '3/27/2020', '3/28/2020', '3/29/2020', '3/30/2020', '3/31/2020',
+            '4/1/2020',	'4/2/2020',	'4/3/2020',	'4/4/2020',	'4/5/2020',	'4/6/2020',	'4/7/2020',	'4/8/2020'],
+    "Admissions": [None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,1,	4,	6,	6,	10,	19,	29,	49,	52,	90,	90,	102,	127,	128,	179,	181,	201,	214,	203,	221,	216],
+    "ICU": [None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,2,7,12,	20,	23,	39,	41,	48,	55,	61,	90,	95,	105,	106,	114,	119,	118],
+    "Ventilated": [None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,	1,	6,	9,	16,	20,	32,	32,	39,	54,	58,	79,	80,	99,	102,	108,	113,	111],
+    "Cases": [None,None	,None,None,None,None,None,None,None,None,None,None,None,	3,	7,	7,	20,	27,	34,	47,	61,	96,	114,	121,	146,	245,	310,	380,	414,	443,	582,	603,	734,	802,	945,	1059,	1163,	1235,	1345],
+    "Deaths": [None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,	1,	2,	4,	6,	6,	9,	9,	10,	14,	18,	23,	27,	32,	38,	40,	47],
+    "New_admits": [None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,	1,	3,	10,	14,	8,	13,	19,	4,	6,	13,	24,	21,	28,	26,	28,	15,	8],
+    "New_discharge":[None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,	1,	2,	2,	5,	11,	9,	13,	9,	3,	15,	10,	31,	53,	31,	21,	19,	20],
+    "day": [0,	1,	2,	3,	4,	5,	6,	7,	8,	9,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19,	20,	21,	22,	23,	24,	25,	26,	27,	28,	29,	30,	31,	32,	33,	34,	35,	36,	37,	38]
+    }
+erie_df = pd.DataFrame.from_dict(data_dict)
 erie_df['Date'] = pd.to_datetime(erie_df['Date'])
 
 # Populations and Infections
@@ -1558,7 +1570,3 @@ st.markdown("""The initial $R_0$ is **{AAA:.1f}** the $R_0$ after 2 weeks is **{
         doubling_time=doubling_time
     )
             )
-
-st.markdown("""The SEIR model and application were developed by the University at Buffalo's [Biomedical Informatics Department](http://medicine.buffalo.edu/departments/biomedical-informatics.html) with special help from [Matthew Bonner](http://sphhp.buffalo.edu/epidemiology-and-environmental-health/faculty-and-staff/faculty-directory/mrbonner.html) in the Department of Epidemiology, [Greg Wilding](http://sphhp.buffalo.edu/biostatistics/faculty-and-staff/faculty-directory/gwilding.html) in the Department of Biostatistics, and [Great Lakes Healthcare](https://www.greatlakeshealth.com) with [Peter Winkelstein](http://medicine.buffalo.edu/faculty/profile.html?ubit=pwink). 
-            Building off of the core application from the [CHIME model](https://github.com/CodeForPhilly/chime/), our model adds compartments for _Exposed_ and _Death_ and fine-tunes the model for Erie County and hospital specific estimates.
-            Documentation of parameter choices and model choices can be found in the github Wiki.  For questions, please email [Gabriel Anaya](ganaya@buffalo.edu) or [Sarah Mullin](sarahmul@buffalo.edu).  """)

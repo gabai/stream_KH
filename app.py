@@ -7,7 +7,6 @@
 
 from functools import reduce
 from typing import Generator, Tuple, Dict, Any, Optional
-from boto.s3.connection import S3Connection
 import os
 import pandas as pd
 import streamlit as st
@@ -26,13 +25,13 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 # Create S3 object to get the ENV variable from Heroku
-s3 = S3Connection(os.environ['SECRET_KEY'])
+secret = os.environ['SECRET_KEY']
 
 # Prompt the user for the secret
 password = st.text_input("Secret Handshake:", value="", type="password")
 
 # If the secrete provided matches the ENV, proceeed with the app
-if password == s3:
+if password == secret:
     hide_menu_style = """
             <style>
             #MainMenu {visibility: hidden;}

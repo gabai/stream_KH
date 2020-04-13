@@ -1106,7 +1106,7 @@ if password == secret:
             .mark_line(point=False)
             .encode(
                 x=alt.X(**x_kwargs),
-                y=alt.Y("value:Q", title="Daily admissions", scale=alt.Scale(domain=[0, 1800])),
+                y=alt.Y("value:Q", title="Daily admissions"),
                 color="key:N",
                 tooltip=[
                     tooltip_dict[as_date],
@@ -1336,7 +1336,7 @@ if password == secret:
             .mark_line(point=False)
             .encode(
                 x=alt.X(**x_kwargs),
-                y=alt.Y("value:Q", title="Census", scale=alt.Scale(domain=[0, 12000])),
+                y=alt.Y("value:Q", title="Census"),
                 color="key:N",
                 tooltip=[
                     tooltip_dict[as_date],

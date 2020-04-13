@@ -588,8 +588,8 @@ if password == secret:
     crit_lag = st.sidebar.number_input(
         "Days person takes to go to critical care", 0, 20, value=4 ,step=1, format="%f")
 
-    hosp_los = st.sidebar.number_input("Hospital Length of Stay", value=10, step=1, format="%i")
-    icu_los = st.sidebar.number_input("ICU Length of Stay", value=11, step=1, format="%i")
+    hosp_los = st.sidebar.number_input("Hospital Length of Stay", value=5, step=1, format="%i")
+    icu_los = st.sidebar.number_input("ICU Length of Stay", value=8, step=1, format="%i")
     vent_los = st.sidebar.number_input("Ventilator Length of Stay", value=6, step=1, format="%i")
 
     # regional_hosp_share = (

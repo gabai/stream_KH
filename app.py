@@ -1370,8 +1370,9 @@ if password == secret:
     # Chart of Model Comparison for SEIR and Adjusted with Erie County Data
     st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs Model")
     st.altair_chart(
-        alt.layer(seir_ip_c.mark_line())
-        + alt.layer(seir_d_ip_c.mark_line())
+        #alt.layer(seir_ip_c.mark_line())
+        #+ 
+        alt.layer(seir_d_ip_c.mark_line())
         + alt.layer(graph_selection)
         + alt.layer(vertical1)
         , use_container_width=True)

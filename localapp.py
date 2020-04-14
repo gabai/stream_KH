@@ -123,7 +123,7 @@ def build_admissions_df(
 def build_census_df(
     projection_admits: pd.DataFrame) -> pd.DataFrame:
     """ALOS for each category of COVID-19 case (total guesses)"""
-    #n_days = np.shape(projection_admits)[0]
+    n_days = np.shape(projection_admits)[0]
     los_dict = {
     "hosp": hosp_los, "icu": icu_los, "vent": vent_los,
     "hosp_kh": hosp_los, "icu_kh": icu_los, "vent_kh": vent_los,
@@ -247,12 +247,16 @@ def sim_seir_decay(
     s_v, e_v, i_v, r_v = [s], [e], [i], [r]
     for day in range(n_days):
         if start_day<=day<=int1_delta:
+            beta = (alpha+(2 ** (1 / 1.61) - 1))*((2 ** (1 / 1.61) - 1)+ (1/infectious_period)) / (alpha*S)
             beta_decay=beta*(1-decay1)
         elif int1_delta<=day<=int2_delta:
+            beta = (alpha+(2 ** (1 / 2.65) - 1))*((2 ** (1 / 2.65) - 1)+ (1/infectious_period)) / (alpha*S)
             beta_decay=beta*(1-decay2)
         elif int2_delta<=day<=end_delta:
+            beta = (alpha+(2 ** (1 / 5.32) - 1))*((2 ** (1 / 5.32) - 1)+ (1/infectious_period)) / (alpha*S)
             beta_decay=beta*(1-decay3)
         else:
+            beta = (alpha+(2 ** (1 / 9.70) - 1))*((2 ** (1 / 9.70) - 1)+ (1/infectious_period)) / (alpha*S)
             beta_decay=beta*(1-decay4)
         s, e, i, r = seir(s, e, i, r, beta_decay, gamma, alpha, n)
         s_v.append(s)
@@ -301,12 +305,16 @@ def sim_seird_decay(
     s_v, e_v, i_v, r_v, d_v = [s], [e], [i], [r], [d]
     for day in range(n_days):
         if start_day<=day<=int1_delta:
+            beta = (alpha+(2 ** (1 / 1.61) - 1))*((2 ** (1 / 1.61) - 1) + (1/infectious_period)) / (alpha*S)
             beta_decay=beta*(1-decay1)
         elif int1_delta<=day<=int2_delta:
+            beta = (alpha+(2 ** (1 / 2.65) - 1))*((2 ** (1 / 2.65) - 1)+ (1/infectious_period)) / (alpha*S)
             beta_decay=beta*(1-decay2)
         elif int2_delta<=day<=end_delta:
+            beta = (alpha+(2 ** (1 / 5.32) - 1))*((2 ** (1 / 5.32) - 1)+ (1/infectious_period)) / (alpha*S)
             beta_decay=beta*(1-decay3)
         else:
+            beta = (alpha+(2 ** (1 / 9.70) - 1))*((2 ** (1 / 9.70) - 1)+ (1/infectious_period)) / (alpha*S)
             beta_decay=beta*(1-decay4)
         s, e, i, r,d = seird(s, e, i, r, d, beta_decay, gamma, alpha, n, fatal)
         s_v.append(s)
@@ -362,12 +370,16 @@ def sim_seijcrd_decay(
     s_v, e_v, i_v, j_v, c_v, r_v, d_v = [s], [e], [i], [j], [c], [r], [d]
     for day in range(n_days):
         if 0<=day<=21:
+            beta = (alpha+(2 ** (1 / 1.61) - 1))*((2 ** (1 / 1.61) - 1) + (1/infectious_period)) / (alpha*S)
             beta_decay=beta*(1-decay1)
         elif 22<=day<=28:
+            beta = (alpha+(2 ** (1 / 2.65) - 1))*((2 ** (1 / 2.65) - 1)+ (1/infectious_period)) / (alpha*S)
             beta_decay=beta*(1-decay2)
         elif 29<=day<=end_delta: 
+            beta = (alpha+(2 ** (1 / 5.32) - 1))*((2 ** (1 / 5.32) - 1)+ (1/infectious_period)) / (alpha*S)
             beta_decay=beta*(1-decay3)
         else:
+            beta = (alpha+(2 ** (1 / 9.70) - 1))*((2 ** (1 / 9.70) - 1)+ (1/infectious_period)) / (alpha*S)
             beta_decay=beta*(1-decay4)
         s, e, i,j, c, r,d = seijcrd(s, e, i,j, c, r, d, beta_decay, gamma, alpha, n, fatal_hosp, hosp_rate, icu_rate, icu_days, crit_lag, death_days)
         s_v.append(s)
@@ -527,21 +539,21 @@ relative_contact_rate = st.sidebar.number_input(
     "Social distancing (% reduction in social contact) Unadjusted Model", 0, 100, value=0, step=5, format="%i")/100.0
 
 decay1 = st.sidebar.number_input(
-    "Social distancing (% reduction in social contact) in Week 0-2", 0, 100, value=0, step=5, format="%i")/100.0
+    "Social distancing (% reduction in social contact) in Week 0-2", 0, 100, value=30, step=5, format="%i")/100.0
 
 intervention1 = st.sidebar.date_input(
     "Date of change Social Distancing - School Closure", datetime(2020,3,22))
 int1_delta = (intervention1 - start_date).days
     
 decay2 = st.sidebar.number_input(
-    "Social distancing (% reduction in social contact) in Week 3 - School Closure", 0, 100, value=15, step=5, format="%i")/100.0
+    "Social distancing (% reduction in social contact) in Week 3 - School Closure", 0, 100, value=30, step=5, format="%i")/100.0
 
 intervention2 = st.sidebar.date_input(
     "Date of change in Social Distancing - Closure Businesses, Shelter in Place", datetime(2020,3,28))
 int2_delta = (intervention2 - start_date).days
 
 decay3 = st.sidebar.number_input(
-    "Social distancing (% reduction in social contact) from Week 3 to change in SD - After Business Closure%", 0, 100, value=30 ,step=5, format="%i")/100.0
+    "Social distancing (% reduction in social contact) from Week 3 to change in SD - After Business Closure%", 0, 100, value=50 ,step=5, format="%i")/100.0
 
 end_date = st.sidebar.date_input(
     "End date or change in social distancing", datetime(2020,5,31))
@@ -549,7 +561,7 @@ end_date = st.sidebar.date_input(
 end_delta = (end_date - start_date).days
 
 decay4 = st.sidebar.number_input(
-    "Social distancing after end date", 0, 100, value=15 ,step=5, format="%i")/100.0
+    "Social distancing after end date", 0, 100, value=30 ,step=5, format="%i")/100.0
 
 hosp_rate = (
     st.sidebar.number_input("Hospitalization %", 0.0, 100.0, value=2.5, step=0.50, format="%f")/ 100.0)
@@ -658,6 +670,10 @@ erie_icu_line = alt.Chart(erie_df).mark_line(color='orange', point=True).encode(
     x='Date:T',
     y='ICU:Q')
 
+# New admissions in 24 hrs
+erie_admit24_line = alt.Chart(erie_df).mark_line(color='red', point=True).encode(
+    x='day',
+    y='New_admits:Q')
 
 # Slider and Date
 n_days = st.slider("Number of days to project", 30, 200, 120, 1, "%i")
@@ -1055,25 +1071,6 @@ projection_admits_D = build_admissions_df(dispositions_D)
 # Census Table
 census_table_D = build_census_df(projection_admits_D)
 
-
-if relative_contact_rate >= 0:
-    SD10 = relative_contact_rate + 10
-    gamma = 1 / recovery_days
-    beta = (intrinsic_growth_rate + gamma) / S * (1-SD10) # {rate based on doubling time} / {initial S}
-    r_t = beta / gamma * S # r_t is r_0 after distancing
-    r_naught = (intrinsic_growth_rate + gamma) / gamma
-    doubling_time_t = 1/np.log2(beta*S - gamma +1) # doubling time after distancing
-    projection_admits_e10 = build_admissions_df(dispositions_e)
-    census_table_e10 = build_census_df(projection_admits_e10)
-    ##################################
-    SD20 = relative_contact_rate + 20
-    gamma = 1 / recovery_days
-    beta = (intrinsic_growth_rate + gamma) / S * (1-SD20) # {rate based on doubling time} / {initial S}
-    r_t = beta / gamma * S # r_t is r_0 after distancing
-    r_naught = (intrinsic_growth_rate + gamma) / gamma
-    projection_admits_e20 = build_admissions_df(dispositions_e)
-    census_table_e20 = build_census_df(projection_admits_e20)
-
 # Erie Graph of Cases: SIR, SEIR
 # Admissions Graphs
 # Erie Graph of Cases
@@ -1212,7 +1209,10 @@ admits_graph = regional_admissions_chart(projection_admits_D,
         plot_projection_days, 
         as_date=as_date)
 
-st.altair_chart(admits_graph + vertical1, use_container_width=True)
+st.altair_chart(admits_graph 
+    + vertical1
+    #+ erie_admit24_line
+    , use_container_width=True)
 
 
 if st.checkbox("Show more info about this tool"):
@@ -1354,8 +1354,8 @@ seir_ip_c = ip_census_chart(census_table_e, plot_projection_days, as_date=as_dat
 seir_d_ip_c = ip_census_chart(census_table_D, plot_projection_days, as_date=as_date)
 ###
 # Added SEIR 10, 20 SD
-seir_ip_c10 = ip_census_chart(census_table_e10, plot_projection_days, as_date=as_date)
-seir_ip_c20 = ip_census_chart(census_table_e20, plot_projection_days, as_date=as_date)
+#seir_ip_c10 = ip_census_chart(census_table_e10, plot_projection_days, as_date=as_date)
+#seir_ip_c20 = ip_census_chart(census_table_e20, plot_projection_days, as_date=as_date)
 
 
 

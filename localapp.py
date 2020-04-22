@@ -16,6 +16,7 @@ from datetime import date, datetime, timedelta
 import time
 import altair as alt
 from collections import namedtuple
+from scipy.integrate import odeint
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -99,6 +100,31 @@ def build_admissions_df(
     dispositions) -> pd.DataFrame:
     """Build admissions dataframe from Parameters."""
     days = np.array(range(0, n_days + 1))
+    data_dict = dict(
+        zip(
+            ["day", "hosp", "icu", "vent"], 
+            [days] + [disposition for disposition in dispositions],
+        )
+    )
+    projection = pd.DataFrame.from_dict(data_dict)
+    
+    counter = 0
+    for i in hosp_list:
+        projection[groups[0]+"_"+i] = projection.hosp*bed_share.iloc[3,counter]
+        projection[groups[1]+"_"+i] = projection.icu*bed_share.iloc[3,counter]
+        projection[groups[2]+"_"+i] = projection.vent*bed_share.iloc[3,counter]
+        counter +=1
+        if counter == 4: break
+    
+    # New cases
+    projection_admits = projection.iloc[:-1, :] - projection.shift(1)
+    projection_admits["day"] = range(projection_admits.shape[0])
+    return projection_admits
+
+def build_admissions_df_n(
+    dispositions) -> pd.DataFrame:
+    """Build admissions dataframe from Parameters."""
+    days = np.array(range(0, n_days))
     data_dict = dict(
         zip(
             ["day", "hosp", "icu", "vent"], 
@@ -467,6 +493,43 @@ def sim_seijcrd_decay(
     )
 
 
+def betanew(t,beta):
+    if start_day<= t <= int1_delta:
+        beta_decay=beta*(1-decay1)
+    elif int1_delta<=t<int2_delta:
+        beta_decay=beta*(1-decay2)
+    elif int2_delta<=t<=end_delta:
+        beta_decay=beta*(1-decay3)
+    else:
+        beta_decay=beta*(1-decay4)    
+    return beta_decay
+
+#The SIR model differential equations with ODE solver.
+def derivdecay(y, t, N, beta, gamma1, gamma2, alpha, p, hosp,q,l,n_days, decay1, decay2, decay3, decay4, start_day, int1_delta, int2_delta, end_delta, fatal_hosp ):
+    S, E, A, I,J, R,D,counter = y
+    dSdt = - betanew(t, beta) * S * (q*I + l*J + A)/N 
+    dEdt = betanew(t, beta) * S * (q*I + l*J + A)/N   - alpha * E
+    dAdt = alpha * E*(1-p)-gamma1*A
+    dIdt = p* alpha* E - gamma1 * I- hosp*I
+    dJdt = hosp * I -gamma2*J
+    dRdt = (1-fatal_hosp)*gamma2 * J + gamma1*(A+I)
+    dDdt = fatal_hosp * gamma2 * J
+    counter = (1-fatal_hosp)*gamma2 * J
+    return dSdt, dEdt,dAdt, dIdt, dJdt, dRdt, dDdt, counter
+
+def sim_seaijrd_decay_ode(
+    s, e,a,i, j,r, d, beta, gamma1, gamma2, alpha, n_days,decay1,decay2,decay3, decay4, start_day, int1_delta, int2_delta,end_delta, fatal_hosp, p, hosp, q,
+    l):
+    n = s + e + a + i + j+ r + d
+    rh=0
+    y0= s,e,a,i,j,r,d, rh
+    
+    t=np.arange(0, n_days, step=1)
+    ret = odeint(derivdecay, y0, t, args=(n, beta, gamma1, gamma2, alpha, p, hosp,q,l, n_days, decay1, decay2, decay3, decay4, start_day, int1_delta, int2_delta, end_delta, fatal_hosp))
+    S_n, E_n,A_n, I_n,J_n, R_n, D_n ,RH_n= ret.T
+    
+    return (S_n, E_n,A_n, I_n,J_n, R_n, D_n, RH_n)
+    
 # End Models # 
 
 # Add dates #
@@ -642,6 +705,12 @@ death_days = st.sidebar.number_input(
 
 crit_lag = st.sidebar.number_input(
     "Days person takes to go to critical care", 0, 20, value=4 ,step=1, format="%f")
+    
+hosp_lag = st.sidebar.number_input(
+    "Days person remains in hospital or dies", 0, 20, value=4 ,step=1, format="%f")
+
+asymptomatic = 1-(st.sidebar.number_input(
+    "Asymptomatic (%)", 0.0, 100.0, value=25.0 ,step=0.1, format="%f")/100.0)
 
 hosp_los = st.sidebar.number_input("Hospital Length of Stay", value=5, step=1, format="%i")
 icu_los = st.sidebar.number_input("ICU Length of Stay", value=8, step=1, format="%i")
@@ -1051,6 +1120,68 @@ hospitalized_D_ecases, icu_D, ventilated_D = (
             i_ventilated_D)
 
 
+##################################################################
+## SEIR model with phase adjusted R_0 and Disease Related Fatality,
+## Asymptomatic, Hospitalization
+E0=100
+A0=100
+I0=100
+D0=0
+R0=0
+J0=0
+
+S0=1500000-E0-A0-I0-D0-J0-R0
+beta_j=0.9
+q=0.6
+l=0.6
+gamma_hosp=1/hosp_lag
+#gamma1,fatal,alpha, p, hosp,q,l  = 1./5, 0.04, 1./5.2, 0.75, .025, 0.8,0.8
+AAA=beta4*(1/gamma2)*S
+beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
+
+R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
+beta_j=0.9
+R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
+
+##S_n, E_n,A_n, I_n,J_n, R_n, D_n=sim_seaijrd_decay_ode(
+##    S0, E0, A0,I0,J0, R0, D0, beta_j, gamma2, gamma_hosp, alpha, n_days,decay1,decay2,decay3,
+##    decay4, start_day, int1_delta, int2_delta,end_delta, fatal_hosp, asymptomatic, hosp_rate, q,
+##    l)
+
+S_n, E_n,A_n, I_n,J_n, R_n, D_n, RH_n=sim_seaijrd_decay_ode(S0, E0, A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
+                                                      decay1,decay2,decay3, decay4, start_day, int1_delta, int2_delta,
+                                                      end_delta, fatal_hosp,asymptomatic, hosp_rate, q,  l)
+
+
+icu_curve= J_n*icu_rate
+vent_curve=J_n*vent_rate
+
+hosp_rate_n=1.0
+RateLos = namedtuple("RateLos", ("rate", "length_of_stay"))
+hospitalized_n=RateLos(hosp_rate_n, hosp_los)
+icu=RateLos(icu_rate, icu_los)
+ventilated=RateLos(vent_rate, vent_los)
+
+
+rates_n = tuple(each.rate for each in (hospitalized_n, icu, ventilated))
+lengths_of_stay = tuple(each.length_of_stay for each in (hospitalized, icu, ventilated))
+
+
+i_hospitalized_A, i_icu_A, i_ventilated_A = get_dispositions(J_n, rates_n, regional_hosp_share)
+
+r_hospitalized_A, r_icu_A, r_ventilated_A = get_dispositions(RH_n, rates_n, regional_hosp_share)
+d_hospitalized_A, d_icu_A, d_ventilated_A = get_dispositions(D_n, rates_n, regional_hosp_share)
+dispositions_A_ecases = (
+            i_hospitalized_A + r_hospitalized_A+ d_hospitalized_A ,
+            i_icu_A+r_icu_A+d_icu_A,
+            i_ventilated_A+r_ventilated_A +d_ventilated_A)
+
+hospitalized_A_ecases, icu_A, ventilated_A = (
+            i_hospitalized_A,
+            i_icu_A,
+            i_ventilated_A)
+
+
 
 # Individual hospitals selection
 if hosp_options == 'Kaleida':
@@ -1179,6 +1310,13 @@ census_table_D_socialcases = build_census_df(projection_admits_D_socialcases)
 projection_admits_D_ecases = build_admissions_df(dispositions_D_ecases)
 # Census Table
 census_table_D_ecases = build_census_df(projection_admits_D_ecases)
+
+#############
+# SEAIJRD Model 
+# New Cases
+projection_admits_A_ecases = build_admissions_df_n(dispositions_A_ecases)
+## Census Table
+census_table_A_ecases = build_census_df(projection_admits_A_ecases)
 
 # Erie Graph of Cases: SEIR
 # Admissions Graphs
@@ -1328,13 +1466,18 @@ admits_graph_highsocial = regional_admissions_chart(projection_admits_D_socialca
 admits_graph_ecases = regional_admissions_chart(projection_admits_D_ecases, 
         plot_projection_days, 
         as_date=as_date)
+### SEAIJRD
+admits_graph_A= regional_admissions_chart(projection_admits_A_ecases, 
+        plot_projection_days, 
+        as_date=as_date)
         
 st.altair_chart(
     #admits_graph_seir
-    #+
+    #+ 
     admits_graph 
     + vertical1
-    #+ admits_graph_ecases
+    + admits_graph_ecases
+    + admits_graph_A
     + admits_graph_highsocial
     #+ erie_admit24_line
     , use_container_width=True)
@@ -1483,10 +1626,12 @@ seir_d_ip_c = ip_census_chart(census_table_D, plot_projection_days, as_date=as_d
 #seir_ip_c20 = ip_census_chart(census_table_e20, plot_projection_days, as_date=as_date)
 
 
-### 4/20/20 for stepwise SD/DT model
+### 4/20/20 for high social distancing model
 seir_d_ip_highsocial = ip_census_chart(census_table_D_socialcases, plot_projection_days, as_date=as_date)
 ### 4/17/20 for stepwise SD/DT model
 seir_d_ip_ecases = ip_census_chart(census_table_D_ecases, plot_projection_days, as_date=as_date)
+### 4/22/20 seaijrd
+seir_A_ip_ecases = ip_census_chart(census_table_A_ecases, plot_projection_days, as_date=as_date)
 
 
 
@@ -1495,7 +1640,8 @@ st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs Model")
 st.altair_chart(
     alt.layer(seir_ip_c.mark_line())
     + alt.layer(seir_d_ip_c.mark_line())
-    # + alt.layer(seir_d_ip_ecases.mark_line())
+    + alt.layer(seir_d_ip_ecases.mark_line())
+    + alt.layer(seir_A_ip_ecases.mark_line())
     + alt.layer(seir_d_ip_highsocial.mark_line())
     + alt.layer(graph_selection)
     + alt.layer(vertical1)
@@ -1692,17 +1838,45 @@ st.markdown("""There is a projected number of **{infection_total_t:.0f}** infect
         infection_total_t=infection_total_t
     )
             )
+
 AAA=beta4*(1/gamma2)*S
 R2=AAA*(1-decay2)
 R3=AAA*(1-decay3)
 R4=AAA*(1-decay4)
 
-st.markdown("""The initial $R_0$ is **{AAA:.1f}** the $R_0$ after 2 weeks is **{R2:.1f}** and the $R_0$ after 3 weeks to end of social distancing is **{R3:.1f}**. After reducing social distancing the $R_0$ is **{R4:.1f}**
-            This is based on a doubling rate of **{doubling_time:.0f}** and the calculation of the [basic reproduction number](https://www.sciencedirect.com/science/article/pii/S2468042719300491).  """.format(
+st.markdown("""The initial $R_0$ is **{AAA:.1f}** with a $$\\beta$$ of **{beta4:.2f}**, the $R_e$ after 2 weeks is **{R2:.1f}** and the $R_e$ after 3 weeks to end of social distancing is **{R3:.1f}**.
+After reducing social distancing the $R_e$ is **{R4:.1f}**
+            This is based on a doubling rate of **{doubling_time:.0f}**
+            and the calculation of the [basic reproduction number](https://www.sciencedirect.com/science/article/pii/S2468042719300491).
+            The $R_0$ for the other model is  **{R0_n:.1f}** and a $$\\beta$$ of **{beta_j:.2f}**""".format(
         AAA=AAA,
+        beta4=beta4*S,
         R2=R2,
         R3=R3,
         R4=R4,
-        doubling_time=doubling_time
+        doubling_time=doubling_time,
+        R0_n=R0_n,
+        beta_j=beta_j
     )
             )
+
+
+def additional_projections_chart(a:np.ndarray, i:np.ndarray, j:np.ndarray,d:np.ndarray)  -> alt.Chart:
+    dat = pd.DataFrame({"Asymptomatic":a,"Infected":i, "Hospitalized":j,"Fatal":d})
+
+    return (
+        alt
+        .Chart(dat.reset_index())
+        .transform_fold(fold=["Asymptomatic","Infected", "Hospitalized","Fatal"])
+        .mark_line(point=False)
+        .encode(
+            x=alt.X("index", title="Days from initial infection"),
+            y=alt.Y("value:Q", title="Case Volume"),
+            tooltip=["key:N", "value:Q"], 
+            color="key:N"
+        )
+        .interactive()
+    )
+
+st.altair_chart(additional_projections_chart(A_n, I_n, J_n, D_n), use_container_width=True)
+

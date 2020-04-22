@@ -1527,7 +1527,7 @@ if password == secret:
     st.altair_chart(
         alt.layer(seir_ip_c.mark_line())
         + alt.layer(seir_d_ip_c.mark_line())
-        + alt.layer(seir_d_ip_ecases.mark_line())
+        #+ alt.layer(seir_d_ip_ecases.mark_line())
         + alt.layer(seir_d_ip_highsocial.mark_line())
         + alt.layer(graph_selection)
         + alt.layer(vertical1)

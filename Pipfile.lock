@@ -739,6 +739,9 @@
         },
 		"plotly": {
             "version": "==4.5.4"
+        },
+		"scipy": {
+            "version": "==1.2.3"
         }
     },
     "develop": {}

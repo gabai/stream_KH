@@ -344,7 +344,7 @@ def sim_seird_decay_social(
             beta_decay=beta*(1-.83)
         else:
             beta = (alpha+(2 ** (1 / 2) - 1))*((2 ** (1 / 2) - 1)+ (1/infectious_period)) / (alpha*S)
-            beta_decay=beta*(1-.83)
+            beta_decay=beta*(1-.75)
         s, e, i, r,d = seird(s, e, i, r, d, beta_decay, gamma, alpha, n, fatal)
         s_v.append(s)
         e_v.append(e)
@@ -1329,7 +1329,6 @@ admits_graph_ecases = regional_admissions_chart(projection_admits_D_ecases,
         plot_projection_days, 
         as_date=as_date)
         
-### test
 st.altair_chart(
     #admits_graph_seir
     #+
@@ -1496,7 +1495,7 @@ st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs Model")
 st.altair_chart(
     alt.layer(seir_ip_c.mark_line())
     + alt.layer(seir_d_ip_c.mark_line())
-    + alt.layer(seir_d_ip_ecases.mark_line())
+    # + alt.layer(seir_d_ip_ecases.mark_line())
     + alt.layer(seir_d_ip_highsocial.mark_line())
     + alt.layer(graph_selection)
     + alt.layer(vertical1)

@@ -330,6 +330,81 @@ if password == secret:
             np.array(d_v)
         )
 
+    # Model with high social distancing
+    def sim_seird_decay_social(
+        s: float, e:float, i: float, r: float, d: float, beta: float, gamma: float, alpha: float, n_days: int,
+        decay1:float, decay2:float, decay3: float, decay4: float, end_delta: int, fatal: float
+        ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        """Simulate the SIR model forward in time."""
+        s, e, i, r, d= (float(v) for v in (s, e, i, r, d))
+        n = s + e + i + r + d
+        s_v, e_v, i_v, r_v, d_v = [s], [e], [i], [r], [d]
+        for day in range(n_days):
+            if start_day<=day<=int1_delta:
+                beta = (alpha+(2 ** (1 / 2) - 1))*((2 ** (1 / 2) - 1) + (1/infectious_period)) / (alpha*S)
+                beta_decay=beta*(1-.02)
+            elif int1_delta<=day<=int2_delta:
+                beta = (alpha+(2 ** (1 / 2) - 1))*((2 ** (1 / 2) - 1)+ (1/infectious_period)) / (alpha*S)
+                beta_decay=beta*(1-.52)
+            elif int2_delta<=day<=end_delta:
+                beta = (alpha+(2 ** (1 / 2) - 1))*((2 ** (1 / 2) - 1)+ (1/infectious_period)) / (alpha*S)
+                beta_decay=beta*(1-.83)
+            else:
+                beta = (alpha+(2 ** (1 / 2) - 1))*((2 ** (1 / 2) - 1)+ (1/infectious_period)) / (alpha*S)
+                beta_decay=beta*(1-.75)
+            s, e, i, r,d = seird(s, e, i, r, d, beta_decay, gamma, alpha, n, fatal)
+            s_v.append(s)
+            e_v.append(e)
+            i_v.append(i)
+            r_v.append(r)
+            d_v.append(d)
+
+        return (
+            np.array(s_v),
+            np.array(e_v),
+            np.array(i_v),
+            np.array(r_v),
+            np.array(d_v)
+        )
+
+# Model with dynamic doubling time
+    def sim_seird_decay_erie(
+        s: float, e:float, i: float, r: float, d: float, beta: float, gamma: float, alpha: float, n_days: int,
+        decay1:float, decay2:float, decay3: float, decay4: float, end_delta: int, fatal: float
+        ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        """Simulate the SIR model forward in time."""
+        s, e, i, r, d= (float(v) for v in (s, e, i, r, d))
+        n = s + e + i + r + d
+        s_v, e_v, i_v, r_v, d_v = [s], [e], [i], [r], [d]
+        for day in range(n_days):
+            if start_day<=day<=int1_delta:
+                beta = (alpha+(2 ** (1 / 1.61) - 1))*((2 ** (1 / 1.61) - 1) + (1/infectious_period)) / (alpha*S)
+                beta_decay=beta*(1-.3)
+            elif int1_delta<=day<=int2_delta:
+                beta = (alpha+(2 ** (1 / 2.65) - 1))*((2 ** (1 / 2.65) - 1)+ (1/infectious_period)) / (alpha*S)
+                beta_decay=beta*(1-.3)
+            elif int2_delta<=day<=end_delta:
+                beta = (alpha+(2 ** (1 / 5.32) - 1))*((2 ** (1 / 5.32) - 1)+ (1/infectious_period)) / (alpha*S)
+                beta_decay=beta*(1-.5)
+            else:
+                beta = (alpha+(2 ** (1 / 9.70) - 1))*((2 ** (1 / 9.70) - 1)+ (1/infectious_period)) / (alpha*S)
+                beta_decay=beta*(1-.30)
+            s, e, i, r,d = seird(s, e, i, r, d, beta_decay, gamma, alpha, n, fatal)
+            s_v.append(s)
+            e_v.append(e)
+            i_v.append(i)
+            r_v.append(r)
+            d_v.append(d)
+
+        return (
+            np.array(s_v),
+            np.array(e_v),
+            np.array(i_v),
+            np.array(r_v),
+            np.array(d_v)
+        )
+
+
     def seijcrd(
         s: float, e: float, i: float, j:float, c:float, r: float, d: float, beta: float, gamma: float, alpha: float, n: float, fatal_hosp: float, hosp_rate:float, icu_rate:float, icu_days:float,crit_lag:float, death_days:float
         ) -> Tuple[float, float, float, float]:
@@ -946,6 +1021,50 @@ if password == secret:
                 i_ventilated_D)
 
 
+    ##################################################################
+    ## SEIR model with phase adjusted R_0 and Disease Related Fatality
+    ## Model based on Erie cases with set parameters of extreme social distancing
+
+    s_D, e_D, i_D, r_D, d_D = sim_seird_decay_social(S-2, 1, 1 , 0.0, 0.0, beta4, gamma2,alpha, n_days, decay1, decay2, decay3, decay4, end_delta, fatal)
+
+    susceptible_D, exposed_D, infected_D, recovered_D = s_D, e_D, i_D, r_D
+
+    i_hospitalized_D, i_icu_D, i_ventilated_D = get_dispositions(i_D, rates, regional_hosp_share)
+
+    r_hospitalized_D, r_icu_D, r_ventilated_D = get_dispositions(r_D, rates, regional_hosp_share)
+
+    dispositions_D_socialcases = (
+                i_hospitalized_D + r_hospitalized_D,
+                i_icu_D + r_icu_D,
+                i_ventilated_D + r_ventilated_D)
+
+    hospitalized_D_socialcases, icu_D, ventilated_D = (
+                i_hospitalized_D,
+                i_icu_D,
+                i_ventilated_D)
+
+
+    ##################################################################
+    ## SEIR model with phase adjusted R_0 and Disease Related Fatality
+    ## Model based on Erie cases with set parameters of doubling time and social distancing
+
+    s_D, e_D, i_D, r_D, d_D = sim_seird_decay_erie(S-2, 1, 1 , 0.0, 0.0, beta4, gamma2,alpha, n_days, decay1, decay2, decay3, decay4, end_delta, fatal)
+
+    susceptible_D, exposed_D, infected_D, recovered_D = s_D, e_D, i_D, r_D
+
+    i_hospitalized_D, i_icu_D, i_ventilated_D = get_dispositions(i_D, rates, regional_hosp_share)
+
+    r_hospitalized_D, r_icu_D, r_ventilated_D = get_dispositions(r_D, rates, regional_hosp_share)
+
+    dispositions_D_ecases = (
+                i_hospitalized_D + r_hospitalized_D,
+                i_icu_D + r_icu_D,
+                i_ventilated_D + r_ventilated_D)
+
+    hospitalized_D_ecases, icu_D, ventilated_D = (
+                i_hospitalized_D,
+                i_icu_D,
+                i_ventilated_D)
 
 
     # Individual hospitals selection
@@ -1062,6 +1181,19 @@ if password == secret:
     # Census Table
     census_table_D = build_census_df(projection_admits_D)
 
+    #############
+    # SEIR Model with phase adjustment and Disease Fatality
+    # New cases - using high social distancing
+    projection_admits_D_socialcases = build_admissions_df(dispositions_D_socialcases)
+    # Census Table
+    census_table_D_socialcases = build_census_df(projection_admits_D_socialcases)
+
+    #############
+    # SEIR Model with phase adjustment and Disease Fatality
+    # New cases - using dynamic doubling time and social distancing
+    projection_admits_D_ecases = build_admissions_df(dispositions_D_ecases)
+    # Census Table
+    census_table_D_ecases = build_census_df(projection_admits_D_ecases)
 
     if relative_contact_rate >= 0:
         SD10 = relative_contact_rate + 10
@@ -1218,8 +1350,25 @@ if password == secret:
     admits_graph = regional_admissions_chart(projection_admits_D, 
             plot_projection_days, 
             as_date=as_date)
-
-    st.altair_chart(admits_graph + vertical1, use_container_width=True)
+    ### High Social Distancing
+    admits_graph_highsocial = regional_admissions_chart(projection_admits_D_socialcases, 
+            plot_projection_days, 
+            as_date=as_date)
+    ### Dynamic Doubling Time
+    admits_graph_ecases = regional_admissions_chart(projection_admits_D_ecases, 
+            plot_projection_days, 
+            as_date=as_date)
+            
+    ### First Graph
+    st.altair_chart(
+        #admits_graph_seir
+        #+
+        admits_graph 
+        + vertical1
+        #+ admits_graph_ecases
+        + admits_graph_highsocial
+        #+ erie_admit24_line
+        , use_container_width=True)
 
 
     if st.checkbox("Show more info about this tool"):
@@ -1361,18 +1510,25 @@ if password == secret:
     seir_d_ip_c = ip_census_chart(census_table_D, plot_projection_days, as_date=as_date)
     ###
     # Added SEIR 10, 20 SD
-    seir_ip_c10 = ip_census_chart(census_table_e10, plot_projection_days, as_date=as_date)
-    seir_ip_c20 = ip_census_chart(census_table_e20, plot_projection_days, as_date=as_date)
+    #seir_ip_c10 = ip_census_chart(census_table_e10, plot_projection_days, as_date=as_date)
+    #seir_ip_c20 = ip_census_chart(census_table_e20, plot_projection_days, as_date=as_date)
+
+    ### 4/20/20 for stepwise SD/DT model
+    seir_d_ip_highsocial = ip_census_chart(census_table_D_socialcases, plot_projection_days, as_date=as_date)
+    ### 4/17/20 for stepwise SD/DT model
+    seir_d_ip_ecases = ip_census_chart(census_table_D_ecases, plot_projection_days, as_date=as_date)
 
 
     
 
     # Chart of Model Comparison for SEIR and Adjusted with Erie County Data
     st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs Model")
+    st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs Model")
     st.altair_chart(
-        #alt.layer(seir_ip_c.mark_line())
-        #+ 
-        alt.layer(seir_d_ip_c.mark_line())
+        alt.layer(seir_ip_c.mark_line())
+        + alt.layer(seir_d_ip_c.mark_line())
+        #+ alt.layer(seir_d_ip_ecases.mark_line())
+        + alt.layer(seir_d_ip_highsocial.mark_line())
         + alt.layer(graph_selection)
         + alt.layer(vertical1)
         , use_container_width=True)

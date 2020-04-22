@@ -344,7 +344,7 @@ def sim_seird_decay_social(
             beta_decay=beta*(1-.83)
         else:
             beta = (alpha+(2 ** (1 / 2) - 1))*((2 ** (1 / 2) - 1)+ (1/infectious_period)) / (alpha*S)
-            beta_decay=beta*(1-.83)
+            beta_decay=beta*(1-.75)
         s, e, i, r,d = seird(s, e, i, r, d, beta_decay, gamma, alpha, n, fatal)
         s_v.append(s)
         e_v.append(e)

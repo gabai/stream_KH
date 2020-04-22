@@ -16,6 +16,7 @@ from datetime import date, datetime, timedelta
 import time
 import altair as alt
 from collections import namedtuple
+from scipy.integrate import odeint
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -127,10 +128,35 @@ if password == secret:
         projection_admits["day"] = range(projection_admits.shape[0])
         return projection_admits
 
+    def build_admissions_df_n(
+        dispositions) -> pd.DataFrame:
+        """Build admissions dataframe from Parameters."""
+        days = np.array(range(0, n_days))
+        data_dict = dict(
+            zip(
+                ["day", "hosp", "icu", "vent"], 
+                [days] + [disposition for disposition in dispositions],
+            )
+        )
+        projection = pd.DataFrame.from_dict(data_dict)
+        
+        counter = 0
+        for i in hosp_list:
+            projection[groups[0]+"_"+i] = projection.hosp*bed_share.iloc[3,counter]
+            projection[groups[1]+"_"+i] = projection.icu*bed_share.iloc[3,counter]
+            projection[groups[2]+"_"+i] = projection.vent*bed_share.iloc[3,counter]
+            counter +=1
+            if counter == 4: break
+        
+        # New cases
+        projection_admits = projection.iloc[:-1, :] - projection.shift(1)
+        projection_admits["day"] = range(projection_admits.shape[0])
+        return projection_admits
+
     def build_census_df(
         projection_admits: pd.DataFrame) -> pd.DataFrame:
         """ALOS for each category of COVID-19 case (total guesses)"""
-        #n_days = np.shape(projection_admits)[0]
+        n_days = np.shape(projection_admits)[0]
         los_dict = {
         "hosp": hosp_los, "icu": icu_los, "vent": vent_los,
         "hosp_kh": hosp_los, "icu_kh": icu_los, "vent_kh": vent_los,
@@ -243,7 +269,7 @@ if password == secret:
             yield s, e, i, r
             s, e, i, r = seir(s, e, i, r, beta, gamma, alpha, n)
     # phase-adjusted https://www.nature.com/articles/s41421-020-0148-0     
-    
+
     def sim_seir_decay(
         s: float, e:float, i: float, r: float, beta: float, gamma: float, alpha: float, n_days: int,
         decay1:float, decay2:float, decay3: float, decay4: float, end_delta: int
@@ -273,7 +299,6 @@ if password == secret:
             np.array(i_v),
             np.array(r_v),
         )
-    # https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4552173/
 
     def seird(
         s: float, e: float, i: float, r: float, d: float, beta: float, gamma: float, alpha: float, n: float, fatal: float
@@ -299,36 +324,37 @@ if password == secret:
         return s_n * scale, e_n * scale, i_n * scale, r_n * scale, d_n * scale
 
     def sim_seird_decay(
-        s: float, e:float, i: float, r: float, d: float, beta: float, gamma: float, alpha: float, n_days: int,
-        decay1:float, decay2:float, decay3: float, decay4: float, end_delta: int, fatal: float
-        ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-        """Simulate the SIR model forward in time."""
-        s, e, i, r, d= (float(v) for v in (s, e, i, r, d))
-        n = s + e + i + r + d
-        s_v, e_v, i_v, r_v, d_v = [s], [e], [i], [r], [d]
-        for day in range(n_days):
-            if start_day<=day<=int1_delta:
-                beta_decay=beta*(1-decay1)
-            elif int1_delta<=day<=int2_delta:
-                beta_decay=beta*(1-decay2)
-            elif int2_delta<=day<=end_delta:
-                beta_decay=beta*(1-decay3)
-            else:
-                beta_decay=beta*(1-decay4)
-            s, e, i, r,d = seird(s, e, i, r, d, beta_decay, gamma, alpha, n, fatal)
-            s_v.append(s)
-            e_v.append(e)
-            i_v.append(i)
-            r_v.append(r)
-            d_v.append(d)
+            s: float, e:float, i: float, r: float, d: float, beta: float, gamma: float, alpha: float, n_days: int,
+            decay1:float, decay2:float, decay3: float, decay4: float, end_delta: int, fatal: float
+            ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+            """Simulate the SIR model forward in time."""
+            s, e, i, r, d= (float(v) for v in (s, e, i, r, d))
+            n = s + e + i + r + d
+            s_v, e_v, i_v, r_v, d_v = [s], [e], [i], [r], [d]
+            for day in range(n_days):
+                if start_day<=day<=int1_delta:
+                    beta_decay=beta*(1-decay1)
+                elif int1_delta<=day<=int2_delta:
+                    beta_decay=beta*(1-decay2)
+                elif int2_delta<=day<=end_delta:
+                    beta_decay=beta*(1-decay3)
+                else:
+                    beta_decay=beta*(1-decay4)
+                s, e, i, r,d = seird(s, e, i, r, d, beta_decay, gamma, alpha, n, fatal)
+                s_v.append(s)
+                e_v.append(e)
+                i_v.append(i)
+                r_v.append(r)
+                d_v.append(d)
 
-        return (
-            np.array(s_v),
-            np.array(e_v),
-            np.array(i_v),
-            np.array(r_v),
-            np.array(d_v)
-        )
+            return (
+                np.array(s_v),
+                np.array(e_v),
+                np.array(i_v),
+                np.array(r_v),
+                np.array(d_v)
+            )
+
 
     # Model with high social distancing
     def sim_seird_decay_social(
@@ -367,7 +393,7 @@ if password == secret:
             np.array(d_v)
         )
 
-# Model with dynamic doubling time
+    # Model with dynamic doubling time
     def sim_seird_decay_erie(
         s: float, e:float, i: float, r: float, d: float, beta: float, gamma: float, alpha: float, n_days: int,
         decay1:float, decay2:float, decay3: float, decay4: float, end_delta: int, fatal: float
@@ -403,7 +429,6 @@ if password == secret:
             np.array(r_v),
             np.array(d_v)
         )
-
 
     def seijcrd(
         s: float, e: float, i: float, j:float, c:float, r: float, d: float, beta: float, gamma: float, alpha: float, n: float, fatal_hosp: float, hosp_rate:float, icu_rate:float, icu_days:float,crit_lag:float, death_days:float
@@ -444,12 +469,16 @@ if password == secret:
         s_v, e_v, i_v, j_v, c_v, r_v, d_v = [s], [e], [i], [j], [c], [r], [d]
         for day in range(n_days):
             if 0<=day<=21:
+                beta = (alpha+(2 ** (1 / 1.61) - 1))*((2 ** (1 / 1.61) - 1) + (1/infectious_period)) / (alpha*S)
                 beta_decay=beta*(1-decay1)
             elif 22<=day<=28:
+                beta = (alpha+(2 ** (1 / 2.65) - 1))*((2 ** (1 / 2.65) - 1)+ (1/infectious_period)) / (alpha*S)
                 beta_decay=beta*(1-decay2)
             elif 29<=day<=end_delta: 
+                beta = (alpha+(2 ** (1 / 5.32) - 1))*((2 ** (1 / 5.32) - 1)+ (1/infectious_period)) / (alpha*S)
                 beta_decay=beta*(1-decay3)
             else:
+                beta = (alpha+(2 ** (1 / 9.70) - 1))*((2 ** (1 / 9.70) - 1)+ (1/infectious_period)) / (alpha*S)
                 beta_decay=beta*(1-decay4)
             s, e, i,j, c, r,d = seijcrd(s, e, i,j, c, r, d, beta_decay, gamma, alpha, n, fatal_hosp, hosp_rate, icu_rate, icu_days, crit_lag, death_days)
             s_v.append(s)
@@ -471,6 +500,43 @@ if password == secret:
         )
 
 
+    def betanew(t,beta):
+        if start_day<= t <= int1_delta:
+            beta_decay=beta*(1-decay1)
+        elif int1_delta<=t<int2_delta:
+            beta_decay=beta*(1-decay2)
+        elif int2_delta<=t<=end_delta:
+            beta_decay=beta*(1-decay3)
+        else:
+            beta_decay=beta*(1-decay4)    
+        return beta_decay
+
+    #The SIR model differential equations with ODE solver.
+    def derivdecay(y, t, N, beta, gamma1, gamma2, alpha, p, hosp,q,l,n_days, decay1, decay2, decay3, decay4, start_day, int1_delta, int2_delta, end_delta, fatal_hosp ):
+        S, E, A, I,J, R,D,counter = y
+        dSdt = - betanew(t, beta) * S * (q*I + l*J + A)/N 
+        dEdt = betanew(t, beta) * S * (q*I + l*J + A)/N   - alpha * E
+        dAdt = alpha * E*(1-p)-gamma1*A
+        dIdt = p* alpha* E - gamma1 * I- hosp*I
+        dJdt = hosp * I -gamma2*J
+        dRdt = (1-fatal_hosp)*gamma2 * J + gamma1*(A+I)
+        dDdt = fatal_hosp * gamma2 * J
+        counter = (1-fatal_hosp)*gamma2 * J
+        return dSdt, dEdt,dAdt, dIdt, dJdt, dRdt, dDdt, counter
+
+    def sim_seaijrd_decay_ode(
+        s, e,a,i, j,r, d, beta, gamma1, gamma2, alpha, n_days,decay1,decay2,decay3, decay4, start_day, int1_delta, int2_delta,end_delta, fatal_hosp, p, hosp, q,
+        l):
+        n = s + e + a + i + j+ r + d
+        rh=0
+        y0= s,e,a,i,j,r,d, rh
+        
+        t=np.arange(0, n_days, step=1)
+        ret = odeint(derivdecay, y0, t, args=(n, beta, gamma1, gamma2, alpha, p, hosp,q,l, n_days, decay1, decay2, decay3, decay4, start_day, int1_delta, int2_delta, end_delta, fatal_hosp))
+        S_n, E_n,A_n, I_n,J_n, R_n, D_n ,RH_n= ret.T
+        
+        return (S_n, E_n,A_n, I_n,J_n, R_n, D_n, RH_n)
+        
     # End Models # 
 
     # Add dates #
@@ -557,22 +623,6 @@ if password == secret:
         'RPCI': [0.0, 0.09, 0.06, 0.05]
     }
     bed_share = pd.DataFrame(data)
-
-    # data_dict = {
-        # "Date": ['3/1/2020', '3/2/2020', '3/3/2020', '3/4/2020', '3/5/2020', '3/6/2020', '3/7/2020', '3/8/2020', '3/9/2020', '3/10/2020',
-                # '3/11/2020', '3/12/2020', '3/13/2020', '3/14/2020',	'3/15/2020', '3/16/2020', '3/17/2020', '3/18/2020',	'3/19/2020', '3/20/2020',
-                # '3/21/2020', '3/22/2020', '3/23/2020',	'3/24/2020', '3/25/2020', '3/26/2020', '3/27/2020', '3/28/2020', '3/29/2020', '3/30/2020', '3/31/2020',
-                # '4/1/2020', '4/2/2020', '4/3/2020',	'4/4/2020',	'4/5/2020',	'4/6/2020',	'4/7/2020',	'4/8/2020'],
-        # "Admissions": [None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,1,	4,	6,	6,	10,	19,	29,	49,	52,	90,	90,	102,	127,	128,	179,	181,	201,	214,	203,	221,	216],
-        # "ICU": [None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,2,7,12,	20,	23,	39,	41,	48,	55,	61,	90,	95,	105,	106,	114,	119,	118],
-        # "Ventilated": [None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,	1,	6,	9,	16,	20,	32,	32,	39,	54,	58,	79,	80,	99,	102,	108,	113,	111],
-        # "Cases": [None,None,None,None,None,None,None,None,None,None,None,None,None,	3,	7,	7,	20,	27,	34,	47,	61,	96,	114,	121,	146,	245,	310,	380,	414,	443,	582,	603,	734,	802,	945,	1059,	1163,	1235,	1345],
-        # "Deaths": [None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,	1,	2,	4,	6,	6,	9,	9,	10,	14,	18,	23,	27,	32,	38,	40,	47],
-        # "New_admits": [None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,	1,	3,	10,	14,	8,	13,	19,	4,	6,	13,	24,	21,	28,	26,	28,	15,	8],
-        # "New_discharge":[None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,	1,	2,	2,	5,	11,	9,	13,	9,	3,	15,	10,	31,	53,	31,	21,	19,	20],
-        # "day": [0,	1,	2,	3,	4,	5,	6,	7,	8,	9,	10,	11,	12,	13,	14,	15,	16,	17,	18,	19,	20,	21,	22,	23,	24,	25,	26,	27,	28,	29,	30,	31,	32,	33,	34,	35,	36,	37,	38]
-        # }
-    #erie_df = pd.DataFrame.from_dict(data_dict)
 
     url = 'https://raw.githubusercontent.com/gabai/stream_KH/master/Cases_Erie.csv'
     erie_df = pd.read_csv(url)
@@ -662,6 +712,12 @@ if password == secret:
 
     crit_lag = st.sidebar.number_input(
         "Days person takes to go to critical care", 0, 20, value=4 ,step=1, format="%f")
+        
+    hosp_lag = st.sidebar.number_input(
+        "Days person remains in hospital or dies", 0, 20, value=4 ,step=1, format="%f")
+
+    asymptomatic = 1-(st.sidebar.number_input(
+        "Asymptomatic (%)", 0.0, 100.0, value=25.0 ,step=0.1, format="%f")/100.0)
 
     hosp_los = st.sidebar.number_input("Hospital Length of Stay", value=5, step=1, format="%i")
     icu_los = st.sidebar.number_input("ICU Length of Stay", value=8, step=1, format="%i")
@@ -740,6 +796,10 @@ if password == secret:
         x='Date:T',
         y='ICU:Q')
 
+    # New admissions in 24 hrs
+    erie_admit24_line = alt.Chart(erie_df).mark_line(color='red', point=True).encode(
+        x='day',
+        y='New_admits:Q')
 
     # Slider and Date
     n_days = st.slider("Number of days to project", 30, 200, 120, 1, "%i")
@@ -779,7 +839,7 @@ if password == secret:
             .interactive()
         )
 
-    
+
     #Erie Graph of Cases # Lines of cases # Inpatient Census
 
     if as_date:
@@ -1023,7 +1083,7 @@ if password == secret:
 
     ##################################################################
     ## SEIR model with phase adjusted R_0 and Disease Related Fatality
-    ## Model based on Erie cases with set parameters of extreme social distancing
+    ## (Dr. W) Model based on Erie cases with set parameters of extreme social distancing
 
     s_D, e_D, i_D, r_D, d_D = sim_seird_decay_social(S-2, 1, 1 , 0.0, 0.0, beta4, gamma2,alpha, n_days, decay1, decay2, decay3, decay4, end_delta, fatal)
 
@@ -1046,7 +1106,7 @@ if password == secret:
 
     ##################################################################
     ## SEIR model with phase adjusted R_0 and Disease Related Fatality
-    ## Model based on Erie cases with set parameters of doubling time and social distancing
+    ## (Gabe) Model based on Erie cases with set parameters of doubling time and social distancing
 
     s_D, e_D, i_D, r_D, d_D = sim_seird_decay_erie(S-2, 1, 1 , 0.0, 0.0, beta4, gamma2,alpha, n_days, decay1, decay2, decay3, decay4, end_delta, fatal)
 
@@ -1065,6 +1125,69 @@ if password == secret:
                 i_hospitalized_D,
                 i_icu_D,
                 i_ventilated_D)
+
+
+    ##################################################################
+    ## SEIR model with phase adjusted R_0 and Disease Related Fatality,
+    ## Asymptomatic, Hospitalization
+    E0=100
+    A0=100
+    I0=100
+    D0=0
+    R0=0
+    J0=0
+
+    S0=1500000-E0-A0-I0-D0-J0-R0
+    beta_j=0.9
+    q=0.6
+    l=0.6
+    gamma_hosp=1/hosp_lag
+    #gamma1,fatal,alpha, p, hosp,q,l  = 1./5, 0.04, 1./5.2, 0.75, .025, 0.8,0.8
+    AAA=beta4*(1/gamma2)*S
+    beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
+
+    R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
+    beta_j=0.9
+    R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
+
+    ##S_n, E_n,A_n, I_n,J_n, R_n, D_n=sim_seaijrd_decay_ode(
+    ##    S0, E0, A0,I0,J0, R0, D0, beta_j, gamma2, gamma_hosp, alpha, n_days,decay1,decay2,decay3,
+    ##    decay4, start_day, int1_delta, int2_delta,end_delta, fatal_hosp, asymptomatic, hosp_rate, q,
+    ##    l)
+
+    S_n, E_n,A_n, I_n,J_n, R_n, D_n, RH_n=sim_seaijrd_decay_ode(S0, E0, A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
+                                                          decay1,decay2,decay3, decay4, start_day, int1_delta, int2_delta,
+                                                          end_delta, fatal_hosp,asymptomatic, hosp_rate, q,  l)
+
+
+    icu_curve= J_n*icu_rate
+    vent_curve=J_n*vent_rate
+
+    hosp_rate_n=1.0
+    RateLos = namedtuple("RateLos", ("rate", "length_of_stay"))
+    hospitalized_n=RateLos(hosp_rate_n, hosp_los)
+    icu=RateLos(icu_rate, icu_los)
+    ventilated=RateLos(vent_rate, vent_los)
+
+
+    rates_n = tuple(each.rate for each in (hospitalized_n, icu, ventilated))
+    lengths_of_stay = tuple(each.length_of_stay for each in (hospitalized, icu, ventilated))
+
+
+    i_hospitalized_A, i_icu_A, i_ventilated_A = get_dispositions(J_n, rates_n, regional_hosp_share)
+
+    r_hospitalized_A, r_icu_A, r_ventilated_A = get_dispositions(RH_n, rates_n, regional_hosp_share)
+    d_hospitalized_A, d_icu_A, d_ventilated_A = get_dispositions(D_n, rates_n, regional_hosp_share)
+    dispositions_A_ecases = (
+                i_hospitalized_A + r_hospitalized_A+ d_hospitalized_A ,
+                i_icu_A+r_icu_A+d_icu_A,
+                i_ventilated_A+r_ventilated_A +d_ventilated_A)
+
+    hospitalized_A_ecases, icu_A, ventilated_A = (
+                i_hospitalized_A,
+                i_icu_A,
+                i_ventilated_A)
+
 
 
     # Individual hospitals selection
@@ -1195,25 +1318,14 @@ if password == secret:
     # Census Table
     census_table_D_ecases = build_census_df(projection_admits_D_ecases)
 
-    if relative_contact_rate >= 0:
-        SD10 = relative_contact_rate + 10
-        gamma = 1 / recovery_days
-        beta = (intrinsic_growth_rate + gamma) / S * (1-SD10) # {rate based on doubling time} / {initial S}
-        r_t = beta / gamma * S # r_t is r_0 after distancing
-        r_naught = (intrinsic_growth_rate + gamma) / gamma
-        doubling_time_t = 1/np.log2(beta*S - gamma +1) # doubling time after distancing
-        projection_admits_e10 = build_admissions_df(dispositions_e)
-        census_table_e10 = build_census_df(projection_admits_e10)
-        ##################################
-        SD20 = relative_contact_rate + 20
-        gamma = 1 / recovery_days
-        beta = (intrinsic_growth_rate + gamma) / S * (1-SD20) # {rate based on doubling time} / {initial S}
-        r_t = beta / gamma * S # r_t is r_0 after distancing
-        r_naught = (intrinsic_growth_rate + gamma) / gamma
-        projection_admits_e20 = build_admissions_df(dispositions_e)
-        census_table_e20 = build_census_df(projection_admits_e20)
+    #############
+    # SEAIJRD Model 
+    # New Cases
+    projection_admits_A_ecases = build_admissions_df_n(dispositions_A_ecases)
+    ## Census Table
+    census_table_A_ecases = build_census_df(projection_admits_A_ecases)
 
-    # Erie Graph of Cases: SIR, SEIR
+    # Erie Graph of Cases: SEIR
     # Admissions Graphs
     # Erie Graph of Cases
     def regional_admissions_chart(
@@ -1347,6 +1459,9 @@ if password == secret:
     #############
     st.header("""Projected Admissions Models for Erie County""")
     st.subheader("Projected number of **daily** COVID-19 admissions for Erie County: SEIR - Phase Adjusted R_0 with Case Fatality")
+    admits_graph_seir = regional_admissions_chart(projection_admits_e, 
+            plot_projection_days, 
+            as_date=as_date)
     admits_graph = regional_admissions_chart(projection_admits_D, 
             plot_projection_days, 
             as_date=as_date)
@@ -1358,14 +1473,18 @@ if password == secret:
     admits_graph_ecases = regional_admissions_chart(projection_admits_D_ecases, 
             plot_projection_days, 
             as_date=as_date)
+    ### SEAIJRD
+    admits_graph_A= regional_admissions_chart(projection_admits_A_ecases, 
+            plot_projection_days, 
+            as_date=as_date)
             
-    ### First Graph
     st.altair_chart(
         #admits_graph_seir
-        #+
+        #+ 
         admits_graph 
         + vertical1
-        #+ admits_graph_ecases
+        + admits_graph_ecases
+        + admits_graph_A
         + admits_graph_highsocial
         #+ erie_admit24_line
         , use_container_width=True)
@@ -1513,21 +1632,23 @@ if password == secret:
     #seir_ip_c10 = ip_census_chart(census_table_e10, plot_projection_days, as_date=as_date)
     #seir_ip_c20 = ip_census_chart(census_table_e20, plot_projection_days, as_date=as_date)
 
-    ### 4/20/20 for stepwise SD/DT model
+
+    ### 4/20/20 for high social distancing model
     seir_d_ip_highsocial = ip_census_chart(census_table_D_socialcases, plot_projection_days, as_date=as_date)
     ### 4/17/20 for stepwise SD/DT model
     seir_d_ip_ecases = ip_census_chart(census_table_D_ecases, plot_projection_days, as_date=as_date)
+    ### 4/22/20 seaijrd
+    seir_A_ip_ecases = ip_census_chart(census_table_A_ecases, plot_projection_days, as_date=as_date)
 
 
-    
 
     # Chart of Model Comparison for SEIR and Adjusted with Erie County Data
-    st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs Model")
     st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs Model")
     st.altair_chart(
         alt.layer(seir_ip_c.mark_line())
         + alt.layer(seir_d_ip_c.mark_line())
-        #+ alt.layer(seir_d_ip_ecases.mark_line())
+        + alt.layer(seir_d_ip_ecases.mark_line())
+        + alt.layer(seir_A_ip_ecases.mark_line())
         + alt.layer(seir_d_ip_highsocial.mark_line())
         + alt.layer(graph_selection)
         + alt.layer(vertical1)
@@ -1724,17 +1845,45 @@ if password == secret:
             infection_total_t=infection_total_t
         )
                 )
-    AAA=beta4*(1/gamma2)*1500000
+
+    AAA=beta4*(1/gamma2)*S
     R2=AAA*(1-decay2)
     R3=AAA*(1-decay3)
     R4=AAA*(1-decay4)
 
-    st.markdown("""The initial $R_0$ is **{AAA:.1f}** the $R_0$ after 2 weeks is **{R2:.1f}** and the $R_0$ after 3 weeks to end of social distancing is **{R3:.1f}**. After reducing social distancing the $R_0$ is **{R4:.1f}**
-                This is based on a doubling rate of **{doubling_time:.0f}** and the calculation of the [basic reproduction number](https://www.sciencedirect.com/science/article/pii/S2468042719300491).  """.format(
+    st.markdown("""The initial $R_0$ is **{AAA:.1f}** with a $$\\beta$$ of **{beta4:.2f}**, the $R_e$ after 2 weeks is **{R2:.1f}** and the $R_e$ after 3 weeks to end of social distancing is **{R3:.1f}**.
+    After reducing social distancing the $R_e$ is **{R4:.1f}**
+                This is based on a doubling rate of **{doubling_time:.0f}**
+                and the calculation of the [basic reproduction number](https://www.sciencedirect.com/science/article/pii/S2468042719300491).
+                The $R_0$ for the other model is  **{R0_n:.1f}** and a $$\\beta$$ of **{beta_j:.2f}**""".format(
             AAA=AAA,
+            beta4=beta4*S,
             R2=R2,
             R3=R3,
             R4=R4,
-            doubling_time=doubling_time
+            doubling_time=doubling_time,
+            R0_n=R0_n,
+            beta_j=beta_j
         )
                 )
+
+
+    def additional_projections_chart(a:np.ndarray, i:np.ndarray, j:np.ndarray,d:np.ndarray)  -> alt.Chart:
+        dat = pd.DataFrame({"Asymptomatic":a,"Infected":i, "Hospitalized":j,"Fatal":d})
+
+        return (
+            alt
+            .Chart(dat.reset_index())
+            .transform_fold(fold=["Asymptomatic","Infected", "Hospitalized","Fatal"])
+            .mark_line(point=False)
+            .encode(
+                x=alt.X("index", title="Days from initial infection"),
+                y=alt.Y("value:Q", title="Case Volume"),
+                tooltip=["key:N", "value:Q"], 
+                color="key:N"
+            )
+            .interactive()
+        )
+
+    st.altair_chart(additional_projections_chart(A_n, I_n, J_n, D_n), use_container_width=True)
+

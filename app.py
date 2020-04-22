@@ -30,10 +30,10 @@ password = st.text_input("Secret Handshake:", value="", type="password")
 # If the secrete provided matches the ENV, proceeed with the app
 if password == secret:
     hide_menu_style = """
-            <style>
-            #MainMenu {visibility: hidden;}
-            </style>
-            """
+        <style>
+        #MainMenu {visibility: hidden;}
+        </style>
+        """
     st.markdown(hide_menu_style, unsafe_allow_html=True)
 
 

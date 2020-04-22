@@ -11,4 +11,5 @@ datetime
 time
 bs4
 lxml
+scipy
 

@@ -1482,9 +1482,10 @@ if password == secret:
     st.altair_chart(
         #admits_graph_seir
         #+ 
-        admits_graph 
-        + vertical1
-        + admits_graph_ecases
+        #admits_graph 
+        #+ 
+        vertical1
+        #+ admits_graph_ecases
         + admits_graph_A
         + admits_graph_highsocial
         #+ erie_admit24_line
@@ -1517,13 +1518,13 @@ if password == secret:
     seir_d = regional_admissions_chart(projection_admits_D, plot_projection_days, as_date=as_date)
 
 
-    if st.checkbox("Show Graph of Erie County Projected Admissions with Model Comparison of Social Distancing"):
-        st.subheader("Projected number of **daily** COVID-19 admissions for Erie County: Model Comparison (Left: 0% Social Distancing, Right: Step-Wise Social Distancing)")
-        st.altair_chart(
-            alt.layer(seir.mark_line())
-            + alt.layer(seir_d.mark_line())
-            + alt.layer(vertical1.mark_rule())
-            , use_container_width=True)
+    # if st.checkbox("Show Graph of Erie County Projected Admissions with Model Comparison of Social Distancing"):
+        # st.subheader("Projected number of **daily** COVID-19 admissions for Erie County: Model Comparison (Left: 0% Social Distancing, Right: Step-Wise Social Distancing)")
+        # st.altair_chart(
+            # alt.layer(seir.mark_line())
+            # + alt.layer(seir_d.mark_line())
+            # + alt.layer(vertical1.mark_rule())
+            # , use_container_width=True)
 
     def hospital_admissions_chart(
         projection_admits: pd.DataFrame, 
@@ -1647,8 +1648,8 @@ if password == secret:
     st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs Model")
     st.altair_chart(
         alt.layer(seir_ip_c.mark_line())
-        + alt.layer(seir_d_ip_c.mark_line())
-        + alt.layer(seir_d_ip_ecases.mark_line())
+        #+ alt.layer(seir_d_ip_c.mark_line())
+        #+ alt.layer(seir_d_ip_ecases.mark_line())
         + alt.layer(seir_A_ip_ecases.mark_line())
         + alt.layer(seir_d_ip_highsocial.mark_line())
         + alt.layer(graph_selection)

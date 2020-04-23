@@ -1651,7 +1651,7 @@ if password == secret:
         #+ alt.layer(seir_d_ip_c.mark_line())
         #+ alt.layer(seir_d_ip_ecases.mark_line())
         #+ 
-        #alt.layer(seir_A_ip_ecases.mark_line())
+        alt.layer(seir_A_ip_ecases.mark_line())
         + alt.layer(seir_d_ip_highsocial.mark_line())
         + alt.layer(graph_selection)
         + alt.layer(vertical1)

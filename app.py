@@ -1647,10 +1647,11 @@ if password == secret:
     # Chart of Model Comparison for SEIR and Adjusted with Erie County Data
     st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs Model")
     st.altair_chart(
-        alt.layer(seir_ip_c.mark_line())
+        #alt.layer(seir_ip_c.mark_line())
         #+ alt.layer(seir_d_ip_c.mark_line())
         #+ alt.layer(seir_d_ip_ecases.mark_line())
-        + alt.layer(seir_A_ip_ecases.mark_line())
+        #+ 
+        #alt.layer(seir_A_ip_ecases.mark_line())
         + alt.layer(seir_d_ip_highsocial.mark_line())
         + alt.layer(graph_selection)
         + alt.layer(vertical1)
@@ -1664,7 +1665,7 @@ if password == secret:
 
     st.altair_chart(
         hospital_admissions_chart(
-            projection_admits_D, plot_projection_days, as_date=as_date), 
+            projection_admits_A_ecases, plot_projection_days, as_date=as_date), 
         use_container_width=True)
 
     ##########################################
@@ -1706,7 +1707,7 @@ if password == secret:
     st.subheader("Projected **census** of COVID-19 patients by Hospital, accounting for arrivals and discharges: SEIR Model with Adjusted R_0 and Case Fatality")
     st.altair_chart(
         hosp_admitted_patients_chart(
-            census_table_D, 
+            census_table_A_ecases, 
             as_date=as_date), 
         use_container_width=True)
 
@@ -1786,7 +1787,7 @@ if password == secret:
     # SEIR Model with adjusted R_0 with Case Fatality - PPE predictions
     st.subheader("Projected personal protective equipment needs for mild and severe cases of COVID-19: SEIR Model with Adjutes R_0 and Case Fatality")
 
-    ppe_graph = ppe_chart(census_table_D, as_date=as_date)
+    ppe_graph = ppe_chart(census_table_A_ecases, as_date=as_date)
 
     st.altair_chart(alt.layer(ppe_graph.mark_line()) + alt.layer(vertical1), use_container_width=True)
 

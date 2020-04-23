@@ -402,12 +402,18 @@ def sim_seird_decay_erie(
         elif int1_delta<=day<=int2_delta:
             beta = (alpha+(2 ** (1 / 2.65) - 1))*((2 ** (1 / 2.65) - 1)+ (1/infectious_period)) / (alpha*S)
             beta_decay=beta*(1-.3)
-        elif int2_delta<=day<=end_delta:
+        elif int2_delta<=day<=(int2_delta+7):
             beta = (alpha+(2 ** (1 / 5.32) - 1))*((2 ** (1 / 5.32) - 1)+ (1/infectious_period)) / (alpha*S)
-            beta_decay=beta*(1-.5)
+            beta_decay=beta*(1-.4)
+        elif (int2_delta+7)<=day<=(int2_delta+14):
+            beta = (alpha+(2 ** (1 / 9.70) - 1))*((2 ** (1 / 9.70) - 1)+ (1/infectious_period)) / (alpha*S)
+            beta_decay=beta*(1-.4)
+        elif (int2_delta+14)<=day<=(int2_delta+21):
+            beta = (alpha+(2 ** (1 / 16.17) - 1))*((2 ** (1 / 16.17) - 1)+ (1/infectious_period)) / (alpha*S)
+            beta_decay=beta*(1-.4)
         else:
             beta = (alpha+(2 ** (1 / 9.70) - 1))*((2 ** (1 / 9.70) - 1)+ (1/infectious_period)) / (alpha*S)
-            beta_decay=beta*(1-.30)
+            beta_decay=beta*(1-.2)
         s, e, i, r,d = seird(s, e, i, r, d, beta_decay, gamma, alpha, n, fatal)
         s_v.append(s)
         e_v.append(e)
@@ -1474,9 +1480,10 @@ admits_graph_A= regional_admissions_chart(projection_admits_A_ecases,
 st.altair_chart(
     #admits_graph_seir
     #+ 
-    admits_graph 
-    + vertical1
-    + admits_graph_ecases
+    #admits_graph 
+    #+
+    vertical1
+    #+ admits_graph_ecases
     + admits_graph_A
     + admits_graph_highsocial
     #+ erie_admit24_line
@@ -1509,13 +1516,13 @@ seir_r = regional_admissions_chart(projection_admits_R, plot_projection_days, as
 seir_d = regional_admissions_chart(projection_admits_D, plot_projection_days, as_date=as_date)
 
 
-if st.checkbox("Show Graph of Erie County Projected Admissions with Model Comparison of Social Distancing"):
-    st.subheader("Projected number of **daily** COVID-19 admissions for Erie County: Model Comparison (Left: 0% Social Distancing, Right: Step-Wise Social Distancing)")
-    st.altair_chart(
-        alt.layer(seir.mark_line())
-        + alt.layer(seir_d.mark_line())
-        + alt.layer(vertical1.mark_rule())
-        , use_container_width=True)
+# if st.checkbox("Show Graph of Erie County Projected Admissions with Model Comparison of Social Distancing"):
+    # st.subheader("Projected number of **daily** COVID-19 admissions for Erie County: Model Comparison (Left: 0% Social Distancing, Right: Step-Wise Social Distancing)")
+    # st.altair_chart(
+        # alt.layer(seir.mark_line())
+        # + alt.layer(seir_d.mark_line())
+        # + alt.layer(vertical1.mark_rule())
+        # , use_container_width=True)
 
 def hospital_admissions_chart(
     projection_admits: pd.DataFrame, 
@@ -1621,9 +1628,6 @@ seir_ip_c = ip_census_chart(census_table_e, plot_projection_days, as_date=as_dat
 #seir_r_ip_c = ip_census_chart(census_table_R, plot_projection_days, as_date=as_date)
 seir_d_ip_c = ip_census_chart(census_table_D, plot_projection_days, as_date=as_date)
 ###
-# Added SEIR 10, 20 SD
-#seir_ip_c10 = ip_census_chart(census_table_e10, plot_projection_days, as_date=as_date)
-#seir_ip_c20 = ip_census_chart(census_table_e20, plot_projection_days, as_date=as_date)
 
 
 ### 4/20/20 for high social distancing model
@@ -1638,11 +1642,12 @@ seir_A_ip_ecases = ip_census_chart(census_table_A_ecases, plot_projection_days, 
 # Chart of Model Comparison for SEIR and Adjusted with Erie County Data
 st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs Model")
 st.altair_chart(
-    alt.layer(seir_ip_c.mark_line())
-    + alt.layer(seir_d_ip_c.mark_line())
-    + alt.layer(seir_d_ip_ecases.mark_line())
-    + alt.layer(seir_A_ip_ecases.mark_line())
-    + alt.layer(seir_d_ip_highsocial.mark_line())
+    #alt.layer(seir_ip_c.mark_line())
+    #+ alt.layer(seir_d_ip_c.mark_line())
+    #+
+    alt.layer(seir_d_ip_ecases.mark_line())
+    #+ alt.layer(seir_A_ip_ecases.mark_line())
+    #+ alt.layer(seir_d_ip_highsocial.mark_line())
     + alt.layer(graph_selection)
     + alt.layer(vertical1)
     , use_container_width=True)
@@ -1655,7 +1660,7 @@ st.markdown("Distribution of regional cases based on total bed percentage (CCU/I
 
 st.altair_chart(
     hospital_admissions_chart(
-        projection_admits_D, plot_projection_days, as_date=as_date), 
+        projection_admits_A_ecases, plot_projection_days, as_date=as_date), 
     use_container_width=True)
 
 ##########################################
@@ -1697,7 +1702,7 @@ def hosp_admitted_patients_chart(
 st.subheader("Projected **census** of COVID-19 patients by Hospital, accounting for arrivals and discharges: SEIR Model with Adjusted R_0 and Case Fatality")
 st.altair_chart(
     hosp_admitted_patients_chart(
-        census_table_D, 
+        census_table_A_ecases, 
         as_date=as_date), 
     use_container_width=True)
 
@@ -1777,7 +1782,7 @@ def ppe_chart(
 # SEIR Model with adjusted R_0 with Case Fatality - PPE predictions
 st.subheader("Projected personal protective equipment needs for mild and severe cases of COVID-19: SEIR Model with Adjutes R_0 and Case Fatality")
 
-ppe_graph = ppe_chart(census_table_D, as_date=as_date)
+ppe_graph = ppe_chart(census_table_A_ecases, as_date=as_date)
 
 st.altair_chart(alt.layer(ppe_graph.mark_line()) + alt.layer(vertical1), use_container_width=True)
 

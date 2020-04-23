@@ -1880,11 +1880,12 @@ if password == secret:
         st.subheader(
         "[Deterministic SEIR model with asymptomatic, hospitalizations, and fatality components](https://www.tandfonline.com/doi/full/10.1080/23737867.2018.1509026)")
         st.markdown(
-        """The model consists of individuals who are either _Susceptible_ ($S$), _Exposed_ ($E$), _Asymptomatic_ ($A$),_Infected_ ($I$),
+        """The model consists of individuals who are either _Susceptible_ ($S$), _Exposed_ ($E$),
+    _Asymptomatic_ ($A$),_Infected_ ($I$),
      _Hospitalized_ ($J$), _Recovered_ ($R$), or _Fatal_ ($D$).
-    The epidemic proceeds via a growth and decline process. This is the core model of infectious disease spread and has been in use in epidemiology for many years."""
+    The epidemic proceeds via a growth and decline process."""
     )
-        st.markdown("""The system of differential equations are given by the following 5 equations.""")
+        st.markdown("""The system of differential equations are given by the following 7 equations.""")
 
         st.latex(r'''\frac{dS}{dt}=-\rho_t \beta S[qI+lJ+A]/N''')
         st.latex(r'''\frac{dE}{dt}=\rho_t \beta S[qI+lJ+A]/N - \alpha E''')

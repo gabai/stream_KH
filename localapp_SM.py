@@ -714,6 +714,9 @@ hosp_lag = st.sidebar.number_input(
 asymptomatic = 1-(st.sidebar.number_input(
     "Asymptomatic (%)", 0.0, 100.0, value=25.0 ,step=0.1, format="%f")/100.0)
 
+q = 1-(st.sidebar.number_input(
+    "Symptomatic Isolation Rate (contact tracing/quarantine when symptomatic)", 0.0, 100.0, value=30.0 ,step=0.1, format="%f")/100.0)
+
 
 hosp_los = st.sidebar.number_input("Hospital Length of Stay", value=5, step=1, format="%i")
 icu_los = st.sidebar.number_input("ICU Length of Stay", value=8, step=1, format="%i")

@@ -719,6 +719,9 @@ if password == secret:
     asymptomatic = 1-(st.sidebar.number_input(
         "Asymptomatic (%)", 0.0, 100.0, value=25.0 ,step=0.1, format="%f")/100.0)
 
+    q = 1-(st.sidebar.number_input(
+    "Symptomatic Isolation Rate (contact tracing/quarantine when symptomatic)", 0.0, 100.0, value=40.0 ,step=0.1, format="%f")/100.0)
+
     hosp_los = st.sidebar.number_input("Hospital Length of Stay", value=5, step=1, format="%i")
     icu_los = st.sidebar.number_input("ICU Length of Stay", value=8, step=1, format="%i")
     vent_los = st.sidebar.number_input("Ventilator Length of Stay", value=9, step=1, format="%i")
@@ -1116,10 +1119,12 @@ if password == secret:
 
     r_hospitalized_D, r_icu_D, r_ventilated_D = get_dispositions(r_D, rates, regional_hosp_share)
 
+    d_hospitalized_D, d_icu_D, d_ventilated_D = get_dispositions(d_D, rates, regional_hosp_share)
+
     dispositions_D_ecases = (
-                i_hospitalized_D + r_hospitalized_D,
-                i_icu_D + r_icu_D,
-                i_ventilated_D + r_ventilated_D)
+                i_hospitalized_D + r_hospitalized_D+d_hospitalized_D,
+                i_icu_D + r_icu_D+d_icu_D,
+                i_ventilated_D + r_ventilated_D+d_ventilated_D)
 
     hospitalized_D_ecases, icu_D, ventilated_D = (
                 i_hospitalized_D,
@@ -1142,18 +1147,12 @@ if password == secret:
     q=0.6
     l=0.6
     gamma_hosp=1/hosp_lag
-    #gamma1,fatal,alpha, p, hosp,q,l  = 1./5, 0.04, 1./5.2, 0.75, .025, 0.8,0.8
     AAA=beta4*(1/gamma2)*S
     beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
 
     R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
     beta_j=0.9
     R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
-
-    ##S_n, E_n,A_n, I_n,J_n, R_n, D_n=sim_seaijrd_decay_ode(
-    ##    S0, E0, A0,I0,J0, R0, D0, beta_j, gamma2, gamma_hosp, alpha, n_days,decay1,decay2,decay3,
-    ##    decay4, start_day, int1_delta, int2_delta,end_delta, fatal_hosp, asymptomatic, hosp_rate, q,
-    ##    l)
 
     S_n, E_n,A_n, I_n,J_n, R_n, D_n, RH_n=sim_seaijrd_decay_ode(S0, E0, A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
                                                           decay1,decay2,decay3, decay4, start_day, int1_delta, int2_delta,
@@ -1490,7 +1489,7 @@ if password == secret:
         , use_container_width=True)
 
 
-    if st.checkbox("Show more info about this tool"):
+    if st.checkbox("Show more about the assumptions and specifications of the SEIR model"):
         st.subheader(
         "[Deterministic SEIR model](https://www.tandfonline.com/doi/full/10.1080/23737867.2018.1509026)")
         st.markdown(
@@ -1861,12 +1860,55 @@ if password == secret:
             R2=R2,
             R3=R3,
             R4=R4,
-            doubling_time=doubling_time,
-            R0_n=R0_n,
-            beta_j=beta_j
+            doubling_time=doubling_time
         )
                 )
 
+
+ #                  The $R_0$ for the other model is  **{R0_n:.1f}** and a $$\\beta$$ of **{beta_j:.2f}**
+ #            AAA=AAA,
+ #           beta4=beta4*S,
+ #           R2=R2,
+ #           R3=R3,
+ #           R4=R4,
+ #           doubling_time=doubling_time,
+ #           R0_n=R0_n,
+ #           beta_j=beta_j
+    st.subheader("Extension of the SEIR model to include asymptomatic and direct hospitalization components")
+    if st.checkbox("Show more about the assumptions and specifications of the SEAIJRD model"):
+        st.subheader(
+        "[Deterministic SEIR model with asymptomatic, hospitalizations, and fatality components](https://www.tandfonline.com/doi/full/10.1080/23737867.2018.1509026)")
+        st.markdown(
+        """The model consists of individuals who are either _Susceptible_ ($S$), _Exposed_ ($E$), _Asymptomatic_ ($A$),_Infected_ ($I$),
+     _Hospitalized_ ($J$), _Recovered_ ($R$), or _Fatal_ ($D$).
+    The epidemic proceeds via a growth and decline process. This is the core model of infectious disease spread and has been in use in epidemiology for many years."""
+    )
+        st.markdown("""The system of differential equations are given by the following 5 equations.""")
+
+        st.latex(r'''\frac{dS}{dt}=-\rho_t \beta S[qI+lJ+A]/N''')
+        st.latex(r'''\frac{dE}{dt}=\rho_t \beta S[qI+lJ+A]/N - \alpha E''')
+        st.latex(r'''\frac{dA}{dt}= (1-z)\alpha E - \gamma_1 A''')
+        st.latex(r'''\frac{dI}{dt}= z\alpha E - \gamma_1 I-h I''')
+        st.latex(r'''\frac{dJ}{dt}= h I - \gamma_2 J''')
+        st.latex(r'''\frac{dR}{dt}=\gamma_1(A+I) + (1-f)\gamma_2 J''')
+        st.latex(r'''\frac{dD}{dt}=f \gamma_2 J''')
+
+        st.markdown(
+        """where $\gamma_1$ is $1/mean\ infectious\ rate$,$\gamma_2$ is $1/mean\ hospital\ day\ rate$, $$\\alpha$$ is $1/mean\ incubation\ period$, $$\\rho$$ is the rate of social distancing at time $t$,
+$$\\beta$$ is the rate of transmission., $f$ is the hospital fatality rate, $h$ is the hospitalization rate, $z$ is the symptomatic rate, $q$ is the isolation rate for the symptomati, $l$ is the isolation rate for hospitalized, and $z$ is the symptomatic rate (where $(1-z)$ is the asymptomatic rate). More information, including parameter specifications and reasons for model choice can be found
+    [here]("https://github.com/gabai/stream_KH/wiki).  $R_0$ was calculated using the [next generation matrix method](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2871801/).""")
+        st.latex(r'''\R_0=\beta [ \frac{(1-z)}{\gamma_1 }+ \frac{zq}{\gamma_1 + a} + \frac{z \alpha l}{( \gamma_1 + \alpha )\gamma_2}]''')
+
+        st.markdown("""Note that a number of assumptions are made with deterministic compartmental models. First, we are assuming a large, closed population with no births or deaths.
+Second, within the time period, immunity to the disease is acquired. Third, the susceptible and infected subpopulations are dispersed homogeneously in geographic space.
+In addition to the model assumptions noted here, the model is limited by uncertainty related to parameter choice.
+Parameters are measured independently from the model, which is hard to do in the midst of an outbreak.
+Early reports from other geographic locations have allowed us to estimate this model.
+However, parameters can be different depending on population characteristics and can vary over periods of the outbreak.
+Therefore, interpreting the results can be difficult.""")
+    
+
+    st.subheader("Asymptomatic, Symptomatic,Hospitalized,and Fatal individuals in the **region** across time")
 
     def additional_projections_chart(a:np.ndarray, i:np.ndarray, j:np.ndarray,d:np.ndarray)  -> alt.Chart:
         dat = pd.DataFrame({"Asymptomatic":a,"Infected":i, "Hospitalized":j,"Fatal":d})
@@ -1874,7 +1916,7 @@ if password == secret:
         return (
             alt
             .Chart(dat.reset_index())
-            .transform_fold(fold=["Asymptomatic","Infected", "Hospitalized","Fatal"])
+            .transform_fold(fold=["Asymptomatic","Symptomatic", "Hospitalized","Fatal"])
             .mark_line(point=False)
             .encode(
                 x=alt.X("index", title="Days from initial infection"),

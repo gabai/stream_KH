@@ -1853,8 +1853,7 @@ if password == secret:
     st.markdown("""The initial $R_0$ is **{AAA:.1f}** with a $$\\beta$$ of **{beta4:.2f}**, the $R_e$ after 2 weeks is **{R2:.1f}** and the $R_e$ after 3 weeks to end of social distancing is **{R3:.1f}**.
     After reducing social distancing the $R_e$ is **{R4:.1f}**
                 This is based on a doubling rate of **{doubling_time:.0f}**
-                and the calculation of the [basic reproduction number](https://www.sciencedirect.com/science/article/pii/S2468042719300491).
-                The $R_0$ for the other model is  **{R0_n:.1f}** and a $$\\beta$$ of **{beta_j:.2f}**""".format(
+                and the calculation of the [basic reproduction number](https://www.sciencedirect.com/science/article/pii/S2468042719300491).""".format(
             AAA=AAA,
             beta4=beta4*S,
             R2=R2,

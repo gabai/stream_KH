@@ -1165,9 +1165,11 @@ if password == secret:
     hosp_rate_n=1.0
     RateLos = namedtuple("RateLos", ("rate", "length_of_stay"))
     hospitalized_n=RateLos(hosp_rate_n, hosp_los)
-    icu=RateLos(icu_rate, icu_los)
-    ventilated=RateLos(vent_rate, vent_los)
-
+    icu_rate_n=.40
+    vent_rate_n=.20
+    icu=RateLos(icu_rate_n, icu_los)
+    ventilated=RateLos(vent_rate_n, vent_los)
+    
 
     rates_n = tuple(each.rate for each in (hospitalized_n, icu, ventilated))
     lengths_of_stay = tuple(each.length_of_stay for each in (hospitalized, icu, ventilated))
@@ -1894,9 +1896,9 @@ if password == secret:
 
         st.markdown(
         """where $\gamma_1$ is $1/mean\ infectious\ rate$,$\gamma_2$ is $1/mean\ hospital\ day\ rate$, $$\\alpha$$ is $1/mean\ incubation\ period$, $$\\rho$$ is the rate of social distancing at time $t$,
-$$\\beta$$ is the rate of transmission., $f$ is the hospital fatality rate, $h$ is the hospitalization rate, $z$ is the symptomatic rate, $q$ is the isolation rate for the symptomati, $l$ is the isolation rate for hospitalized, and $z$ is the symptomatic rate (where $(1-z)$ is the asymptomatic rate). More information, including parameter specifications and reasons for model choice can be found
+$$\\beta$$ is the rate of transmission, $f$ is the hospital fatality rate, $h$ is the hospitalization rate, $z$ is the symptomatic rate, $q$ is the isolation rate for the symptomati, $l$ is the isolation rate for hospitalized, and $z$ is the symptomatic rate (where $(1-z)$ is the asymptomatic rate). More information, including parameter specifications and reasons for model choice can be found
     [here]("https://github.com/gabai/stream_KH/wiki).  $R_0$ was calculated using the [next generation matrix method](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2871801/).""")
-        st.latex(r'''\R_0=\beta [ \frac{(1-z)}{\gamma_1 }+ \frac{zq}{\gamma_1 + a} + \frac{z \alpha l}{( \gamma_1 + \alpha )\gamma_2}]''')
+        st.latex(r'''R_0=\beta [ \frac{(1-z)}{\gamma_1 }+ \frac{zq}{\gamma_1 + \alpha} + \frac{z \alpha l}{( \gamma_1 + \alpha )\gamma_2}]''')
 
         st.markdown("""Note that a number of assumptions are made with deterministic compartmental models. First, we are assuming a large, closed population with no births or deaths.
 Second, within the time period, immunity to the disease is acquired. Third, the susceptible and infected subpopulations are dispersed homogeneously in geographic space.

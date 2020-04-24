@@ -1656,15 +1656,15 @@ seir_A_ip_ecases = ip_census_chart(census_table_A_ecases, plot_projection_days, 
 
 
 # Chart of Model Comparison for SEIR and Adjusted with Erie County Data
-st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs Model")
-st.altair_chart(
-    alt.layer(seir_A_ip_ecases.mark_line())
-    #+ alt.layer(seir_d_ip_c.mark_line())
-    #+ alt.layer(seir_d_ip_ecases.mark_line())
-    #+ alt.layer(seir_d_ip_highsocial.mark_line())
-    + alt.layer(graph_selection)
-    + alt.layer(vertical1)
-    , use_container_width=True)
+# st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs Model")
+# st.altair_chart(
+    # alt.layer(seir_A_ip_ecases.mark_line())
+    # + alt.layer(seir_d_ip_c.mark_line())
+    # #+ alt.layer(seir_d_ip_ecases.mark_line())
+    # #+ alt.layer(seir_d_ip_highsocial.mark_line())
+    # + alt.layer(graph_selection)
+    # + alt.layer(vertical1)
+    # , use_container_width=True)
 
 st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs SEAIJRD")
 st.altair_chart(

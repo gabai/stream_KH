@@ -673,7 +673,7 @@ if password == secret:
     int2_delta = (intervention2 - start_date).days
 
     decay3 = st.sidebar.number_input(
-        "Social distancing (% reduction in social contact) from Week 3 to change in SD - After Business Closure%", 0, 100, value=30 ,step=5, format="%i")/100.0
+        "Social distancing (% reduction in social contact) from Week 3 to change in SD - After Business Closure%", 0, 100, value=45 ,step=5, format="%i")/100.0
 
     end_date = st.sidebar.date_input(
         "End date or change in social distancing", datetime(2020,5,31))
@@ -681,13 +681,13 @@ if password == secret:
     end_delta = (end_date - start_date).days
 
     decay4 = st.sidebar.number_input(
-        "Social distancing after end date", 0, 100, value=15 ,step=5, format="%i")/100.0
+        "Social distancing after end date", 0, 100, value=35 ,step=5, format="%i")/100.0
 
     hosp_rate = (
-        st.sidebar.number_input("Hospitalization %", 0.0, 100.0, value=2.5, step=0.50, format="%f")/ 100.0)
+        st.sidebar.number_input("Hospitalization %", 0.0, 100.0, value=4, step=0.50, format="%f")/ 100.0)
 
     icu_rate = (
-        st.sidebar.number_input("ICU %", 0.0, 100.0, value=1.25, step=0.25, format="%f") / 100.0)
+        st.sidebar.number_input("ICU %", 0.0, 100.0, value=1.0, step=0.25, format="%f") / 100.0)
 
     vent_rate = (
         st.sidebar.number_input("Ventilated %", 0.0, 100.0, value=1.0, step=0.25, format="%f")/ 100.0)

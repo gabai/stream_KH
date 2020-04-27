@@ -1487,7 +1487,7 @@ if password == secret:
         vertical1
         #+ admits_graph_ecases
         + admits_graph_A
-        + admits_graph_highsocial
+        #+ admits_graph_highsocial
         #+ erie_admit24_line
         , use_container_width=True)
 
@@ -1652,7 +1652,7 @@ if password == secret:
         #+ alt.layer(seir_d_ip_ecases.mark_line())
         #+ 
         alt.layer(seir_A_ip_ecases.mark_line())
-        + alt.layer(seir_d_ip_highsocial.mark_line())
+        #+ alt.layer(seir_d_ip_highsocial.mark_line())
         + alt.layer(graph_selection)
         + alt.layer(vertical1)
         , use_container_width=True)

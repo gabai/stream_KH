@@ -629,7 +629,7 @@ if password == secret:
     erie_df['Date'] = pd.to_datetime(erie_df['Date'])
 
     # Populations and Infections
-    erie = 1500000
+    erie = 1400000
     cases_erie = erie_df['Cases'].iloc[-1]
     S_default = erie
     known_infections = erie_df['Cases'].iloc[-1]
@@ -684,7 +684,7 @@ if password == secret:
         "Social distancing after end date", 0, 100, value=35 ,step=5, format="%i")/100.0
 
     hosp_rate = (
-        st.sidebar.number_input("Hospitalization %", 0.0, 100.0, value=4, step=0.50, format="%f")/ 100.0)
+        st.sidebar.number_input("Hospitalization %", 0.0, 100.0, value=4.0, step=0.50, format="%f")/ 100.0)
 
     icu_rate = (
         st.sidebar.number_input("ICU %", 0.0, 100.0, value=1.0, step=0.25, format="%f") / 100.0)
@@ -724,7 +724,7 @@ if password == secret:
 
     hosp_los = st.sidebar.number_input("Hospital Length of Stay", value=5, step=1, format="%i")
     icu_los = st.sidebar.number_input("ICU Length of Stay", value=8, step=1, format="%i")
-    vent_los = st.sidebar.number_input("Ventilator Length of Stay", value=9, step=1, format="%i")
+    vent_los = st.sidebar.number_input("Ventilator Length of Stay", value=8, step=1, format="%i")
 
     # regional_hosp_share = (
     # st.sidebar.number_input(

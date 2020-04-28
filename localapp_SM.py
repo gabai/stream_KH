@@ -699,7 +699,7 @@ fatal = st.sidebar.number_input(
     "Overall Fatality (%)", 0.0, 100.0, value=0.5 ,step=0.1, format="%f")/100.0
 
 fatal_hosp = st.sidebar.number_input(
-    "Hospital Fatality (%)", 0.0, 100.0, value=20.0 ,step=0.1, format="%f")/100.0
+    "Hospital Fatality (%)", 0.0, 100.0, value=5.0 ,step=0.1, format="%f")/100.0
 
 death_days = st.sidebar.number_input(
     "Days person remains in critical care or dies", 0, 20, value=4 ,step=1, format="%f")
@@ -1165,10 +1165,12 @@ icu_curve= J_n*icu_rate
 vent_curve=J_n*vent_rate
 
 hosp_rate_n=1.0
+icu_rate_n=.4
+vent_rate_n=0.1
 RateLos = namedtuple("RateLos", ("rate", "length_of_stay"))
 hospitalized_n=RateLos(hosp_rate_n, hosp_los)
-icu=RateLos(icu_rate, icu_los)
-ventilated=RateLos(vent_rate, vent_los)
+icu=RateLos(icu_rate_n, icu_los)
+ventilated=RateLos(vent_rate_n, vent_los)
 
 
 rates_n = tuple(each.rate for each in (hospitalized_n, icu, ventilated))
@@ -1656,7 +1658,7 @@ seir_A_ip_ecases = ip_census_chart(census_table_A_ecases, plot_projection_days, 
 
 
 # Chart of Model Comparison for SEIR and Adjusted with Erie County Data
-st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs Model")
+st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs SEAIJRD")
 st.altair_chart(
     alt.layer(seir_A_ip_ecases.mark_line())
     #+ alt.layer(seir_d_ip_c.mark_line())
@@ -1666,7 +1668,7 @@ st.altair_chart(
     + alt.layer(vertical1)
     , use_container_width=True)
 
-st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs SEAIJRD")
+st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs Other Models")
 st.altair_chart(
     alt.layer(seir_ip_c.mark_line())
     + alt.layer(seir_d_ip_c.mark_line())
@@ -1887,6 +1889,42 @@ After reducing social distancing the $R_e$ is **{R4:.1f}**
         beta_j=beta_j
     )
             )
+st.subheader("Extension of the SEIR model to include asymptomatic and direct hospitalization components")
+if st.checkbox("Show more about the assumptions and specifications of the SEAIJRD model"):
+    st.subheader(
+        "[Deterministic SEIR model with asymptomatic, hospitalizations, and fatality components](https://www.tandfonline.com/doi/full/10.1080/23737867.2018.1509026)")
+    st.markdown(
+        """The model consists of individuals who are either _Susceptible_ ($S$), _Exposed_ ($E$),
+    _Asymptomatic_ ($A$),_Infected_ ($I$),
+     _Hospitalized_ ($J$), _Recovered_ ($R$), or _Fatal_ ($D$).
+    The epidemic proceeds via a growth and decline process."""
+    )
+    st.markdown("""The system of differential equations are given by the following 7 equations.""")
+
+    st.latex(r'''\frac{dS}{dt}=-\rho_t \beta S[qI+lJ+A]/N''')
+    st.latex(r'''\frac{dE}{dt}=\rho_t \beta S[qI+lJ+A]/N - \alpha E''')
+    st.latex(r'''\frac{dA}{dt}= (1-z)\alpha E - \gamma_1 A''')
+    st.latex(r'''\frac{dI}{dt}= z\alpha E - \gamma_1 I-h I''')
+    st.latex(r'''\frac{dJ}{dt}= h I - \gamma_2 J''')
+    st.latex(r'''\frac{dR}{dt}=\gamma_1(A+I) + (1-f)\gamma_2 J''')
+    st.latex(r'''\frac{dD}{dt}=f \gamma_2 J''')
+
+    st.markdown(
+        """where $\gamma_1$ is $1/mean\ infectious\ rate$,$\gamma_2$ is $1/mean\ hospital\ day\ rate$, $$\\alpha$$ is $1/mean\ incubation\ period$, $$\\rho$$ is the rate of social distancing at time $t$,
+$$\\beta$$ is the rate of transmission, $f$ is the hospital fatality rate, $h$ is the hospitalization rate, $z$ is the symptomatic rate, $q$ is the isolation rate for the symptomati, $l$ is the isolation rate for hospitalized, and $z$ is the symptomatic rate (where $(1-z)$ is the asymptomatic rate). More information, including parameter specifications and reasons for model choice can be found
+    [here]("https://github.com/gabai/stream_KH/wiki).  $R_0$ was calculated using the [next generation matrix method](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2871801/).""")
+    st.latex(r'''R_0=\beta [ \frac{(1-z)}{\gamma_1 }+ \frac{zq}{\gamma_1 + \alpha} + \frac{z \alpha l}{( \gamma_1 + \alpha )\gamma_2}]''')
+
+    st.markdown("""Note that a number of assumptions are made with deterministic compartmental models. First, we are assuming a large, closed population with no births or deaths.
+Second, within the time period, immunity to the disease is acquired. Third, the susceptible and infected subpopulations are dispersed homogeneously in geographic space.
+In addition to the model assumptions noted here, the model is limited by uncertainty related to parameter choice.
+Parameters are measured independently from the model, which is hard to do in the midst of an outbreak.
+Early reports from other geographic locations have allowed us to estimate this model.
+However, parameters can be different depending on population characteristics and can vary over periods of the outbreak.
+Therefore, interpreting the results can be difficult.""")
+    
+
+st.subheader("Asymptomatic, Symptomatic,Hospitalized,and Fatal individuals in the **region** across time")
 
 
 def additional_projections_chart(a:np.ndarray, i:np.ndarray, j:np.ndarray,d:np.ndarray)  -> alt.Chart:

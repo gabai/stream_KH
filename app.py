@@ -629,7 +629,7 @@ if password == secret:
     erie_df['Date'] = pd.to_datetime(erie_df['Date'])
 
     # Populations and Infections
-    erie = 1500000
+    erie = 1400000
     cases_erie = erie_df['Cases'].iloc[-1]
     S_default = erie
     known_infections = erie_df['Cases'].iloc[-1]
@@ -673,7 +673,7 @@ if password == secret:
     int2_delta = (intervention2 - start_date).days
 
     decay3 = st.sidebar.number_input(
-        "Social distancing (% reduction in social contact) from Week 3 to change in SD - After Business Closure%", 0, 100, value=30 ,step=5, format="%i")/100.0
+        "Social distancing (% reduction in social contact) from Week 3 to change in SD - After Business Closure%", 0, 100, value=45 ,step=5, format="%i")/100.0
 
     end_date = st.sidebar.date_input(
         "End date or change in social distancing", datetime(2020,5,31))
@@ -681,13 +681,13 @@ if password == secret:
     end_delta = (end_date - start_date).days
 
     decay4 = st.sidebar.number_input(
-        "Social distancing after end date", 0, 100, value=15 ,step=5, format="%i")/100.0
+        "Social distancing after end date", 0, 100, value=35 ,step=5, format="%i")/100.0
 
     hosp_rate = (
-        st.sidebar.number_input("Hospitalization %", 0.0, 100.0, value=2.5, step=0.50, format="%f")/ 100.0)
+        st.sidebar.number_input("Hospitalization %", 0.0, 100.0, value=4.0, step=0.50, format="%f")/ 100.0)
 
     icu_rate = (
-        st.sidebar.number_input("ICU %", 0.0, 100.0, value=1.25, step=0.25, format="%f") / 100.0)
+        st.sidebar.number_input("ICU %", 0.0, 100.0, value=1.0, step=0.25, format="%f") / 100.0)
 
     vent_rate = (
         st.sidebar.number_input("Ventilated %", 0.0, 100.0, value=1.0, step=0.25, format="%f")/ 100.0)
@@ -724,7 +724,7 @@ if password == secret:
 
     hosp_los = st.sidebar.number_input("Hospital Length of Stay", value=5, step=1, format="%i")
     icu_los = st.sidebar.number_input("ICU Length of Stay", value=8, step=1, format="%i")
-    vent_los = st.sidebar.number_input("Ventilator Length of Stay", value=9, step=1, format="%i")
+    vent_los = st.sidebar.number_input("Ventilator Length of Stay", value=8, step=1, format="%i")
 
     # regional_hosp_share = (
     # st.sidebar.number_input(
@@ -1482,11 +1482,12 @@ if password == secret:
     st.altair_chart(
         #admits_graph_seir
         #+ 
-        admits_graph 
-        + vertical1
-        + admits_graph_ecases
+        #admits_graph 
+        #+ 
+        vertical1
+        #+ admits_graph_ecases
         + admits_graph_A
-        + admits_graph_highsocial
+        #+ admits_graph_highsocial
         #+ erie_admit24_line
         , use_container_width=True)
 
@@ -1517,13 +1518,13 @@ if password == secret:
     seir_d = regional_admissions_chart(projection_admits_D, plot_projection_days, as_date=as_date)
 
 
-    if st.checkbox("Show Graph of Erie County Projected Admissions with Model Comparison of Social Distancing"):
-        st.subheader("Projected number of **daily** COVID-19 admissions for Erie County: Model Comparison (Left: 0% Social Distancing, Right: Step-Wise Social Distancing)")
-        st.altair_chart(
-            alt.layer(seir.mark_line())
-            + alt.layer(seir_d.mark_line())
-            + alt.layer(vertical1.mark_rule())
-            , use_container_width=True)
+    # if st.checkbox("Show Graph of Erie County Projected Admissions with Model Comparison of Social Distancing"):
+        # st.subheader("Projected number of **daily** COVID-19 admissions for Erie County: Model Comparison (Left: 0% Social Distancing, Right: Step-Wise Social Distancing)")
+        # st.altair_chart(
+            # alt.layer(seir.mark_line())
+            # + alt.layer(seir_d.mark_line())
+            # + alt.layer(vertical1.mark_rule())
+            # , use_container_width=True)
 
     def hospital_admissions_chart(
         projection_admits: pd.DataFrame, 
@@ -1646,11 +1647,12 @@ if password == secret:
     # Chart of Model Comparison for SEIR and Adjusted with Erie County Data
     st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs Model")
     st.altair_chart(
-        alt.layer(seir_ip_c.mark_line())
-        + alt.layer(seir_d_ip_c.mark_line())
-        + alt.layer(seir_d_ip_ecases.mark_line())
-        + alt.layer(seir_A_ip_ecases.mark_line())
-        + alt.layer(seir_d_ip_highsocial.mark_line())
+        #alt.layer(seir_ip_c.mark_line())
+        #+ alt.layer(seir_d_ip_c.mark_line())
+        #+ alt.layer(seir_d_ip_ecases.mark_line())
+        #+ 
+        alt.layer(seir_A_ip_ecases.mark_line())
+        #+ alt.layer(seir_d_ip_highsocial.mark_line())
         + alt.layer(graph_selection)
         + alt.layer(vertical1)
         , use_container_width=True)
@@ -1663,7 +1665,7 @@ if password == secret:
 
     st.altair_chart(
         hospital_admissions_chart(
-            projection_admits_D, plot_projection_days, as_date=as_date), 
+            projection_admits_A_ecases, plot_projection_days, as_date=as_date), 
         use_container_width=True)
 
     ##########################################
@@ -1705,7 +1707,7 @@ if password == secret:
     st.subheader("Projected **census** of COVID-19 patients by Hospital, accounting for arrivals and discharges: SEIR Model with Adjusted R_0 and Case Fatality")
     st.altair_chart(
         hosp_admitted_patients_chart(
-            census_table_D, 
+            census_table_A_ecases, 
             as_date=as_date), 
         use_container_width=True)
 
@@ -1785,7 +1787,7 @@ if password == secret:
     # SEIR Model with adjusted R_0 with Case Fatality - PPE predictions
     st.subheader("Projected personal protective equipment needs for mild and severe cases of COVID-19: SEIR Model with Adjutes R_0 and Case Fatality")
 
-    ppe_graph = ppe_chart(census_table_D, as_date=as_date)
+    ppe_graph = ppe_chart(census_table_A_ecases, as_date=as_date)
 
     st.altair_chart(alt.layer(ppe_graph.mark_line()) + alt.layer(vertical1), use_container_width=True)
 

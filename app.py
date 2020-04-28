@@ -707,11 +707,11 @@ if password == secret:
     fatal_hosp = st.sidebar.number_input(
         "Hospital Fatality (%)", 0.0, 100.0, value=4.0 ,step=0.1, format="%f")/100.0
 
-    death_days = st.sidebar.number_input(
-        "Days person remains in critical care or dies", 0, 20, value=4 ,step=1, format="%f")
+  #  death_days = st.sidebar.number_input(
+ #       "Days person remains in critical care or dies", 0, 20, value=4 ,step=1, format="%f")
 
-    crit_lag = st.sidebar.number_input(
-        "Days person takes to go to critical care", 0, 20, value=4 ,step=1, format="%f")
+   # crit_lag = st.sidebar.number_input(
+ #       "Days person takes to go to critical care", 0, 20, value=4 ,step=1, format="%f")
         
     hosp_lag = st.sidebar.number_input(
         "Days person remains in hospital or dies", 0, 20, value=4 ,step=1, format="%f")

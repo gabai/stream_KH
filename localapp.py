@@ -23,10 +23,10 @@ import matplotlib.pyplot as plt
 
 # If the secrete provided matches the ENV, proceeed with the app
 hide_menu_style = """
-        <style>
-        #MainMenu {visibility: hidden;}
-        </style>
-        """
+    <style>
+    #MainMenu {visibility: hidden;}
+    </style>
+    """
 st.markdown(hide_menu_style, unsafe_allow_html=True)
 
 
@@ -370,7 +370,7 @@ def sim_seird_decay_social(
             beta_decay=beta*(1-.83)
         else:
             beta = (alpha+(2 ** (1 / 2) - 1))*((2 ** (1 / 2) - 1)+ (1/infectious_period)) / (alpha*S)
-            beta_decay=beta*(1-.83)
+            beta_decay=beta*(1-.73)
         s, e, i, r,d = seird(s, e, i, r, d, beta_decay, gamma, alpha, n, fatal)
         s_v.append(s)
         e_v.append(e)
@@ -402,18 +402,12 @@ def sim_seird_decay_erie(
         elif int1_delta<=day<=int2_delta:
             beta = (alpha+(2 ** (1 / 2.65) - 1))*((2 ** (1 / 2.65) - 1)+ (1/infectious_period)) / (alpha*S)
             beta_decay=beta*(1-.3)
-        elif int2_delta<=day<=(int2_delta+7):
+        elif int2_delta<=day<=end_delta:
             beta = (alpha+(2 ** (1 / 5.32) - 1))*((2 ** (1 / 5.32) - 1)+ (1/infectious_period)) / (alpha*S)
-            beta_decay=beta*(1-.4)
-        elif (int2_delta+7)<=day<=(int2_delta+14):
-            beta = (alpha+(2 ** (1 / 9.70) - 1))*((2 ** (1 / 9.70) - 1)+ (1/infectious_period)) / (alpha*S)
-            beta_decay=beta*(1-.4)
-        elif (int2_delta+14)<=day<=(int2_delta+21):
-            beta = (alpha+(2 ** (1 / 16.17) - 1))*((2 ** (1 / 16.17) - 1)+ (1/infectious_period)) / (alpha*S)
-            beta_decay=beta*(1-.4)
+            beta_decay=beta*(1-.5)
         else:
             beta = (alpha+(2 ** (1 / 9.70) - 1))*((2 ** (1 / 9.70) - 1)+ (1/infectious_period)) / (alpha*S)
-            beta_decay=beta*(1-.2)
+            beta_decay=beta*(1-.30)
         s, e, i, r,d = seird(s, e, i, r, d, beta_decay, gamma, alpha, n, fatal)
         s_v.append(s)
         e_v.append(e)
@@ -506,12 +500,14 @@ def betanew(t,beta):
         beta_decay=beta*(1-decay2)
     elif int2_delta<=t<=end_delta:
         beta_decay=beta*(1-decay3)
+    elif end_delta<=t<=step2_delta:
+        beta_decay=beta*(1-decay4)
     else:
-        beta_decay=beta*(1-decay4)    
+        beta_decay=beta*(1-decay5)    
     return beta_decay
 
 #The SIR model differential equations with ODE solver.
-def derivdecay(y, t, N, beta, gamma1, gamma2, alpha, p, hosp,q,l,n_days, decay1, decay2, decay3, decay4, start_day, int1_delta, int2_delta, end_delta, fatal_hosp ):
+def derivdecay(y, t, N, beta, gamma1, gamma2, alpha, p, hosp,q,l,n_days, decay1, decay2, decay3, decay4, decay5, start_day, int1_delta, int2_delta, end_delta, step2_delta, fatal_hosp ):
     S, E, A, I,J, R,D,counter = y
     dSdt = - betanew(t, beta) * S * (q*I + l*J + A)/N 
     dEdt = betanew(t, beta) * S * (q*I + l*J + A)/N   - alpha * E
@@ -524,14 +520,14 @@ def derivdecay(y, t, N, beta, gamma1, gamma2, alpha, p, hosp,q,l,n_days, decay1,
     return dSdt, dEdt,dAdt, dIdt, dJdt, dRdt, dDdt, counter
 
 def sim_seaijrd_decay_ode(
-    s, e,a,i, j,r, d, beta, gamma1, gamma2, alpha, n_days,decay1,decay2,decay3, decay4, start_day, int1_delta, int2_delta,end_delta, fatal_hosp, p, hosp, q,
+    s, e,a,i, j,r, d, beta, gamma1, gamma2, alpha, n_days,decay1,decay2,decay3, decay4, decay5, start_day, int1_delta, int2_delta,end_delta, step2_delta, fatal_hosp, p, hosp, q,
     l):
     n = s + e + a + i + j+ r + d
     rh=0
     y0= s,e,a,i,j,r,d, rh
     
     t=np.arange(0, n_days, step=1)
-    ret = odeint(derivdecay, y0, t, args=(n, beta, gamma1, gamma2, alpha, p, hosp,q,l, n_days, decay1, decay2, decay3, decay4, start_day, int1_delta, int2_delta, end_delta, fatal_hosp))
+    ret = odeint(derivdecay, y0, t, args=(n, beta, gamma1, gamma2, alpha, p, hosp,q,l, n_days, decay1, decay2, decay3, decay4, decay5, start_day, int1_delta, int2_delta, end_delta, step2_delta, fatal_hosp))
     S_n, E_n,A_n, I_n,J_n, R_n, D_n ,RH_n= ret.T
     
     return (S_n, E_n,A_n, I_n,J_n, R_n, D_n, RH_n)
@@ -628,7 +624,7 @@ erie_df = pd.read_csv(url)
 erie_df['Date'] = pd.to_datetime(erie_df['Date'])
 
 # Populations and Infections
-erie = 1500000
+erie = 1400000
 cases_erie = erie_df['Cases'].iloc[-1]
 S_default = erie
 known_infections = erie_df['Cases'].iloc[-1]
@@ -675,21 +671,30 @@ decay3 = st.sidebar.number_input(
     "Social distancing (% reduction in social contact) from Week 3 to change in SD - After Business Closure%", 0, 100, value=45 ,step=5, format="%i")/100.0
 
 end_date = st.sidebar.date_input(
-    "End date or change in social distancing", datetime(2020,5,31))
+    "Step 1 reduction in social distancing", datetime(2020,5,15))
 # Delta from start and end date for decay4
 end_delta = (end_date - start_date).days
 
 decay4 = st.sidebar.number_input(
-    "Social distancing after end date", 0, 100, value=35 ,step=5, format="%i")/100.0
+    "Step 1 reduction in social distancing %", 0, 100, value=35 ,step=5, format="%i")/100.0
+
+step2 = st.sidebar.date_input(
+    "Step 2 reduction in social distancing", datetime(2020,6,15))
+# Delta from start and end date for decay4
+step2_delta = (step2 - start_date).days
+
+decay5 = st.sidebar.number_input(
+    "Step 2 reduction in social distancing %", 0, 100, value=25 ,step=5, format="%i")/100.0
+
 
 hosp_rate = (
     st.sidebar.number_input("Hospitalization %", 0.0, 100.0, value=4.0, step=0.50, format="%f")/ 100.0)
 
 icu_rate = (
-    st.sidebar.number_input("ICU %", 0.0, 100.0, value=1.25, step=0.25, format="%f") / 100.0)
+    st.sidebar.number_input("ICU %", 0.0, 100.0, value=35.0, step=5.0, format="%f") / 100.0)
 
 vent_rate = (
-    st.sidebar.number_input("Ventilated %", 0.0, 100.0, value=1.0, step=0.25, format="%f")/ 100.0)
+    st.sidebar.number_input("Ventilated %", 0.0, 100.0, value=35.0, step=5.0, format="%f")/ 100.0)
 
 incubation_period =(
     st.sidebar.number_input("Incubation Period", 0.0, 12.0, value=5.2, step=0.1, format="%f"))
@@ -698,7 +703,7 @@ recovery_days =(
     st.sidebar.number_input("Recovery Period", 0.0, 21.0, value=11.0 ,step=0.1, format="%f"))
 
 infectious_period =(
-    st.sidebar.number_input("Infectious Period", 0.0, 18.0, value=3.0,step=0.1, format="%f"))
+    st.sidebar.number_input("Infectious Period", 0.0, 18.0, value=3.0, step=0.1, format="%f"))
 
 fatal = st.sidebar.number_input(
     "Overall Fatality (%)", 0.0, 100.0, value=0.5 ,step=0.1, format="%f")/100.0
@@ -706,11 +711,11 @@ fatal = st.sidebar.number_input(
 fatal_hosp = st.sidebar.number_input(
     "Hospital Fatality (%)", 0.0, 100.0, value=4.0 ,step=0.1, format="%f")/100.0
 
-death_days = st.sidebar.number_input(
-    "Days person remains in critical care or dies", 0, 20, value=4 ,step=1, format="%f")
+#  death_days = st.sidebar.number_input(
+#       "Days person remains in critical care or dies", 0, 20, value=4 ,step=1, format="%f")
 
-crit_lag = st.sidebar.number_input(
-    "Days person takes to go to critical care", 0, 20, value=4 ,step=1, format="%f")
+# crit_lag = st.sidebar.number_input(
+#       "Days person takes to go to critical care", 0, 20, value=4 ,step=1, format="%f")
     
 hosp_lag = st.sidebar.number_input(
     "Days person remains in hospital or dies", 0, 20, value=4 ,step=1, format="%f")
@@ -718,9 +723,12 @@ hosp_lag = st.sidebar.number_input(
 asymptomatic = 1-(st.sidebar.number_input(
     "Asymptomatic (%)", 0.0, 100.0, value=25.0 ,step=0.1, format="%f")/100.0)
 
-hosp_los = st.sidebar.number_input("Hospital Length of Stay", value=5, step=1, format="%i")
-icu_los = st.sidebar.number_input("ICU Length of Stay", value=8, step=1, format="%i")
-vent_los = st.sidebar.number_input("Ventilator Length of Stay", value=9, step=1, format="%i")
+q = 1-(st.sidebar.number_input(
+"Symptomatic Isolation Rate (contact tracing/quarantine when symptomatic)", 0.0, 100.0, value=40.0 ,step=0.1, format="%f")/100.0)
+
+hosp_los = st.sidebar.number_input("Hospital Length of Stay", value=6, step=1, format="%i")
+icu_los = st.sidebar.number_input("ICU Length of Stay", value=11, step=1, format="%i")
+vent_los = st.sidebar.number_input("Ventilator Length of Stay", value=10, step=1, format="%i")
 
 # regional_hosp_share = (
 # st.sidebar.number_input(
@@ -1115,10 +1123,12 @@ i_hospitalized_D, i_icu_D, i_ventilated_D = get_dispositions(i_D, rates, regiona
 
 r_hospitalized_D, r_icu_D, r_ventilated_D = get_dispositions(r_D, rates, regional_hosp_share)
 
+d_hospitalized_D, d_icu_D, d_ventilated_D = get_dispositions(d_D, rates, regional_hosp_share)
+
 dispositions_D_ecases = (
-            i_hospitalized_D + r_hospitalized_D,
-            i_icu_D + r_icu_D,
-            i_ventilated_D + r_ventilated_D)
+            i_hospitalized_D + r_hospitalized_D+d_hospitalized_D,
+            i_icu_D + r_icu_D+d_icu_D,
+            i_ventilated_D + r_ventilated_D+d_ventilated_D)
 
 hospitalized_D_ecases, icu_D, ventilated_D = (
             i_hospitalized_D,
@@ -1136,12 +1146,11 @@ D0=0
 R0=0
 J0=0
 
-S0=1500000-E0-A0-I0-D0-J0-R0
+S0=1400000-E0-A0-I0-D0-J0-R0
 beta_j=0.9
 q=0.6
 l=0.6
 gamma_hosp=1/hosp_lag
-#gamma1,fatal,alpha, p, hosp,q,l  = 1./5, 0.04, 1./5.2, 0.75, .025, 0.8,0.8
 AAA=beta4*(1/gamma2)*S
 beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
 
@@ -1149,14 +1158,9 @@ R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(a
 beta_j=0.9
 R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
 
-##S_n, E_n,A_n, I_n,J_n, R_n, D_n=sim_seaijrd_decay_ode(
-##    S0, E0, A0,I0,J0, R0, D0, beta_j, gamma2, gamma_hosp, alpha, n_days,decay1,decay2,decay3,
-##    decay4, start_day, int1_delta, int2_delta,end_delta, fatal_hosp, asymptomatic, hosp_rate, q,
-##    l)
-
 S_n, E_n,A_n, I_n,J_n, R_n, D_n, RH_n=sim_seaijrd_decay_ode(S0, E0, A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
-                                                      decay1,decay2,decay3, decay4, start_day, int1_delta, int2_delta,
-                                                      end_delta, fatal_hosp,asymptomatic, hosp_rate, q,  l)
+                                                      decay1,decay2,decay3, decay4, decay5, start_day, int1_delta, int2_delta,
+                                                      end_delta, step2_delta, fatal_hosp,asymptomatic, hosp_rate, q,  l)
 
 
 icu_curve= J_n*icu_rate
@@ -1165,8 +1169,10 @@ vent_curve=J_n*vent_rate
 hosp_rate_n=1.0
 RateLos = namedtuple("RateLos", ("rate", "length_of_stay"))
 hospitalized_n=RateLos(hosp_rate_n, hosp_los)
-icu=RateLos(icu_rate, icu_los)
-ventilated=RateLos(vent_rate, vent_los)
+icu_rate_n= icu_rate
+vent_rate_n= vent_rate
+icu=RateLos(icu_rate_n, icu_los)
+ventilated=RateLos(vent_rate_n, vent_los)
 
 
 rates_n = tuple(each.rate for each in (hospitalized_n, icu, ventilated))
@@ -1196,11 +1202,6 @@ if hosp_options == 'Kaleida':
     # Added expanded beds
     col_name2 = {"hosp_kh": "Hospitalized - Kaleida", "icu_kh": "ICU - Kaleida", "vent_kh": "Ventilated - Kaleida", "total_beds":"Total Beds", "icu_beds": "Total ICU Beds"}
     fold_name2 = ["Hospitalized - Kaleida", "ICU - Kaleida", "Ventilated - Kaleida", "Total Beds", "Total ICU Beds"]
-    # col_name2 = {"hosp_kh": "Hospitalized - Kaleida", "icu_kh": "ICU - Kaleida", "vent_kh": "Ventilated - Kaleida"}
-    # fold_name2 = ["Hospitalized - Kaleida", "ICU - Kaleida", "Ventilated - Kaleida"]
-    #col_name3 = {"ppe_mild_d_kh": "PPE Mild Cases - Lower Range", "ppe_mild_u_kh": "PPE Mild Cases - Upper Range", 
-    #"ppe_severe_d_kh": "PPE Severe Cases - Lower Range", "ppe_severe_u_kh": "PPE Severe Cases - Upper Range"}
-    #fold_name3 = ["PPE Mild Cases - Lower Range", "PPE Mild Cases - Upper Range", "PPE Severe Cases - Lower Range", "PPE Severe Cases - Upper Range"]
     icu_val = 245
     total_beds_val = 1224
     vent_val = 206
@@ -1215,12 +1216,6 @@ if hosp_options == 'ECMC':
     fold_name1 = ["Hospitalized - ECMC", "ICU - ECMC", "Ventilated - ECMC"]
     col_name2 = {"hosp_ecmc": "Hospitalized - ECMC", "icu_ecmc": "ICU - ECMC", "vent_ecmc": "Ventilated - ECMC", "total_beds":"Total Beds", "icu_beds": "Total ICU Beds"}
     fold_name2 = ["Hospitalized - ECMC", "ICU - ECMC", "Ventilated - ECMC", "Total Beds", "Total ICU Beds"]
-    
-    #col_name2 = {"hosp_ecmc": "Hospitalized - ECMC", "icu_ecmc": "ICU - ECMC", "vent_ecmc": "Ventilated - ECMC"}
-    #fold_name2 = ["Hospitalized - ECMC", "ICU - ECMC", "Ventilated - ECMC"]
-    # col_name3 ={"ppe_mild_d_ecmc": "PPE Mild Cases - Lower Range", "ppe_mild_u_ecmc": "PPE Mild Cases - Upper Range", 
-    # "ppe_severe_d_ecmc": "PPE Severe Cases - Lower Range", "ppe_severe_u_ecmc": "PPE Severe Cases - Upper Range"}
-    # fold_name3 = ["PPE Mild Cases - Lower Range", "PPE Mild Cases - Upper Range", "PPE Severe Cases - Lower Range", "PPE Severe Cases - Upper Range"]
     icu_val = 46
     total_beds_val = 518
     vent_val = 0
@@ -1235,11 +1230,6 @@ if hosp_options == 'CHS':
     fold_name1 = ["Hospitalized - CHS", "ICU - CHS", "Ventilated - CHS"]
     col_name2 = {"hosp_chs": "Hospitalized - CHS", "icu_chs": "ICU - CHS", "vent_chs": "Ventilated - CHS", "total_beds":"Total Beds", "icu_beds": "Total ICU Beds"}
     fold_name2 = ["Hospitalized - CHS", "ICU - CHS", "Ventilated - CHS", "Total Beds", "Total ICU Beds"]
-    #col_name2 = {"hosp_chs": "Hospitalized - CHS", "icu_chs": "ICU - CHS", "vent_chs": "Ventilated - CHS"}
-    #fold_name2 = ["Hospitalized - CHS", "ICU - CHS", "Ventilated - CHS"]
-    # col_name3 ={"ppe_mild_d_chs": "PPE Mild Cases - Lower Range", "ppe_mild_u_chs": "PPE Mild Cases - Upper Range", 
-    # "ppe_severe_d_chs": "PPE Severe Cases - Lower Range", "ppe_severe_u_chs": "PPE Severe Cases - Upper Range"}
-    # fold_name3 = ["PPE Mild Cases - Lower Range", "PPE Mild Cases - Upper Range", "PPE Severe Cases - Lower Range", "PPE Severe Cases - Upper Range"]
     icu_val = 163
     total_beds_val = 887
     vent_val = 0
@@ -1254,11 +1244,6 @@ if hosp_options == 'RPCI':
     fold_name1 = ["Hospitalized - Roswell", "ICU - Roswell", "Ventilated - Roswell"]
     col_name2 = {"hosp_rpci": "Hospitalized - Roswell", "icu_rpci": "ICU - Roswell", "vent_rpci": "Ventilated - Roswell", "total_beds":"Total Beds", "icu_beds": "Total ICU Beds"}
     fold_name2 = ["Hospitalized - Roswell", "ICU - Roswell", "Ventilated - Roswell", "Total Beds", "Total ICU Beds"]
-    #col_name2 = {"hosp_rpci": "Hospitalized - Roswell", "icu_rpci": "ICU - Roswell", "vent_rpci": "Ventilated - Roswell"}
-    #fold_name2 = ["Hospitalized - Roswell", "ICU - Roswell", "Ventilated - Roswell"]
-    # col_name3 ={"ppe_mild_d_rpci": "PPE Mild Cases - Lower Range", "ppe_mild_u_rpci": "PPE Mild Cases - Upper Range", 
-    # "ppe_severe_d_rpci": "PPE Severe Cases - Lower Range", "ppe_severe_u_rpci": "PPE Severe Cases - Upper Range"}
-    # fold_name3 = ["PPE Mild Cases - Lower Range", "PPE Mild Cases - Upper Range", "PPE Severe Cases - Lower Range", "PPE Severe Cases - Upper Range"]
     icu_val = 14
     total_beds_val = 133
     vent_val = 0
@@ -1367,22 +1352,16 @@ def regional_admissions_chart(
 if model_options == "Inpatient":
     columns_comp = {"hosp": "Hospitalized"}
     fold_comp = ["Hospitalized"]
-    #capacity_col = {"expanded_beds":"Expanded IP Beds (50%)", "expanded_beds2":"Expanded IP Beds (100%)"}
-    #capacity_fol = ["Expanded IP Beds (50%)", "Expanded IP Beds (100%)"]
     capacity_col = {"total_county_beds":"Inpatient Beds"}
     capacity_fol = ["Inpatient Beds"]
 if model_options == "ICU":
     columns_comp = {"icu": "ICU"}
     fold_comp = ["ICU"]
-    #capacity_col = {"expanded_icu_beds": "Expanded ICU Beds (50%)", "expanded_icu_beds2": "Expanded ICU Beds (100%)"}
-    #capacity_fol = ["Expanded ICU Beds (50%)", "Expanded ICU Beds (100%)"]
     capacity_col = {"total_county_icu": "ICU Beds"}
     capacity_fol = ["ICU Beds"]
 if model_options == "Ventilated":
     columns_comp = {"vent": "Ventilated"}
     fold_comp = ["Ventilated"]
-    capacity_col = {"expanded_vent_beds": "Expanded Ventilators (50%)", "expanded_vent_beds2": "Expanded Ventilators (100%)"}
-    capacity_fol = ["Expanded Ventilators (50%)", "Expanded Ventilators (100%)"]
 
 def ip_chart(
     projection_admits: pd.DataFrame, 
@@ -1424,7 +1403,7 @@ def ip_chart(
 ###################### Vertical Lines Graph ###################
 # Schools 18th
 # Non-essential business 22nd
-vertical = pd.DataFrame({'day': [int1_delta, int2_delta, end_delta]})
+vertical = pd.DataFrame({'day': [int1_delta, int2_delta, end_delta, step2_delta]})
 
 def vertical_chart(
     projection_admits: pd.DataFrame, 
@@ -1481,7 +1460,7 @@ st.altair_chart(
     #admits_graph_seir
     #+ 
     #admits_graph 
-    #+
+    #+ 
     vertical1
     #+ admits_graph_ecases
     + admits_graph_A
@@ -1490,7 +1469,7 @@ st.altair_chart(
     , use_container_width=True)
 
 
-if st.checkbox("Show more info about this tool"):
+if st.checkbox("Show more about the assumptions and specifications of the SEIR model"):
     st.subheader(
     "[Deterministic SEIR model](https://www.tandfonline.com/doi/full/10.1080/23737867.2018.1509026)")
     st.markdown(
@@ -1567,14 +1546,10 @@ st.header("""Projected Census Models for Erie County""")
 
 # Comparison of Census Single line graph - Hospitalized, ICU, Vent
 if model_options == "Inpatient":
-    #columns_comp_census = {"hosp": "Hospital Census", "expanded_beds_county":"Expanded IP Beds (50%)", "expanded_beds_county2":"Expanded IP Beds (100%)"}
-    #fold_comp_census = ["Hospital Census", "Expanded IP Beds (50%)", "Expanded IP Beds (100%)"]
     columns_comp_census = {"hosp": "Hospital Census", "total_county_beds":"Inpatient Beds"}
     fold_comp_census = ["Hospital Census", "Inpatient Beds"]
     graph_selection = erie_lines_ip
 if model_options == "ICU":
-    #columns_comp_census = {"icu": "ICU Census", "expanded_icu_county": "Expanded ICU Beds (50%)", "expanded_icu_county2": "Expanded ICU Beds (100%)"}
-    #fold_comp_census = ["ICU Census", "Expanded ICU Beds (50%)", "Expanded ICU Beds (100%)"]
     columns_comp_census = {"icu": "ICU Census", "total_county_icu": "ICU Beds"}
     fold_comp_census = ["ICU Census", "ICU Beds"]
     graph_selection = erie_lines_icu
@@ -1615,7 +1590,37 @@ def ip_census_chart(
         .interactive()
     )
 
+def ip_census_upper(
+    census: pd.DataFrame,
+    plot_projection_days: int,
+    as_date:bool = False) -> alt.Chart:
+    """docstring"""
+    census = census.rename(columns=columns_comp_census)
 
+    tooltip_dict = {False: "day", True: "date:T"}
+    if as_date:
+        census = add_date_column(census.head(plot_projection_days))
+        x_kwargs = {"shorthand": "date:T", "title": "Date"}
+    else:
+        x_kwargs = {"shorthand": "day", "title": "Days from initial infection"}
+
+    return (
+        alt
+        .Chart(census)
+        .transform_fold(fold=fold_comp_census)
+        .mark_line(point=False)
+        .encode(
+            x=alt.X(**x_kwargs),
+            y=alt.Y("value:Q", title="Census"),
+            color="key:N",
+            tooltip=[
+                tooltip_dict[as_date],
+                alt.Tooltip("value:Q", format=".0f", title="Census"),
+                "key:N",
+            ],
+        )
+        .interactive()
+    )
 ################# Add 0% 10% 20% SD graph of SEIR MODEL ###################
 
     #, scale=alt.Scale(domain=[0, 40000])
@@ -1628,7 +1633,6 @@ seir_ip_c = ip_census_chart(census_table_e, plot_projection_days, as_date=as_dat
 #seir_r_ip_c = ip_census_chart(census_table_R, plot_projection_days, as_date=as_date)
 seir_d_ip_c = ip_census_chart(census_table_D, plot_projection_days, as_date=as_date)
 ###
-
 
 ### 4/20/20 for high social distancing model
 seir_d_ip_highsocial = ip_census_chart(census_table_D_socialcases, plot_projection_days, as_date=as_date)
@@ -1644,12 +1648,10 @@ st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs Model")
 st.altair_chart(
     #alt.layer(seir_ip_c.mark_line())
     #+ alt.layer(seir_d_ip_c.mark_line())
-    #+
-    #alt.layer(seir_d_ip_ecases.mark_line())
+    #+ alt.layer(seir_d_ip_ecases.mark_line())
     #+ 
     alt.layer(seir_A_ip_ecases.mark_line())
-    #+
-    #alt.layer(seir_d_ip_highsocial.mark_line())
+    #+ alt.layer(seir_d_ip_highsocial.mark_line())
     + alt.layer(graph_selection)
     + alt.layer(vertical1)
     , use_container_width=True)
@@ -1854,19 +1856,62 @@ R4=AAA*(1-decay4)
 st.markdown("""The initial $R_0$ is **{AAA:.1f}** with a $$\\beta$$ of **{beta4:.2f}**, the $R_e$ after 2 weeks is **{R2:.1f}** and the $R_e$ after 3 weeks to end of social distancing is **{R3:.1f}**.
 After reducing social distancing the $R_e$ is **{R4:.1f}**
             This is based on a doubling rate of **{doubling_time:.0f}**
-            and the calculation of the [basic reproduction number](https://www.sciencedirect.com/science/article/pii/S2468042719300491).
-            The $R_0$ for the other model is  **{R0_n:.1f}** and a $$\\beta$$ of **{beta_j:.2f}**""".format(
+            and the calculation of the [basic reproduction number](https://www.sciencedirect.com/science/article/pii/S2468042719300491).""".format(
         AAA=AAA,
         beta4=beta4*S,
         R2=R2,
         R3=R3,
         R4=R4,
-        doubling_time=doubling_time,
-        R0_n=R0_n,
-        beta_j=beta_j
+        doubling_time=doubling_time
     )
             )
 
+
+#                  The $R_0$ for the other model is  **{R0_n:.1f}** and a $$\\beta$$ of **{beta_j:.2f}**
+#            AAA=AAA,
+#           beta4=beta4*S,
+#           R2=R2,
+#           R3=R3,
+#           R4=R4,
+#           doubling_time=doubling_time,
+#           R0_n=R0_n,
+#           beta_j=beta_j
+st.subheader("Extension of the SEIR model to include asymptomatic and direct hospitalization components")
+if st.checkbox("Show more about the assumptions and specifications of the SEAIJRD model"):
+    st.subheader(
+    "[Deterministic SEIR model with asymptomatic, hospitalizations, and fatality components](https://www.tandfonline.com/doi/full/10.1080/23737867.2018.1509026)")
+    st.markdown(
+    """The model consists of individuals who are either _Susceptible_ ($S$), _Exposed_ ($E$),
+_Asymptomatic_ ($A$),_Infected_ ($I$),
+ _Hospitalized_ ($J$), _Recovered_ ($R$), or _Fatal_ ($D$).
+The epidemic proceeds via a growth and decline process."""
+)
+    st.markdown("""The system of differential equations are given by the following 7 equations.""")
+
+    st.latex(r'''\frac{dS}{dt}=-\rho_t \beta S[qI+lJ+A]/N''')
+    st.latex(r'''\frac{dE}{dt}=\rho_t \beta S[qI+lJ+A]/N - \alpha E''')
+    st.latex(r'''\frac{dA}{dt}= (1-z)\alpha E - \gamma_1 A''')
+    st.latex(r'''\frac{dI}{dt}= z\alpha E - \gamma_1 I-h I''')
+    st.latex(r'''\frac{dJ}{dt}= h I - \gamma_2 J''')
+    st.latex(r'''\frac{dR}{dt}=\gamma_1(A+I) + (1-f)\gamma_2 J''')
+    st.latex(r'''\frac{dD}{dt}=f \gamma_2 J''')
+
+    st.markdown(
+    """where $\gamma_1$ is $1/mean\ infectious\ rate$,$\gamma_2$ is $1/mean\ hospital\ day\ rate$, $$\\alpha$$ is $1/mean\ incubation\ period$, $$\\rho$$ is the rate of social distancing at time $t$,
+$$\\beta$$ is the rate of transmission, $f$ is the hospital fatality rate, $h$ is the hospitalization rate, $z$ is the symptomatic rate, $q$ is the isolation rate for the symptomati, $l$ is the isolation rate for hospitalized, and $z$ is the symptomatic rate (where $(1-z)$ is the asymptomatic rate). More information, including parameter specifications and reasons for model choice can be found
+[here]("https://github.com/gabai/stream_KH/wiki).  $R_0$ was calculated using the [next generation matrix method](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2871801/).""")
+    st.latex(r'''R_0=\beta [ \frac{(1-z)}{\gamma_1 }+ \frac{zq}{\gamma_1 + \alpha} + \frac{z \alpha l}{( \gamma_1 + \alpha )\gamma_2}]''')
+
+    st.markdown("""Note that a number of assumptions are made with deterministic compartmental models. First, we are assuming a large, closed population with no births or deaths.
+Second, within the time period, immunity to the disease is acquired. Third, the susceptible and infected subpopulations are dispersed homogeneously in geographic space.
+In addition to the model assumptions noted here, the model is limited by uncertainty related to parameter choice.
+Parameters are measured independently from the model, which is hard to do in the midst of an outbreak.
+Early reports from other geographic locations have allowed us to estimate this model.
+However, parameters can be different depending on population characteristics and can vary over periods of the outbreak.
+Therefore, interpreting the results can be difficult.""")
+
+
+st.subheader("Asymptomatic, Symptomatic,Hospitalized,and Fatal individuals in the **region** across time")
 
 def additional_projections_chart(a:np.ndarray, i:np.ndarray, j:np.ndarray,d:np.ndarray)  -> alt.Chart:
     dat = pd.DataFrame({"Asymptomatic":a,"Infected":i, "Hospitalized":j,"Fatal":d})
@@ -1874,7 +1919,7 @@ def additional_projections_chart(a:np.ndarray, i:np.ndarray, j:np.ndarray,d:np.n
     return (
         alt
         .Chart(dat.reset_index())
-        .transform_fold(fold=["Asymptomatic","Infected", "Hospitalized","Fatal"])
+        .transform_fold(fold=["Asymptomatic","Symptomatic", "Hospitalized","Fatal"])
         .mark_line(point=False)
         .encode(
             x=alt.X("index", title="Days from initial infection"),

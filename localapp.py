@@ -1590,37 +1590,37 @@ def ip_census_chart(
         .interactive()
     )
 
-def ip_census_upper(
-    census: pd.DataFrame,
-    plot_projection_days: int,
-    as_date:bool = False) -> alt.Chart:
-    """docstring"""
-    census = census.rename(columns=columns_comp_census)
+# def ip_census_upper(
+    # census: pd.DataFrame,
+    # plot_projection_days: int,
+    # as_date:bool = False) -> alt.Chart:
+    # """docstring"""
+    # census = census.rename(columns=columns_comp_census)
 
-    tooltip_dict = {False: "day", True: "date:T"}
-    if as_date:
-        census = add_date_column(census.head(plot_projection_days))
-        x_kwargs = {"shorthand": "date:T", "title": "Date"}
-    else:
-        x_kwargs = {"shorthand": "day", "title": "Days from initial infection"}
+    # tooltip_dict = {False: "day", True: "date:T"}
+    # if as_date:
+        # census = add_date_column(census.head(plot_projection_days))
+        # x_kwargs = {"shorthand": "date:T", "title": "Date"}
+    # else:
+        # x_kwargs = {"shorthand": "day", "title": "Days from initial infection"}
 
-    return (
-        alt
-        .Chart(census)
-        .transform_fold(fold=fold_comp_census)
-        .mark_line(point=False)
-        .encode(
-            x=alt.X(**x_kwargs),
-            y=alt.Y("value:Q", title="Census"),
-            color="key:N",
-            tooltip=[
-                tooltip_dict[as_date],
-                alt.Tooltip("value:Q", format=".0f", title="Census"),
-                "key:N",
-            ],
-        )
-        .interactive()
-    )
+    # return (
+        # alt
+        # .Chart(census)
+        # .transform_fold(fold=fold_comp_census)
+        # .mark_line(point=False)
+        # .encode(
+            # x=alt.X(**x_kwargs),
+            # y=alt.Y("value:Q", title="Census"),
+            # color="key:N",
+            # tooltip=[
+                # tooltip_dict[as_date],
+                # alt.Tooltip("value:Q", format=".0f", title="Census"),
+                # "key:N",
+            # ],
+        # )
+        # .interactive()
+    # )
 ################# Add 0% 10% 20% SD graph of SEIR MODEL ###################
 
     #, scale=alt.Scale(domain=[0, 40000])
@@ -1646,11 +1646,10 @@ seir_A_ip_ecases = ip_census_chart(census_table_A_ecases, plot_projection_days, 
 # Chart of Model Comparison for SEIR and Adjusted with Erie County Data
 st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs Model")
 st.altair_chart(
-    #alt.layer(seir_ip_c.mark_line())
-    #+ alt.layer(seir_d_ip_c.mark_line())
+    alt.layer(seir_ip_c.mark_line())
+    + alt.layer(seir_d_ip_c.mark_line())
     #+ alt.layer(seir_d_ip_ecases.mark_line())
-    #+ 
-    alt.layer(seir_A_ip_ecases.mark_line())
+    + alt.layer(seir_A_ip_ecases.mark_line())
     #+ alt.layer(seir_d_ip_highsocial.mark_line())
     + alt.layer(graph_selection)
     + alt.layer(vertical1)

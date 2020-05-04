@@ -146,6 +146,32 @@ def build_admissions_df_n(
     projection_admits["day"] = range(projection_admits.shape[0])
     return projection_admits
 
+def build_prev_df_n(
+    dispositions) -> pd.DataFrame:
+    """Build admissions dataframe from Parameters."""
+    days = np.array(range(0, n_days))
+    data_dict = dict(
+        zip(
+            ["day", "hosp", "icu", "vent"], 
+            [days] + [disposition for disposition in dispositions],
+        )
+    )
+    projection = pd.DataFrame.from_dict(data_dict)
+    
+    counter = 0
+    for i in hosp_list:
+        projection[groups[0]+"_"+i] = projection.hosp*bed_share.iloc[3,counter]
+        projection[groups[1]+"_"+i] = projection.icu*bed_share.iloc[3,counter]
+        projection[groups[2]+"_"+i] = projection.vent*bed_share.iloc[3,counter]
+        counter +=1
+        if counter == 4: break
+    
+    # New cases
+    projection_admits = projection.iloc[:-1, :] - projection.shift(1)
+    projection_admits["day"] = range(projection_admits.shape[0])
+    return projection_admits
+
+
 def build_census_df(
     projection_admits: pd.DataFrame) -> pd.DataFrame:
     """ALOS for each category of COVID-19 case (total guesses)"""
@@ -625,6 +651,7 @@ erie_df['Date'] = pd.to_datetime(erie_df['Date'])
 
 # Populations and Infections
 erie = 1400000
+monroe = 741770
 cases_erie = erie_df['Cases'].iloc[-1]
 S_default = erie
 known_infections = erie_df['Cases'].iloc[-1]
@@ -691,7 +718,7 @@ hosp_rate = (
     st.sidebar.number_input("Hospitalization %", 0.0, 100.0, value=4.0, step=0.50, format="%f")/ 100.0)
 
 icu_rate = (
-    st.sidebar.number_input("ICU %", 0.0, 100.0, value=35.0, step=5.0, format="%f") / 100.0)
+    st.sidebar.number_input("ICU %", 0.0, 100.0, value=25.0, step=5.0, format="%f") / 100.0)
 
 vent_rate = (
     st.sidebar.number_input("Ventilated %", 0.0, 100.0, value=35.0, step=5.0, format="%f")/ 100.0)
@@ -1146,7 +1173,7 @@ D0=0
 R0=0
 J0=0
 
-S0=1400000-E0-A0-I0-D0-J0-R0
+S0=S-E0-A0-I0-D0-J0-R0
 beta_j=0.9
 q=0.6
 l=0.6
@@ -1176,7 +1203,7 @@ ventilated=RateLos(vent_rate_n, vent_los)
 
 
 rates_n = tuple(each.rate for each in (hospitalized_n, icu, ventilated))
-lengths_of_stay = tuple(each.length_of_stay for each in (hospitalized, icu, ventilated))
+lengths_of_stay = tuple(each.length_of_stay for each in (hospitalized_n, icu, ventilated))
 
 
 i_hospitalized_A, i_icu_A, i_ventilated_A = get_dispositions(J_n, rates_n, regional_hosp_share)
@@ -1590,37 +1617,37 @@ def ip_census_chart(
         .interactive()
     )
 
-# def ip_census_upper(
-    # census: pd.DataFrame,
-    # plot_projection_days: int,
-    # as_date:bool = False) -> alt.Chart:
-    # """docstring"""
-    # census = census.rename(columns=columns_comp_census)
+def ip_census_upper(
+    census: pd.DataFrame,
+    plot_projection_days: int,
+    as_date:bool = False) -> alt.Chart:
+    """docstring"""
+    census = census.rename(columns=columns_comp_census)
 
-    # tooltip_dict = {False: "day", True: "date:T"}
-    # if as_date:
-        # census = add_date_column(census.head(plot_projection_days))
-        # x_kwargs = {"shorthand": "date:T", "title": "Date"}
-    # else:
-        # x_kwargs = {"shorthand": "day", "title": "Days from initial infection"}
+    tooltip_dict = {False: "day", True: "date:T"}
+    if as_date:
+        census = add_date_column(census.head(plot_projection_days))
+        x_kwargs = {"shorthand": "date:T", "title": "Date"}
+    else:
+        x_kwargs = {"shorthand": "day", "title": "Days from initial infection"}
 
-    # return (
-        # alt
-        # .Chart(census)
-        # .transform_fold(fold=fold_comp_census)
-        # .mark_line(point=False)
-        # .encode(
-            # x=alt.X(**x_kwargs),
-            # y=alt.Y("value:Q", title="Census"),
-            # color="key:N",
-            # tooltip=[
-                # tooltip_dict[as_date],
-                # alt.Tooltip("value:Q", format=".0f", title="Census"),
-                # "key:N",
-            # ],
-        # )
-        # .interactive()
-    # )
+    return (
+        alt
+        .Chart(census)
+        .transform_fold(fold=fold_comp_census)
+        .mark_line(point=False)
+        .encode(
+            x=alt.X(**x_kwargs),
+            y=alt.Y("value:Q", title="Census"),
+            color="key:N",
+            tooltip=[
+                tooltip_dict[as_date],
+                alt.Tooltip("value:Q", format=".0f", title="Census"),
+                "key:N",
+            ],
+        )
+        .interactive()
+    )
 ################# Add 0% 10% 20% SD graph of SEIR MODEL ###################
 
     #, scale=alt.Scale(domain=[0, 40000])
@@ -1646,10 +1673,11 @@ seir_A_ip_ecases = ip_census_chart(census_table_A_ecases, plot_projection_days, 
 # Chart of Model Comparison for SEIR and Adjusted with Erie County Data
 st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs Model")
 st.altair_chart(
-    alt.layer(seir_ip_c.mark_line())
-    + alt.layer(seir_d_ip_c.mark_line())
+    #alt.layer(seir_ip_c.mark_line())
+    #+ alt.layer(seir_d_ip_c.mark_line())
     #+ alt.layer(seir_d_ip_ecases.mark_line())
-    + alt.layer(seir_A_ip_ecases.mark_line())
+    #+ 
+    alt.layer(seir_A_ip_ecases.mark_line())
     #+ alt.layer(seir_d_ip_highsocial.mark_line())
     + alt.layer(graph_selection)
     + alt.layer(vertical1)
@@ -1866,15 +1894,6 @@ After reducing social distancing the $R_e$ is **{R4:.1f}**
             )
 
 
-#                  The $R_0$ for the other model is  **{R0_n:.1f}** and a $$\\beta$$ of **{beta_j:.2f}**
-#            AAA=AAA,
-#           beta4=beta4*S,
-#           R2=R2,
-#           R3=R3,
-#           R4=R4,
-#           doubling_time=doubling_time,
-#           R0_n=R0_n,
-#           beta_j=beta_j
 st.subheader("Extension of the SEIR model to include asymptomatic and direct hospitalization components")
 if st.checkbox("Show more about the assumptions and specifications of the SEAIJRD model"):
     st.subheader(
@@ -1930,4 +1949,59 @@ def additional_projections_chart(a:np.ndarray, i:np.ndarray, j:np.ndarray,d:np.n
     )
 
 st.altair_chart(additional_projections_chart(A_n, I_n, J_n, D_n), use_container_width=True)
+
+############################### prevalence and incidence ###########################
+# https://www.tandfonline.com/doi/full/10.1057/hs.2015.2
+####################################################################################
+st.subheader("Prevalence and Incidence Across Time")
+
+st.markdown("""Incidence is measured as the number of new cases at each time step, (from compartments A, I) prevalence is measured
+as the population infected with the disease (A,I,J) at each time step
+and treatment coverage is estimated by cumulative treated cases as a proportion of cumulative cases""")
+
+### incidence
+dispositions_inc= (A_n+I_n+J_n+R_n+D_n)
+dispositions_inc=pd.DataFrame(dispositions_inc, columns=['newcases']) 
+dispositions_inc2 = dispositions_inc.iloc[:-1, :] - dispositions_inc.shift(1)
+dispositions_inc2["day"] = range(dispositions_inc2.shape[0])
+dispositions_inc2["TotalCases"]=S_n
+dispositions_inc2.at[0,'newcases']=0
+dispositions_inc2["incidencerate"]=dispositions_inc2['newcases']/dispositions_inc2['TotalCases']
+
+# total number of new cases daily/total number of people disease free at the start of the day
+
+### prevalence
+
+dispositions_prev=(A_n+I_n+J_n)
+dispositions_prev=pd.DataFrame(dispositions_prev, columns=['cumucases']) 
+dispositions_prev["day"] = range(dispositions_prev.shape[0])    
+dispositions_prev["TotalCases"]=1400000.0
+dispositions_prev["pointprevalencerate"]=dispositions_prev['cumucases']/dispositions_prev['TotalCases']
+#total number of infected people during that day/ total number in population
+
+def additional_projections_chart2(i, p)  -> alt.Chart:
+    dat = pd.DataFrame({"Incidence Rate":i,"Prevalence Rate":p})
+
+    return (
+        alt
+        .Chart(dat.reset_index())
+        .transform_fold(fold=["Incidence Rate", "Prevalence Rate"])
+        .mark_line(point=False)
+        .encode(
+            x=alt.X("index", title="Days from initial infection"),
+            y=alt.Y("value:Q", title="Case Volume"),
+            tooltip=["key:N", "value:Q"], 
+            color="key:N"
+        )
+        .interactive()
+    )
+
+st.altair_chart(additional_projections_chart2(dispositions_inc2["incidencerate"], dispositions_prev["pointprevalencerate"]), use_container_width=True)
+
+
+
+      
+
+
+
 

@@ -153,6 +153,32 @@ if password == secret:
         projection_admits["day"] = range(projection_admits.shape[0])
         return projection_admits
 
+    def build_prev_df_n(
+        dispositions) -> pd.DataFrame:
+        """Build admissions dataframe from Parameters."""
+        days = np.array(range(0, n_days))
+        data_dict = dict(
+            zip(
+                ["day", "hosp", "icu", "vent"], 
+                [days] + [disposition for disposition in dispositions],
+            )
+        )
+        projection = pd.DataFrame.from_dict(data_dict)
+        
+        counter = 0
+        for i in hosp_list:
+            projection[groups[0]+"_"+i] = projection.hosp*bed_share.iloc[3,counter]
+            projection[groups[1]+"_"+i] = projection.icu*bed_share.iloc[3,counter]
+            projection[groups[2]+"_"+i] = projection.vent*bed_share.iloc[3,counter]
+            counter +=1
+            if counter == 4: break
+        
+        # New cases
+        projection_admits = projection.iloc[:-1, :] - projection.shift(1)
+        projection_admits["day"] = range(projection_admits.shape[0])
+        return projection_admits
+
+
     def build_census_df(
         projection_admits: pd.DataFrame) -> pd.DataFrame:
         """ALOS for each category of COVID-19 case (total guesses)"""
@@ -1929,4 +1955,59 @@ if password == secret:
         )
 
     st.altair_chart(additional_projections_chart(A_n, I_n, J_n, D_n), use_container_width=True)
+
+    ############################### prevalence and incidence ###########################
+    # https://www.tandfonline.com/doi/full/10.1057/hs.2015.2
+    ####################################################################################
+   st.subheader("Prevalence and Incidence Across Time")
+
+    st.markdown("""Incidence is measured as the number of new cases at each time step, (from compartments A, I) prevalence is measured
+as the population infected with the disease (A,I,J) at each time step
+and treatment coverage is estimated by cumulative treated cases as a proportion of cumulative cases""")
+
+    ### incidence
+    dispositions_inc= (A_n+I_n+J_n+R_n+D_n)
+    dispositions_inc=pd.DataFrame(dispositions_inc, columns=['newcases']) 
+    dispositions_inc2 = dispositions_inc.iloc[:-1, :] - dispositions_inc.shift(1)
+    dispositions_inc2["day"] = range(dispositions_inc2.shape[0])
+    dispositions_inc2["TotalCases"]=S_n
+    dispositions_inc2.at[0,'newcases']=0
+    dispositions_inc2["incidencerate"]=dispositions_inc2['newcases']/dispositions_inc2['TotalCases']
+
+    # total number of new cases daily/total number of people disease free at the start of the day
+
+    ### prevalence
+
+    dispositions_prev=(A_n+I_n+J_n)
+    dispositions_prev=pd.DataFrame(dispositions_prev, columns=['cumucases']) 
+    dispositions_prev["day"] = range(dispositions_prev.shape[0])    
+    dispositions_prev["TotalCases"]=1400000.0
+    dispositions_prev["pointprevalencerate"]=dispositions_prev['cumucases']/dispositions_prev['TotalCases']
+    #total number of infected people during that day/ total number in population
+
+    def additional_projections_chart2(i, p)  -> alt.Chart:
+        dat = pd.DataFrame({"Incidence Rate":i,"Prevalence Rate":p})
+
+        return (
+            alt
+            .Chart(dat.reset_index())
+            .transform_fold(fold=["Incidence Rate", "Prevalence Rate"])
+            .mark_line(point=False)
+            .encode(
+                x=alt.X("index", title="Days from initial infection"),
+                y=alt.Y("value:Q", title="Case Volume"),
+                tooltip=["key:N", "value:Q"], 
+                color="key:N"
+            )
+            .interactive()
+        )
+
+    st.altair_chart(additional_projections_chart(ispositions_inc2["incidencerate"], dispositions_prev["pointprevalencerate"]), use_container_width=True)
+
+
+
+          
+
+    
+    
 

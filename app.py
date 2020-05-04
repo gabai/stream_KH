@@ -1959,7 +1959,7 @@ if password == secret:
     ############################### prevalence and incidence ###########################
     # https://www.tandfonline.com/doi/full/10.1057/hs.2015.2
     ####################################################################################
-   st.subheader("Prevalence and Incidence Across Time")
+    st.subheader("Prevalence and Incidence Across Time")
 
     st.markdown("""Incidence is measured as the number of new cases at each time step, (from compartments A, I) prevalence is measured
 as the population infected with the disease (A,I,J) at each time step

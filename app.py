@@ -686,7 +686,7 @@ if password == secret:
         "Step 1 reduction in social distancing %", 0, 100, value=35 ,step=5, format="%i")/100.0
 
     step2 = st.sidebar.date_input(
-        "Step 2 reduction in social distancing", datetime(2020,6,15))
+        "Step ga2 reduction in social distancing", datetime(2020,6,15))
     # Delta from start and end date for decay4
     step2_delta = (step2 - start_date).days
 
@@ -1183,7 +1183,7 @@ if password == secret:
 
 
     rates_n = tuple(each.rate for each in (hospitalized_n, icu, ventilated))
-    lengths_of_stay = tuple(each.length_of_stay for each in (hospitalized, icu, ventilated))
+    lengths_of_stay = tuple(each.length_of_stay for each in (hospitalized_n, icu, ventilated))
 
 
     i_hospitalized_A, i_icu_A, i_ventilated_A = get_dispositions(J_n, rates_n, regional_hosp_share)

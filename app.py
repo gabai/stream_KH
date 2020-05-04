@@ -2002,7 +2002,7 @@ and treatment coverage is estimated by cumulative treated cases as a proportion 
             .interactive()
         )
 
-    st.altair_chart(additional_projections_chart(ispositions_inc2["incidencerate"], dispositions_prev["pointprevalencerate"]), use_container_width=True)
+    st.altair_chart(additional_projections_chart(dispositions_inc2["incidencerate"], dispositions_prev["pointprevalencerate"]), use_container_width=True)
 
 
 

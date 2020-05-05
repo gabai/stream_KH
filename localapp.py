@@ -649,6 +649,10 @@ url = 'https://raw.githubusercontent.com/gabai/stream_KH/master/Cases_Erie.csv'
 erie_df = pd.read_csv(url)
 erie_df['Date'] = pd.to_datetime(erie_df['Date'])
 
+url_monroe = 'https://raw.githubusercontent.com/gabai/stream_KH/master/Cases_Monroe.csv'
+monroe_df = pd.read_csv(url_monroe)
+monroe_df['Date'] = pd.to_datetime(monroe_df['Date'])
+
 # Populations and Infections
 erie = 1400000
 monroe = 741770
@@ -882,12 +886,12 @@ if as_date:
     def erie_inpatient(projection_admits: pd.DataFrame) -> alt.Chart:
         """docstring"""
     
-        projection_admits = projection_admits.rename(columns={"Admissions": "Erie County Inpatient"})
+        projection_admits = projection_admits.rename(columns={"Admissions": "County Inpatient"})
     
         return(
             alt
             .Chart(projection_admits)
-            .transform_fold(fold=["Erie County Inpatient"])
+            .transform_fold(fold=["County Inpatient"])
             .mark_line(strokeWidth=3, strokeDash=[2,3], point=True)
             .encode(
                 x=alt.X(day_date),
@@ -903,12 +907,12 @@ else:
         projection_admits: pd.DataFrame) -> alt.Chart:
         """docstring"""
     
-        projection_admits = projection_admits.rename(columns={"Admissions": "Erie County Inpatient"})
+        projection_admits = projection_admits.rename(columns={"Admissions": "County Inpatient"})
     
         return(
             alt
             .Chart(projection_admits)
-            .transform_fold(fold=["Erie County Inpatient"])
+            .transform_fold(fold=["County Inpatient"])
             .mark_line(strokeWidth=3, strokeDash=[2,3], point=True)
             .encode(
                 x=alt.X(day_date),
@@ -926,12 +930,12 @@ if as_date:
     def erie_icu(projection_admits: pd.DataFrame) -> alt.Chart:
         """docstring"""
         
-        projection_admits = projection_admits.rename(columns={"ICU": "Erie County ICU"})
+        projection_admits = projection_admits.rename(columns={"ICU": "County ICU"})
         
         return(
             alt
             .Chart(projection_admits)
-            .transform_fold(fold=["Erie County ICU"])
+            .transform_fold(fold=["County ICU"])
             .mark_line(strokeWidth=3, strokeDash=[2,3], point=True)
             .encode(
                 x=alt.X(day_date),
@@ -946,12 +950,12 @@ else:
     def erie_icu(projection_admits: pd.DataFrame) -> alt.Chart:
         """docstring"""
         
-        projection_admits = projection_admits.rename(columns={"ICU": "Erie County ICU"})
+        projection_admits = projection_admits.rename(columns={"ICU": "County ICU"})
         
         return(
             alt
             .Chart(projection_admits)
-            .transform_fold(fold=["Erie County ICU"])
+            .transform_fold(fold=["County ICU"])
             .mark_line(strokeWidth=3, strokeDash=[2,3], point=True)
             .encode(
                 x=alt.X(day_date),
@@ -969,12 +973,12 @@ if as_date:
     def erie_vent(projection_admits: pd.DataFrame) -> alt.Chart:
         """docstring"""
         
-        projection_admits = projection_admits.rename(columns={"Ventilated": "Erie County Ventilated"})
+        projection_admits = projection_admits.rename(columns={"Ventilated": "County Ventilated"})
         
         return(
             alt
             .Chart(projection_admits)
-            .transform_fold(fold=["Erie County Ventilated"])
+            .transform_fold(fold=["County Ventilated"])
             .mark_line(strokeWidth=3, strokeDash=[2,3], point=True)
             .encode(
                 x=alt.X(day_date),
@@ -989,12 +993,12 @@ else:
     def erie_vent(projection_admits: pd.DataFrame) -> alt.Chart:
         """docstring"""
         
-        projection_admits = projection_admits.rename(columns={"Ventilated": "Erie County Ventilated"})
+        projection_admits = projection_admits.rename(columns={"Ventilated": "County Ventilated"})
         
         return(
             alt
             .Chart(projection_admits)
-            .transform_fold(fold=["Erie County Ventilated"])
+            .transform_fold(fold=["County Ventilated"])
             .mark_line(strokeWidth=3, strokeDash=[2,3], point=True)
             .encode(
                 x=alt.X(day_date),
@@ -1010,6 +1014,8 @@ erie_lines = erie_chart(erie_df)
 erie_lines_ip = erie_inpatient(erie_df)
 erie_lines_icu = erie_icu(erie_df)
 erie_lines_vent = erie_vent(erie_df)
+
+monroe_lines_ip = erie_inpatient(monroe_df)
 
 # Bar chart of Erie cases with layer of HERDS DAta Erie
 st.altair_chart(erie_cases_bar + erie_lines, use_container_width=True)

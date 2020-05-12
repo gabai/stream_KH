@@ -712,7 +712,7 @@ intervention3 = st.sidebar.date_input(
 int3_delta = (intervention3 - start_date).days
 
 decay4 = st.sidebar.number_input(
-    "NYS Facemas Mandate", 0, 100, value=45 ,step=5, format="%i")/100.0
+    "NYS Facemask Mandate", 0, 100, value=55 ,step=5, format="%i")/100.0
 
 end_date = st.sidebar.date_input(
     "Step 1 reduction in social distancing", datetime(2020,5,15))
@@ -720,7 +720,7 @@ end_date = st.sidebar.date_input(
 end_delta = (end_date - start_date).days
 
 decay5 = st.sidebar.number_input(
-    "Step 1 reduction in social distancing %", 0, 100, value=35 ,step=5, format="%i")/100.0
+    "Step 1 reduction in social distancing %", 0, 100, value=45 ,step=5, format="%i")/100.0
 
 step2 = st.sidebar.date_input(
     "Step 2 reduction in social distancing", datetime(2020,6,15))
@@ -728,11 +728,11 @@ step2 = st.sidebar.date_input(
 step2_delta = (step2 - start_date).days
 
 decay6 = st.sidebar.number_input(
-    "Step 2 reduction in social distancing %", 0, 100, value=25 ,step=5, format="%i")/100.0
+    "Step 2 reduction in social distancing %", 0, 100, value=35 ,step=5, format="%i")/100.0
 
 
 hosp_rate = (
-    st.sidebar.number_input("Hospitalization %", 0.0, 100.0, value=4.0, step=0.50, format="%f")/ 100.0)
+    st.sidebar.number_input("Hospitalization %", 0.0, 100.0, value=3.3, step=0.50, format="%f")/ 100.0)
 
 icu_rate = (
     st.sidebar.number_input("ICU %", 0.0, 100.0, value=25.0, step=5.0, format="%f") / 100.0)
@@ -765,7 +765,7 @@ hosp_lag = st.sidebar.number_input(
     "Days person remains in hospital or dies", 0, 20, value=4 ,step=1, format="%f")
 
 asymptomatic = 1-(st.sidebar.number_input(
-    "Asymptomatic (%)", 0.0, 100.0, value=25.0 ,step=0.1, format="%f")/100.0)
+    "Asymptomatic (%)", 0.0, 100.0, value=38.0 ,step=0.1, format="%f")/100.0)
 
 q = 1-(st.sidebar.number_input(
 "Symptomatic Isolation Rate (contact tracing/quarantine when symptomatic)", 0.0, 100.0, value=40.0 ,step=0.1, format="%f")/100.0)

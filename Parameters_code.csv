@@ -1,0 +1,28 @@
+base,SIR,SEIR,SEIR,SEIR,SEIR,SEIR,SEIRDJA,SEIRDJA,SEIRDJA
+model,SIR,SEIR,SEIR,SEIRaR0,SEIRaR0v2,SEIRhSD,SEIRDJA,SEIRDJAv2,SEIRDJAmit
+pop,1500000,1500000,1500000,1500000,1500000,1500000,1500000,1400000,1400000
+DT,3,3,5,4,3,2,3,,
+ip_rate,0.1,0.1,0.1,0.1,0.1,0.025,0.025,,
+icu_rate,0.4,0.04,0.01,0.04,0.0125,0.0125,0.0125,0.35,0.25
+hosp_rate,0.14,0.14,0.14,0.14,0.05,0.03,0.04,0.04,0.33
+vent_rate,0.2,0.02,0.02,0.02,0.01,,0.02,0.35,0.35
+ip_los,10,10,10,10,9,5,5,5,5
+icu_los,9,9,9,9,10,8,8,11,11
+vent_los,7,7,7,7,7,8,8,10,10
+SD_0,0,0,0.3,,,,,,
+Int_1,,,,0,0,0.02,0,0,0
+Int_2,,,,0.1,0.1,0.52,0.15,0.15,0.15
+Int_3,,,,0.3,0.3,0.83,0.3,0.45,0.45
+SDR_1,,,,,,0.75,0.15,0.35,0.35
+SDR_2,,,,,,,,0.25,0.25
+R0,2.4,2.4,2.4,,,,,,
+Comunity Attack Rate,0.4,0.4,0.4,,,,,,
+Overall Fatality Rate,0.6,0.6,0.6,0.5,0.5,0.5,0.5,0.5,0.5
+Hospitalized Fatality Rate,,,,0.04,0.04,0.04,0.04,0.04,0.04
+SIR Infectious Period,,,,,,,,,
+Infectious Period,2.9,2.9,2.9,2.9,2.9,2.9,2.9,2.9,2.9
+Incubation Period,5.2,5.2,5.2,5.8,5.8,5.8,5.8,5.8,5.8
+Recovery Time Mild,11,11,11,11,11,11,11,11,11
+Day from Infection to Death,17.8,,21.3,21.3,21.3,21.3,21.3,21.3,21.3
+Days from infection to admit,,,5,5,5,5,5,5,5
+Asymptomatic,,,,,,,0.25,0.25,0.38

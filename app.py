@@ -1962,9 +1962,8 @@ if password == secret:
     ####################################################################################
     st.subheader("Prevalence and Incidence Across Time")
 
-    st.markdown("""Incidence is measured as the number of new cases at each time step, (from compartments A, I) prevalence is measured
-as the population infected with the disease (A,I,J) at each time step
-and treatment coverage is estimated by cumulative treated cases as a proportion of cumulative cases""")
+    st.markdown("""Incidence is measured as the number of new cases daily, (from compartments A, I) prevalence is measured
+as the population infected with the disease (A,I,J) daily.""")
 
     ### incidence
     dispositions_inc= (A_n+I_n+J_n+R_n+D_n)

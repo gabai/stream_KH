@@ -40,7 +40,7 @@ for i in date_cols:
         
 # Add Calculated Variable Parameerse Dataset
 parameters['start_day'] = 1
-parameters['int1_delta'] = (parameters.intervention1 - parameters.start_date)
+parameters['int1_delta'] = (parameters.intervention1).days - (parameters.start_date).days
 parameters['int2_delta'] = (parameters.intervention2 - parameters.start_date)
 parameters['int3_delta'] = (parameters.intervention3 - parameters.start_date)
 parameters['step1_delta'] = (parameters.step1 - parameters.start_date)
@@ -55,8 +55,11 @@ models_dict = {0:'SIR', 1:'SEIR', 2:'SEIRv2', 3:'SEIRaR0', 4:'SEIRaR0v2', 5:'SEI
 # Groups
 groups = ['hosp', 'icu', 'vent']
 
+# Slider and Date
+n_days = st.slider("Number of days to project", 30, 200, 120, 1, "%i")
+as_date = st.checkbox(label="Present result as dates", value=False)
+
 # Variables
-n_days = 120
 plot_projection_days = n_days - 10
 as_date = False
 
@@ -76,7 +79,7 @@ for i in models_dict:
 
 models = {0: model0, 1:model1, 2:model2, 3:model3, 4:model4, 5:model5, 6:model6, 7:model7, 8:model8}
 
-
+# SIR Model
 def sir(
     s: float, i: float, r: float, beta: float, gamma: float, n: float
     ) -> Tuple[float, float, float]:
@@ -134,6 +137,7 @@ def sim_sir_df(
         columns=("Susceptible", "Infected", "Recovered"),
     )
 
+# SEIR Model
 def seir(
     s: float, e: float, i: float, r: float, beta: float, gamma: float, alpha: float, n: float
     ) -> Tuple[float, float, float, float]:
@@ -186,9 +190,11 @@ def gen_seir(
         s, e, i, r = seir(s, e, i, r, beta, gamma, alpha, n)
 # phase-adjusted https://www.nature.com/articles/s41421-020-0148-0     
 
+
+# SEIR w/ R_0 Adjustment
 def sim_seir_decay(
     s: float, e:float, i: float, r: float, beta: float, gamma: float, alpha: float, n_days: int,
-    decay1:float, decay2:float, decay3: float, decay4: float, end_delta: int
+    decay1:float, decay2:float, decay3: float, decay4: float, step1_delta: int
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """Simulate the SIR model forward in time."""
     s, e, i, r = (float(v) for v in (s, e, i, r))
@@ -201,7 +207,7 @@ def sim_seir_decay(
             beta_decay=beta*(1-decay2)
         elif int2_delta<=day<=int3_delta:
             beta_decay=beta*(1-decay3)
-        elif int3_delta<=day<=end_delta:
+        elif int3_delta<=day<=step1_delta:
             beta_decay=beta*(1-decay4)
         else:
             beta_decay=beta*(1-decay5)
@@ -218,6 +224,137 @@ def sim_seir_decay(
         np.array(r_v),
     )
 
+
+# SEIR w/ adjusted R_0 and fatality
+def seird(
+    s: float, e: float, i: float, r: float, d: float, beta: float, gamma: float, alpha: float, n: float, fatal: float
+    ) -> Tuple[float, float, float, float]:
+    """The SIR model, one time step."""
+    s_n = (-beta * s * i) + s
+    e_n = (beta * s * i) - alpha * e + e
+    i_n = (alpha * e - gamma * i) + i
+    r_n = (1-fatal)*gamma * i + r
+    d_n = (fatal)*gamma * i +d
+    if s_n < 0.0:
+        s_n = 0.0
+    if e_n < 0.0:
+        e_n = 0.0
+    if i_n < 0.0:
+        i_n = 0.0
+    if r_n < 0.0:
+        r_n = 0.0
+    if d_n < 0.0:
+        d_n = 0.0
+
+    scale = n / (s_n + e_n+ i_n + r_n + d_n)
+    return s_n * scale, e_n * scale, i_n * scale, r_n * scale, d_n * scale
+
+def sim_seird_decay(
+        s: float, e:float, i: float, r: float, d: float, beta: float, gamma: float, alpha: float, n_days: int,
+        decay1:float, decay2:float, decay3: float, decay4: float, step1_delta: int, fatal: float
+        ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        """Simulate the SIR model forward in time."""
+        s, e, i, r, d= (float(v) for v in (s, e, i, r, d))
+        n = s + e + i + r + d
+        s_v, e_v, i_v, r_v, d_v = [s], [e], [i], [r], [d]
+        for day in range(n_days):
+            if start_day<=day<=int1_delta:
+                beta_decay=beta*(1-decay1)
+            elif int1_delta<=day<=int2_delta:
+                beta_decay=beta*(1-decay2)
+            elif int2_delta<=day<=int3_delta:
+                beta_decay=beta*(1-decay3)
+            elif int3_delta<=day<=step1_delta:
+                beta_decay=beta*(1-decay4)
+            else:
+                beta_decay=beta*(1-decay5)
+                s, e, i, r,d = seird(s, e, i, r, d, beta_decay, gamma, alpha, n, fatal)
+                s_v.append(s)
+                e_v.append(e)
+                i_v.append(i)
+                r_v.append(r)
+                d_v.append(d)
+
+            return (
+                np.array(s_v),
+                np.array(e_v),
+                np.array(i_v),
+                np.array(r_v),
+                np.array(d_v)
+            )
+
+def seijcrd(
+    s: float, e: float, i: float, j:float, c:float, r: float, d: float, beta: float, gamma: float, alpha: float, n: float, fatal_hosp: float, hosp_rate:float, icu_rate:float, icu_days:float,crit_lag:float, death_days:float
+    ) -> Tuple[float, float, float, float]:
+    """The SIR model, one time step."""
+    s_n = (-beta * s * (i+j+c)) + s
+    e_n = (beta * s * (i+j+c)) - alpha * e + e
+    i_n = (alpha * e - gamma * i) + i
+    j_n = hosp_rate * i * gamma + (1-icu_rate)* c *icu_days + j
+    c_n = icu_rate * j * (1/crit_lag) - c *  (1/death_days)
+    r_n = (1-hosp_rate)*gamma * i + (1-icu_rate) * (1/crit_lag)* j + r
+    d_n = (fatal_hosp)* c * (1/crit_lag)+d
+    if s_n < 0.0:
+        s_n = 0.0
+    if e_n < 0.0:
+        e_n = 0.0
+    if i_n < 0.0:
+        i_n = 0.0
+    if j_n < 0.0:
+        j_n = 0.0
+    if c_n < 0.0:
+        c_n = 0.0
+    if r_n < 0.0:
+        r_n = 0.0
+    if d_n < 0.0:
+        d_n = 0.0
+
+    scale = n / (s_n + e_n+ i_n + j_n+ c_n+ r_n + d_n)
+    return s_n * scale, e_n * scale, i_n * scale, j_n* scale, c_n*scale, r_n * scale, d_n * scale
+
+def betanew(t,beta):
+    if start_day<= t <= int1_delta:
+        beta_decay=beta*(1-decay1)
+    elif int1_delta<=t<int2_delta:
+        beta_decay=beta*(1-decay2)
+    elif int2_delta<=t<=int3_delta:
+        beta_decay=beta*(1-decay3)
+    elif int3_delta<=t<=step1_delta:
+        beta_decay=beta*(1-decay4)
+    elif step1_delta<=t<=step2_delta:
+        beta_decay=beta*(1-decay5)
+    else:
+        beta_decay=beta*(1-decay6)    
+    return beta_decay
+
+#The SIR model differential equations with ODE solver.
+def derivdecay(y, t, N, beta, gamma1, gamma2, alpha, p, hosp,q,l,n_days, decay1, decay2, decay3, decay4, decay5, decay6, start_day, int1_delta, int2_delta, int3_delta, step1_delta, step2_delta, fatal_hosp ):
+    S, E, A, I,J, R,D,counter = y
+    dSdt = - betanew(t, beta) * S * (q*I + l*J + A)/N 
+    dEdt = betanew(t, beta) * S * (q*I + l*J + A)/N   - alpha * E
+    dAdt = alpha * E*(1-p)-gamma1*A
+    dIdt = p* alpha* E - gamma1 * I- hosp*I
+    dJdt = hosp * I -gamma2*J
+    dRdt = (1-fatal_hosp)*gamma2 * J + gamma1*(A+I)
+    dDdt = fatal_hosp * gamma2 * J
+    counter = (1-fatal_hosp)*gamma2 * J
+    return dSdt, dEdt,dAdt, dIdt, dJdt, dRdt, dDdt, counter
+
+def sim_seaijrd_decay_ode(
+    s, e,a,i, j,r, d, beta, gamma1, gamma2, alpha, n_days,decay1,decay2,decay3, decay4, decay5, decay6, start_day, int1_delta, int2_delta, int3_delta, step1_delta, step2_delta, fatal_hosp, p, hosp, q,
+    l):
+    n = s + e + a + i + j+ r + d
+    rh=0
+    y0= s,e,a,i,j,r,d, rh
+    
+    t=np.arange(0, n_days, step=1)
+    ret = odeint(derivdecay, y0, t, args=(n, beta, gamma1, gamma2, alpha, p, hosp,q,l, n_days, decay1, decay2, decay3, decay4, decay5, decay6, start_day, int1_delta, int2_delta, int3_delta, step1_delta, step2_delta, fatal_hosp))
+    S_n, E_n,A_n, I_n,J_n, R_n, D_n ,RH_n= ret.T
+    
+    return (S_n, E_n,A_n, I_n,J_n, R_n, D_n, RH_n)
+
+
+# Create Tables
 def get_dispositions(
     patient_state: np.ndarray, rates: Tuple[float, ...], regional_hosp_share: float = 1.0
     ) -> Tuple[np.ndarray, ...]:
@@ -268,22 +405,7 @@ def build_census_df(
 def add_date_column(
     df: pd.DataFrame, drop_day_column: bool = False, date_format: Optional[str] = None,
     ) -> pd.DataFrame:
-    """Copies input data frame and converts "day" column to "date" column
 
-    Assumes that day=0 is today and allocates dates for each integer day.
-    Day range can must not be continous.
-    Columns will be organized as original frame with difference that date
-    columns come first.
-
-    Arguments:
-        df: The data frame to convert.
-        drop_day_column: If true, the returned data frame will not have a day column.
-        date_format: If given, converts date_time objetcts to string format specified.
-
-    Raises:
-        KeyError: if "day" column not in df
-        ValueError: if "day" column is not of type int
-    """
     if not "day" in df:
         raise KeyError("Input data frame for converting dates has no 'day column'.")
     if not pd.api.types.is_integer_dtype(df.day):
@@ -323,10 +445,49 @@ model_options = st.sidebar.radio(
 start_date = st.sidebar.date_input(
     "Suspected first contact", datetime(2020,3,1))
 start_day = 1
+relative_contact_rate = st.sidebar.number_input(
+    "Social distancing (% reduction in social contact) Unadjusted Model", 0, 100, value=0, step=5, format="%i")/100.0
 
-# Slider and Date
-n_days = st.slider("Number of days to project", 30, 200, 120, 1, "%i")
-as_date = st.checkbox(label="Present result as dates", value=False)
+decay1 = st.sidebar.number_input(
+    "Social distancing (% reduction in social contact) in Week 0-2", 0, 100, value=0, step=5, format="%i")/100.0
+
+intervention1 = st.sidebar.date_input(
+    "Date of change Social Distancing - School Closure", datetime(2020,3,22))
+int1_delta = (intervention1 - start_date).days
+    
+decay2 = st.sidebar.number_input(
+    "Social distancing (% reduction in social contact) in Week 3 - School Closure", 0, 100, value=15, step=5, format="%i")/100.0
+
+intervention2 = st.sidebar.date_input(
+    "Date of change in Social Distancing - Closure Businesses, Shelter in Place", datetime(2020,3,28))
+int2_delta = (intervention2 - start_date).days
+
+decay3 = st.sidebar.number_input(
+    "Social distancing (% reduction in social contact) from Week 3 to change in SD - After Business Closure%", 0, 100, value=45 ,step=5, format="%i")/100.0
+
+intervention3 = st.sidebar.date_input(
+    "NYS Facemask Mandate", datetime(2020,4,15))
+int3_delta = (intervention3 - start_date).days
+
+decay4 = st.sidebar.number_input(
+    "NYS Facemask Mandate", 0, 100, value=55 ,step=5, format="%i")/100.0
+
+step1 = st.sidebar.date_input(
+    "Step 1 reduction in social distancing", datetime(2020,5,15))
+# Delta from start and end date for decay4
+step1_delta = (step1 - start_date).days
+
+decay5 = st.sidebar.number_input(
+    "Step 1 reduction in social distancing %", 0, 100, value=45 ,step=5, format="%i")/100.0
+
+step2 = st.sidebar.date_input(
+    "Step 2 reduction in social distancing", datetime(2020,6,15))
+# Delta from start and end date for decay4
+step2_delta = (step2 - start_date).days
+
+decay6 = st.sidebar.number_input(
+    "Step 2 reduction in social distancing %", 0, 100, value=35 ,step=5, format="%i")/100.0
+    
 
 
 # Model Loop
@@ -335,7 +496,6 @@ for m in models:
     S = (models[m])['S']
     doubling_time = (models[m])['doubling_time']
     relative_contact_rate = (models[m])['relative_contact_rate']
-    print(relative_contact_rate)
     intrinsic_growth_rate = 2 ** (1 / doubling_time) - 1
     hosp_rate = (models[m])['hosp_rate']
     hosp_los = (models[m])['hosp_los']
@@ -344,14 +504,27 @@ for m in models:
     vent_rate = (models[m])['vent_rate']
     vent_los = (models[m])['vent_los']
     alpha = 1/incubation_period
-    # Rates Tuples
+    fatal = (models[m])['fatal']
+    start_date = (models[m])['start_date']
+    decay1 = (models[m])['decay1']
+    decay2 = (models[m])['decay2']
+    decay3 = (models[m])['decay3']
+    decay4 = (models[m])['decay4']
+    decay5 = (models[m])['decay5']
+    step1_delta = (models[m])['step1'].days
+    step2_delta = (models[m])['step2'].days
+    step3_delta = (models[m])['step3'].days
+    step4_delta = (models[m])['step4'].days
+    int1_delta = (models[m])['int1_delta'].days
+    int2_delta = (models[m])['int2_delta'].days
+    int3_delta = (models[m])['int3_delta'].days
+    #Rates Tuples
     RateLos = namedtuple("RateLos", ("rate", "length_of_stay"))
     hospitalized = RateLos(hosp_rate, hosp_los)
     icu = RateLos(icu_rate, icu_los)
     ventilated = RateLos(vent_rate, vent_los)
     rates = tuple(each.rate for each in (hospitalized, icu, ventilated))
     lengths_of_stay = tuple(each.length_of_stay for each in (hospitalized, icu, ventilated))
-    
     
 #############################################################################################
     # SIR
@@ -374,7 +547,7 @@ for m in models:
         globals()['projection_admits'+str(m)] = build_admissions_df(dispositions)
         ## Build Census Table
         globals()['census_table'+str(m)] =  build_census_df(globals()['projection_admits'+str(m)])
-        
+        st.write(m)
         
 ###########################################################################
     # SEIR
@@ -397,29 +570,59 @@ for m in models:
         globals()['projection_admits'+str(m)] = build_admissions_df(dispositions)
         ## Build Census Table
         globals()['census_table'+str(m)] = build_census_df(globals()['projection_admits'+str(m)])
-        
+        st.write(m)
         
 ###########################################################################
-    if (models[m])['base_model'] == 'SEIRDJA':
-        # Variables for modified SEIR Models w/ R_0 Phase Adjustment
-        # Need to rename beta
-        beta3 = ((alpha+intrinsic_growth_rate)*(intrinsic_growth_rate + (1/infectious_period))) / (alpha*S) *(1-relative_contact_rate)
-    #if model+i = range(5, 7):
-        # Variables for modified SEIR Models w/ adjusted R_O and deaths
-    #else:
-        # Variables for final model
+    ## SEIR model with phase adjusted R_0
+    if (models[m])['base_model'] == 'SEIRR_0':
+        # Vairables for SEIR Models
+        alpha = 1/incubation_period
+        beta = ((alpha+intrinsic_growth_rate)*(intrinsic_growth_rate + (1/infectious_period))) / (alpha*S)         
+        gamma=1/infectious_period
+        recovered=0.0 # Some issues here with recovered pulling from prior model as table. 
+        exposed=beta*S*total_infections
+        S2=S-exposed-total_infections
+        ## SEIR model with phase adjusted R_0
+        s, e, i, r = sim_seir_decay(S-2, 1 ,1, 0.0, beta, gamma,alpha, n_days, decay1, decay2, decay3, decay4, step1_delta)
+        susceptible, exposed, infected, recovered = s, e, i, r
+        i_hospitalized, i_icu, i_ventilated = get_dispositions(i, rates, 1)
+        r_hospitalized, r_icu, r_ventilated = get_dispositions(r, rates, 1)
+        dispositions_R = (i_hospitalized + r_hospitalized, i_icu + r_icu, i_ventilated + r_ventilated)
+        hospitalized_R, icu_R, ventilated_R = (i_hospitalized, i_icu, i_ventilated)
+        ## Build Admissions Datasets
+        globals()['projection_admits'+str(m)] = build_admissions_df(dispositions)
+        ## Build Census Table
+        globals()['census_table'+str(m)] = build_census_df(globals()['projection_admits'+str(m)])
+        st.write(m)
+        
+###########################################################################
+    # if (models[m])['base_model'] == 'SEIRD':
+        # # Vairables for SEIR Models
+        # alpha = 1/incubation_period
+        # beta = ((alpha+intrinsic_growth_rate)*(intrinsic_growth_rate + (1/infectious_period))) / (alpha*S)         
+        # gamma=1/infectious_period
+        # recovered=0.0 # Some issues here with recovered pulling from prior model as table. 
+        # exposed=beta*S*total_infections
+        # S2=S-exposed-total_infections
+        # ## SEIR Model
+        # s, e, i, r, d = sim_seird_decay(S-2, 1, 1 , 0.0, 0.0, beta, gamma, alpha, n_days, decay1, decay2, decay3, decay4, step1_delta, fatal)
+        # susceptible, exposed, infected, recovered = s, e, i, r
+        # i_hospitalized, i_icu, i_ventilated = get_dispositions(i, rates, 1)
+        # r_hospitalized, r_icu, r_ventilated = get_dispositions(r, rates, 1)
+        # dispositions = (i_hospitalized + r_hospitalized, i_icu + r_icu, i_ventilated + r_ventilated)
+        # hospitalized, icu, ventilated = (i_hospitalized, i_icu, i_ventilated)
+        # ## Build Admissions Datasets
+        # globals()['projection_admits'+str(m)] = build_admissions_df(dispositions)
+        # ## Build Census Table
+        # globals()['census_table'+str(m)] = build_census_df(globals()['projection_admits'+str(m)])
         
     
-        
-###########################################################################
-    if (models[m])['base_model'] == 'SEIRDJA':
-        # Variables for modified SEIR Models w/ R_0 Phase Adjustment
-        # Need to rename beta
-        beta3 = ((alpha+intrinsic_growth_rate)*(intrinsic_growth_rate + (1/infectious_period))) / (alpha*S) *(1-relative_contact_rate)
-    #if model+i = range(5, 7):
-        # Variables for modified SEIR Models w/ adjusted R_O and deaths
-    #else:
-        # Variables for final model
+st.dataframe(projection_admits0)
+st.dataframe(projection_admits1)
+st.dataframe(projection_admits2)
+st.dataframe(projection_admits3)
+st.dataframe(projection_admits4)  
+st.dataframe(projection_admits5)    
         
     
 # Comparison of Single line graph - Hospitalized, ICU, Ventilated
@@ -468,6 +671,9 @@ def regional_admissions_chart(
         .interactive()
     )
 
+
+
+
 admits_graph0 = regional_admissions_chart(projection_admits0, 
         plot_projection_days, 
         as_date=as_date)
@@ -475,23 +681,34 @@ admits_graph0 = regional_admissions_chart(projection_admits0,
 admits_graph1 = regional_admissions_chart(projection_admits1, 
         plot_projection_days, 
         as_date=as_date)
+        
+admits_graph2 = regional_admissions_chart(projection_admits2, 
+        plot_projection_days, 
+        as_date=as_date)
 
+admits_graph3 = regional_admissions_chart(projection_admits3, 
+        plot_projection_days, 
+        as_date=as_date)
+        
+admits_graph4 = regional_admissions_chart(projection_admits4, 
+        plot_projection_days, 
+        as_date=as_date)
+        
+admits_graph5 = regional_admissions_chart(projection_admits5, 
+        plot_projection_days, 
+        as_date=as_date)
+                
 
-# for m in models:
-    # globals()['admit_graph'+str(m)] = regional_admissions_chart((globals()['projection_admits'+str(m)]), 
-    # plot_projection_days, as_date=as_date)
+# for i in admit_tables:
+    # globals()['admit_graph'+str(m)] = regional_admissions_chart([i], plot_projection_days, as_date=as_date)
 
 st.altair_chart(
-    #admits_graph_seir
-    #+ 
-    #admits_graph 
-    #+ 
-    #vertical1
-    #+ admits_graph_ecases
-    #+ 
     admits_graph0
     + admits_graph1
-    #+ erie_admit24_line
+    + admits_graph2
+    + admits_graph3
+    + admits_graph4
+    + admits_graph5
     , use_container_width=True)
 
 

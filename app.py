@@ -658,6 +658,7 @@ if password == secret:
 
     # Populations and Infections
     erie = 1400000
+    monroe = 741770
     cases_erie = erie_df['Cases'].iloc[-1]
     S_default = erie
     known_infections = erie_df['Cases'].iloc[-1]
@@ -712,7 +713,7 @@ if password == secret:
         "Step 1 reduction in social distancing %", 0, 100, value=35 ,step=5, format="%i")/100.0
 
     step2 = st.sidebar.date_input(
-        "Step ga2 reduction in social distancing", datetime(2020,6,15))
+        "Step 2 reduction in social distancing", datetime(2020,6,15))
     # Delta from start and end date for decay4
     step2_delta = (step2 - start_date).days
 
@@ -724,7 +725,7 @@ if password == secret:
         st.sidebar.number_input("Hospitalization %", 0.0, 100.0, value=4.0, step=0.50, format="%f")/ 100.0)
 
     icu_rate = (
-        st.sidebar.number_input("ICU %", 0.0, 100.0, value=35.0, step=5.0, format="%f") / 100.0)
+        st.sidebar.number_input("ICU %", 0.0, 100.0, value=25.0, step=5.0, format="%f") / 100.0)
 
     vent_rate = (
         st.sidebar.number_input("Ventilated %", 0.0, 100.0, value=35.0, step=5.0, format="%f")/ 100.0)
@@ -1179,7 +1180,7 @@ if password == secret:
     R0=0
     J0=0
 
-    S0=1400000-E0-A0-I0-D0-J0-R0
+    S0=S-E0-A0-I0-D0-J0-R0
     beta_j=0.9
     q=0.6
     l=0.6
@@ -2010,4 +2011,3 @@ and treatment coverage is estimated by cumulative treated cases as a proportion 
 
     
     
-

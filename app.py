@@ -768,7 +768,7 @@ if password == secret:
 
 
     hosp_rate = (
-        st.sidebar.number_input("Hospitalization %", 0.0, 100.0, value=1.2, step=0.50, format="%f")/ 100.0)
+        st.sidebar.number_input("Hospitalization %", 0.0, 100.0, value=2.0, step=0.50, format="%f")/ 100.0)
 
     icu_rate = (
         st.sidebar.number_input("ICU %", 0.0, 100.0, value=25.0, step=5.0, format="%f") / 100.0)
@@ -807,7 +807,7 @@ if password == secret:
     "Symptomatic Isolation Rate (contact tracing/quarantine when symptomatic)", 0.0, 100.0, value=34.8 ,step=0.1, format="%f")/100.0)
 
     p_m1 = (st.sidebar.number_input(
-    "Percent of people adhering to mask-wearing after April 22,2020", 0.0, 100.0, value=42.0 ,step=0.1, format="%f")/100.0)
+    "Percent of people adhering to mask-wearing after April 22,2020", 0.0, 100.0, value=38.0 ,step=0.1, format="%f")/100.0)
     p_m2 = (st.sidebar.number_input(
     "Percent of people adhering to mask-wearing during Phased transitioning", 0.0, 100.0, value=45.0 ,step=0.1, format="%f")/100.0)
 
@@ -1584,7 +1584,7 @@ if password == secret:
 
     ##############################
     #4/3/20 First Projection Graph - Admissions
-    #############
+    ##############################
     st.header("""Projected Admissions Models for Erie County""")
     st.subheader("Projected number of **daily** COVID-19 admissions for Erie County: SEIR -Phase Adjusted R_0 with Case Fatality and Asymptomatic Component")
     admits_graph_seir = regional_admissions_chart(projection_admits_e, 
@@ -1813,17 +1813,17 @@ if password == secret:
 
 
     # Chart of Model Comparison for SEIR and Adjusted with Erie County Data
-    st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs Model (SEAIJRD)")
-    st.altair_chart(
+    #st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs Model (SEAIJRD)")
+    #st.altair_chart(
         #alt.layer(seir_ip_c.mark_line())
         #+ alt.layer(seir_d_ip_c.mark_line())
         #+ alt.layer(seir_d_ip_ecases.mark_line())
         #+ 
-        alt.layer(seir_A_ip_ecases.mark_line())
+        #alt.layer(seir_A_ip_ecases.mark_line())
         #+ alt.layer(seir_d_ip_highsocial.mark_line())
-        + alt.layer(graph_selection)
-        + alt.layer(vertical1)
-        , use_container_width=True)
+        #+ alt.layer(graph_selection)
+        #+ alt.layer(vertical1)
+        #, use_container_width=True)
 
     st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs Model (SEPAIJRD)")
     st.altair_chart(

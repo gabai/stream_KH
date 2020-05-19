@@ -1713,12 +1713,12 @@ if password == secret:
 
     # Comparison of Census Single line graph - Hospitalized, ICU, Vent
     if model_options == "Inpatient":
-        columns_comp_census = {"hosp": "Hospital Census", "total_county_beds":"Inpatient Beds"}
-        fold_comp_census = ["Hospital Census", "Inpatient Beds"]
+        columns_comp_census = {"hosp": "Hospital Census"}
+        fold_comp_census = ["Hospital Census"]
         graph_selection = erie_lines_ip
     if model_options == "ICU":
-        columns_comp_census = {"icu": "ICU Census", "total_county_icu": "ICU Beds"}
-        fold_comp_census = ["ICU Census", "ICU Beds"]
+        columns_comp_census = {"icu": "ICU Census"}
+        fold_comp_census = ["ICU Census"]
         graph_selection = erie_lines_icu
     if model_options == "Ventilated":
         columns_comp_census = {"vent": "Ventilated Census"}

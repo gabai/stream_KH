@@ -564,6 +564,52 @@ if password == secret:
         S_n, E_n,A_n, I_n,J_n, R_n, D_n ,RH_n= ret.T
         
         return (S_n, E_n,A_n, I_n,J_n, R_n, D_n, RH_n)
+
+
+    ####The SIR model differential equations with ODE solver. Presymptomatic and masks
+    def betanew2(t,beta,x,p_m1, pm_2 ):
+        if start_day<= t <= int1_delta:
+            beta_decay=beta*(1-decay1)
+        elif int1_delta<=t<int2_delta:
+            beta_decay=beta*(1-decay2)
+        elif int2_delta<=t<=end_delta:
+            beta_decay=beta*(1-decay3)*(1-(x*p_m1))**2
+        elif end_delta<=t<=step2_delta:
+            beta_decay=beta*(1-decay4)*(1-(x*p_m1))**2 
+        else:
+            beta_decay=beta*(1-0.4)*(1-(x*p_m2))**2    
+        return beta_decay
+
+    def derivdecayP(y, t, beta, gamma1, gamma2, alpha, sym, hosp,q,l,n_days, decay1,decay2, decay3, decay4,decay5,start_day, int1_delta, int2_delta, end_delta,
+                    step2_delta,fatal_hosp, x, p_m1, p_m2, delta_p ):
+        S, E, P,A, I,J, R,D,counter = y
+        N=S+E+P+A+I+J+R+D
+        dSdt = - betanew2(t, beta, x, p_m1, p_m2) * S * (q*I + l*J +P+ A)/N 
+        dEdt = betanew2(t, beta, x, p_m1, p_m2) * S * (q*I + l*J +P+ A)/N   - alpha * E
+        dPdt = alpha * E - delta_p * P
+        dAdt = delta_p* P *(1-sym)-gamma1*A
+        dIdt = sym* delta_p* P - gamma1 * I- hosp*I
+        dJdt = hosp * I -gamma2*J
+        dRdt = (1-fatal_hosp)*gamma2 * J + gamma1*(A+I)
+        dDdt = fatal_hosp * gamma2 * J
+        counter = (1-fatal_hosp)*gamma2 * J
+        return dSdt, dEdt,dPdt,dAdt, dIdt, dJdt, dRdt, dDdt, counter
+
+    def sim_sepaijrd_decay_ode(
+        s, e,p,a,i, j,r, d, beta, gamma1, gamma2, alpha, n_days,decay1,decay2,decay3, decay4, decay5, start_day, int1_delta,
+        int2_delta,end_delta, step2_delta, fatal_hosp, sym, hosp, q,
+        l,x, p_m1, p_m2, delta_p):
+        n = s + e + p+a + i + j+ r + d
+        rh=0
+        y0= s,e,p,a,i,j,r,d, rh
+        
+        t=np.arange(0, n_days, step=1)
+        ret = odeint(derivdecayP, y0, t, args=(beta, gamma1, gamma2, alpha, sym, hosp,q,l, n_days, decay1, decay2, decay3, decay4, decay5, start_day, int1_delta,
+                                               int2_delta, end_delta, step2_delta, fatal_hosp, x, p_m1, p_m2, delta_p))
+        S_n, E_n,P_n,A_n, I_n,J_n, R_n, D_n ,RH_n= ret.T
+        
+        return (S_n, E_n,P_n,A_n, I_n,J_n, R_n, D_n, RH_n)
+    
         
     # End Models # 
 
@@ -695,14 +741,14 @@ if password == secret:
     int1_delta = (intervention1 - start_date).days
         
     decay2 = st.sidebar.number_input(
-        "Social distancing (% reduction in social contact) in Week 3 - School Closure", 0, 100, value=15, step=5, format="%i")/100.0
+        "Social distancing (% reduction in social contact) in Week 3 - School Closure", 0, 100, value=10, step=5, format="%i")/100.0
 
     intervention2 = st.sidebar.date_input(
         "Date of change in Social Distancing - Closure Businesses, Shelter in Place", datetime(2020,3,28))
     int2_delta = (intervention2 - start_date).days
 
     decay3 = st.sidebar.number_input(
-        "Social distancing (% reduction in social contact) from Week 3 to change in SD - After Business Closure%", 0, 100, value=45 ,step=5, format="%i")/100.0
+        "Social distancing (% reduction in social contact) from Week 3 to change in SD - After Business Closure%", 0, 100, value=25 ,step=5, format="%i")/100.0
 
     end_date = st.sidebar.date_input(
         "Step 1 reduction in social distancing", datetime(2020,5,15))
@@ -710,7 +756,7 @@ if password == secret:
     end_delta = (end_date - start_date).days
 
     decay4 = st.sidebar.number_input(
-        "Step 1 reduction in social distancing %", 0, 100, value=35 ,step=5, format="%i")/100.0
+        "Step 1 reduction in social distancing %", 0, 100, value=25 ,step=5, format="%i")/100.0
 
     step2 = st.sidebar.date_input(
         "Step 2 reduction in social distancing", datetime(2020,6,15))
@@ -722,7 +768,7 @@ if password == secret:
 
 
     hosp_rate = (
-        st.sidebar.number_input("Hospitalization %", 0.0, 100.0, value=4.0, step=0.50, format="%f")/ 100.0)
+        st.sidebar.number_input("Hospitalization %", 0.0, 100.0, value=1.2, step=0.50, format="%f")/ 100.0)
 
     icu_rate = (
         st.sidebar.number_input("ICU %", 0.0, 100.0, value=25.0, step=5.0, format="%f") / 100.0)
@@ -731,7 +777,7 @@ if password == secret:
         st.sidebar.number_input("Ventilated %", 0.0, 100.0, value=35.0, step=5.0, format="%f")/ 100.0)
 
     incubation_period =(
-        st.sidebar.number_input("Incubation Period", 0.0, 12.0, value=5.2, step=0.1, format="%f"))
+        st.sidebar.number_input("Incubation Period", 0.0, 12.0, value=3.1, step=0.1, format="%f"))
 
     recovery_days =(
         st.sidebar.number_input("Recovery Period", 0.0, 21.0, value=11.0 ,step=0.1, format="%f"))
@@ -743,7 +789,7 @@ if password == secret:
         "Overall Fatality (%)", 0.0, 100.0, value=0.5 ,step=0.1, format="%f")/100.0
 
     fatal_hosp = st.sidebar.number_input(
-        "Hospital Fatality (%)", 0.0, 100.0, value=4.0 ,step=0.1, format="%f")/100.0
+        "Hospital Fatality (%)", 0.0, 100.0, value=9.9 ,step=0.1, format="%f")/100.0
 
     #  death_days = st.sidebar.number_input(
     #       "Days person remains in critical care or dies", 0, 20, value=4 ,step=1, format="%f")
@@ -755,11 +801,18 @@ if password == secret:
         "Days person remains in hospital or dies", 0, 20, value=4 ,step=1, format="%f")
 
     asymptomatic = 1-(st.sidebar.number_input(
-        "Asymptomatic (%)", 0.0, 100.0, value=25.0 ,step=0.1, format="%f")/100.0)
+        "Asymptomatic (%)", 0.0, 100.0, value=32.2 ,step=0.1, format="%f")/100.0)
 
     q = 1-(st.sidebar.number_input(
-    "Symptomatic Isolation Rate (contact tracing/quarantine when symptomatic)", 0.0, 100.0, value=40.0 ,step=0.1, format="%f")/100.0)
+    "Symptomatic Isolation Rate (contact tracing/quarantine when symptomatic)", 0.0, 100.0, value=34.8 ,step=0.1, format="%f")/100.0)
 
+    p_m1 = (st.sidebar.number_input(
+    "Percent of people adhering to mask-wearing after April 22,2020", 0.0, 100.0, value=42.0 ,step=0.1, format="%f")/100.0)
+    p_m2 = (st.sidebar.number_input(
+    "Percent of people adhering to mask-wearing during Phased transitioning", 0.0, 100.0, value=45.0 ,step=0.1, format="%f")/100.0)
+
+    delta_p = 1/(st.sidebar.number_input(
+    "Days a person is pre-symptomatic", 0.0, 10.0, value=1.7 ,step=1.0, format="%f"))
     hosp_los = st.sidebar.number_input("Hospital Length of Stay", value=6, step=1, format="%i")
     icu_los = st.sidebar.number_input("ICU Length of Stay", value=11, step=1, format="%i")
     vent_los = st.sidebar.number_input("Ventilator Length of Stay", value=10, step=1, format="%i")
@@ -1226,6 +1279,62 @@ if password == secret:
                 i_hospitalized_A,
                 i_icu_A,
                 i_ventilated_A)
+    ##################################################################
+    ## SEIR model with phase adjusted R_0 and Disease Related Fatality,
+    ## Asymptomatic, Hospitalization, Presymptomatic, and masks
+    E0=100
+    A0=100
+    I0=100
+    D0=0
+    R0=0
+    J0=0
+    P0=120
+    x=0.5
+    S0=S-E0-P0-A0-I0-D0-J0-R0
+    beta_j=0.6
+    q=0.583
+    l=0.717
+    gamma_hosp=1/hosp_lag
+    AAA=beta4*(1/gamma2)*S
+    beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
+
+    R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
+    beta_j=0.51
+    R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
+
+    S_p, E_p,P_p,A_p, I_p,J_p, R_p, D_p, RH_p=sim_sepaijrd_decay_ode(S0, E0, P0,A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
+                                                          decay1,decay2,decay3, decay4, decay5, start_day, int1_delta, int2_delta,
+                                                          end_delta, step2_delta, fatal_hosp,asymptomatic, hosp_rate, q,  l,x, p_m1, p_m2, delta_p)
+
+    icu_curve= J_p*icu_rate
+    vent_curve=J_p*vent_rate
+
+    hosp_rate_p=1.0
+    RateLos = namedtuple("RateLos", ("rate", "length_of_stay"))
+    hospitalized_p=RateLos(hosp_rate_p, hosp_los)
+    icu_rate_p= icu_rate
+    vent_rate_p= vent_rate
+    icu=RateLos(icu_rate_p, icu_los)
+    ventilated=RateLos(vent_rate_p, vent_los)
+
+
+    rates_p = tuple(each.rate for each in (hospitalized_p, icu, ventilated))
+    lengths_of_stay = tuple(each.length_of_stay for each in (hospitalized_p, icu, ventilated))
+
+
+    i_hospitalized_P, i_icu_P, i_ventilated_P = get_dispositions(J_p, rates_p, regional_hosp_share)
+
+    r_hospitalized_P, r_icu_P, r_ventilated_P = get_dispositions(RH_p, rates_p, regional_hosp_share)
+    d_hospitalized_P, d_icu_P, d_ventilated_P = get_dispositions(D_p, rates_p, regional_hosp_share)
+    dispositions_P_ecases = (
+                i_hospitalized_P + r_hospitalized_P+ d_hospitalized_P ,
+                i_icu_P+r_icu_P+d_icu_P,
+                i_ventilated_P+r_ventilated_P +d_ventilated_P)
+
+    hospitalized_P_ecases, icu_P, ventilated_P = (
+                i_hospitalized_P,
+                i_icu_P,
+                i_ventilated_P)
 
 
 
@@ -1342,6 +1451,13 @@ if password == secret:
     projection_admits_A_ecases = build_admissions_df_n(dispositions_A_ecases)
     ## Census Table
     census_table_A_ecases = build_census_df(projection_admits_A_ecases)
+
+        #############
+    # SEPAIJRD Model 
+    # New Cases
+    projection_admits_P_ecases = build_admissions_df_n(dispositions_P_ecases)
+    ## Census Table
+    census_table_P_ecases = build_census_df(projection_admits_P_ecases)
 
     # Erie Graph of Cases: SEIR
     # Admissions Graphs
@@ -1470,7 +1586,7 @@ if password == secret:
     #4/3/20 First Projection Graph - Admissions
     #############
     st.header("""Projected Admissions Models for Erie County""")
-    st.subheader("Projected number of **daily** COVID-19 admissions for Erie County: SEIR - Phase Adjusted R_0 with Case Fatality")
+    st.subheader("Projected number of **daily** COVID-19 admissions for Erie County: SEIR -Phase Adjusted R_0 with Case Fatality and Asymptomatic Component")
     admits_graph_seir = regional_admissions_chart(projection_admits_e, 
             plot_projection_days, 
             as_date=as_date)
@@ -1489,6 +1605,10 @@ if password == secret:
     admits_graph_A= regional_admissions_chart(projection_admits_A_ecases, 
             plot_projection_days, 
             as_date=as_date)
+    ### SEPAIJRD
+    admits_graph_P= regional_admissions_chart(projection_admits_P_ecases, 
+            plot_projection_days, 
+            as_date=as_date)
             
     st.altair_chart(
         #admits_graph_seir
@@ -1498,6 +1618,19 @@ if password == secret:
         vertical1
         #+ admits_graph_ecases
         + admits_graph_A
+        #+ admits_graph_highsocial
+        #+ erie_admit24_line
+        , use_container_width=True)
+    st.subheader("Projected number of **daily** COVID-19 admissions for Erie County: SEIR - Phase Adjusted R_0 with Case Fatality with Asymptomatic, Pre-Symptomatic, and Mask-use")
+ 
+    st.altair_chart(
+        #admits_graph_seir
+        #+ 
+        #admits_graph 
+        #+ 
+        vertical1
+        #+ admits_graph_ecases
+        + admits_graph_P
         #+ admits_graph_highsocial
         #+ erie_admit24_line
         , use_container_width=True)
@@ -1674,17 +1807,31 @@ if password == secret:
     seir_d_ip_ecases = ip_census_chart(census_table_D_ecases, plot_projection_days, as_date=as_date)
     ### 4/22/20 seaijrd
     seir_A_ip_ecases = ip_census_chart(census_table_A_ecases, plot_projection_days, as_date=as_date)
+    ### 4/22/20 sepaijrd
+    seir_P_ip_ecases = ip_census_chart(census_table_P_ecases, plot_projection_days, as_date=as_date)
 
 
 
     # Chart of Model Comparison for SEIR and Adjusted with Erie County Data
-    st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs Model")
+    st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs Model (SEAIJRD)")
     st.altair_chart(
         #alt.layer(seir_ip_c.mark_line())
         #+ alt.layer(seir_d_ip_c.mark_line())
         #+ alt.layer(seir_d_ip_ecases.mark_line())
         #+ 
         alt.layer(seir_A_ip_ecases.mark_line())
+        #+ alt.layer(seir_d_ip_highsocial.mark_line())
+        + alt.layer(graph_selection)
+        + alt.layer(vertical1)
+        , use_container_width=True)
+
+    st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs Model (SEPAIJRD)")
+    st.altair_chart(
+        #alt.layer(seir_ip_c.mark_line())
+        #+ alt.layer(seir_d_ip_c.mark_line())
+        #+ alt.layer(seir_d_ip_ecases.mark_line())
+        #+ 
+        alt.layer(seir_P_ip_ecases.mark_line())
         #+ alt.layer(seir_d_ip_highsocial.mark_line())
         + alt.layer(graph_selection)
         + alt.layer(vertical1)
@@ -1846,6 +1993,8 @@ if password == secret:
 
     recov_infec = additional_projections_chart(i_D, r_D, d_D)
 
+    
+
 
     def death_chart(i: np.ndarray, r: np.ndarray, d: np.ndarray) -> alt.Chart:
         dat = pd.DataFrame({"Infected": i, "Recovered": r, "Fatal":d})
@@ -1956,6 +2105,28 @@ if password == secret:
         )
 
     st.altair_chart(additional_projections_chart(A_n, I_n, J_n, D_n), use_container_width=True)
+
+    st.subheader("Presymptomatic, Asymptomatic, Symptomatic,Hospitalized,and Fatal individuals in the **region** across time")
+
+    def additional_projections_chart(p:np.ndarray,a:np.ndarray, i:np.ndarray, j:np.ndarray,d:np.ndarray)  -> alt.Chart:
+        dat = pd.DataFrame({"Presymptomatic":p,"Asymptomatic":a,"Symptomatic":i, "Hospitalized":j,"Fatal":d})
+
+        return (
+            alt
+            .Chart(dat.reset_index())
+            .transform_fold(fold=["Presymptomatic","Asymptomatic","Symptomatic", "Hospitalized","Fatal"])
+            .mark_line(point=False)
+            .encode(
+                x=alt.X("index", title="Days from initial infection"),
+                y=alt.Y("value:Q", title="Case Volume"),
+                tooltip=["key:N", "value:Q"], 
+                color="key:N"
+            )
+            .interactive()
+        )
+
+    st.altair_chart(additional_projections_chart(P_p,A_p, I_p, J_p, D_p), use_container_width=True)
+
 
     ############################### prevalence and incidence ###########################
     # https://www.tandfonline.com/doi/full/10.1057/hs.2015.2

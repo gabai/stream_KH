@@ -759,23 +759,23 @@ intervention3 = st.sidebar.date_input(
 int3_delta = (intervention3 - start_date).days
 
 decay4 = st.sidebar.number_input(
-    "NYS Facemask Mandate", 0, 100, value=25 ,step=5, format="%i")/100.0
+    "NYS Facemask Mandate, change in social distancing %", 0, 100, value=25 ,step=5, format="%i")/100.0
 
 end_date = st.sidebar.date_input(
-    "Step 1 reduction in social distancing", datetime(2020,5,15))
+    "Phase 1 Reopening", datetime(2020,5,19))
 # Delta from start and end date for decay4
 end_delta = (end_date - start_date).days
 
 decay5 = st.sidebar.number_input(
-    "Step 1 reduction in social distancing %", 0, 100, value=15 ,step=5, format="%i")/100.0
+    "Phase 1 Reopening, change in social distancing %", 0, 100, value=15 ,step=5, format="%i")/100.0
 
 step2 = st.sidebar.date_input(
-    "Step 2 reduction in social distancing", datetime(2020,6,15))
+    "Phase 2 Reopening", datetime(2020,6,15))
 # Delta from start and end date for decay4
 step2_delta = (step2 - start_date).days
 
 decay6 = st.sidebar.number_input(
-    "Step 2 reduction in social distancing %", 0, 100, value=0 ,step=5, format="%i")/100.0
+    "Phase 2 Reopening, change in social distancing %", 0, 100, value=0 ,step=5, format="%i")/100.0
 
 hosp_rate = (
     st.sidebar.number_input("Hospitalization %", 0.0, 100.0, value=1.5, step=0.50, format="%f")/ 100.0)
@@ -817,9 +817,9 @@ q = 1-(st.sidebar.number_input(
 "Symptomatic Isolation Rate (contact tracing/quarantine when symptomatic)", 0.0, 100.0, value=34.8 ,step=0.1, format="%f")/100.0)
 
 p_m1 = (st.sidebar.number_input(
-"Percent of people adhering to mask-wearing after April 22,2020", 0.0, 100.0, value=38.0 ,step=0.1, format="%f")/100.0)
+"Percent of people adhering to mask-wearing after April 22,2020", 0.0, 100.0, value=40.0 ,step=0.1, format="%f")/100.0)
 p_m2 = (st.sidebar.number_input(
-"Percent of people adhering to mask-wearing during Phased transitioning", 0.0, 100.0, value=45.0 ,step=0.1, format="%f")/100.0)
+"Percent of people adhering to mask-wearing during Phased transitioning", 0.0, 100.0, value=60.0 ,step=0.1, format="%f")/100.0)
 
 delta_p = 1/(st.sidebar.number_input(
 "Days a person is pre-symptomatic", 0.0, 10.0, value=1.7 ,step=1.0, format="%f"))
@@ -1757,7 +1757,7 @@ def ip_census_chart(
         .mark_line(point=False)
         .encode(
             x=alt.X(**x_kwargs),
-            y=alt.Y("value:Q", title="Census", scale=alt.Scale(domain=[0, 250])),
+            y=alt.Y("value:Q", title="Census", scale=alt.Scale(domain=[0, 1800])),
             color="key:N",
             tooltip=[
                 tooltip_dict[as_date],
@@ -1767,6 +1767,8 @@ def ip_census_chart(
         )
         .interactive()
     )
+
+#, scale=alt.Scale(domain=[0, 250])
 
 def ip_census_upper(
     census: pd.DataFrame,

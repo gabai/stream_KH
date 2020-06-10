@@ -21,14 +21,6 @@ from scipy.integrate import odeint
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-# Create S3 object to get the ENV variable from Heroku
-#secret = os.environ['SECRET_KEY']
-
-# Prompt the user for the secret
-#password = st.text_input("Secret Handshake:", value="", type="password")
-
-# If the secrete provided matches the ENV, proceeed with the app
-#if password == secret:
 hide_menu_style = """
     <style>
     #MainMenu {visibility: hidden;}
@@ -115,14 +107,6 @@ def build_admissions_df(
     )
     projection = pd.DataFrame.from_dict(data_dict)
     
-    counter = 0
-    for i in hosp_list:
-        projection[groups[0]+"_"+i] = projection.hosp*bed_share.iloc[3,counter]
-        projection[groups[1]+"_"+i] = projection.icu*bed_share.iloc[3,counter]
-        projection[groups[2]+"_"+i] = projection.vent*bed_share.iloc[3,counter]
-        counter +=1
-        if counter == 4: break
-    
     # New cases
     projection_admits = projection.iloc[:-1, :] - projection.shift(1)
     projection_admits["day"] = range(projection_admits.shape[0])
@@ -140,14 +124,6 @@ def build_admissions_df_n(
     )
     projection = pd.DataFrame.from_dict(data_dict)
     
-    counter = 0
-    for i in hosp_list:
-        projection[groups[0]+"_"+i] = projection.hosp*bed_share.iloc[3,counter]
-        projection[groups[1]+"_"+i] = projection.icu*bed_share.iloc[3,counter]
-        projection[groups[2]+"_"+i] = projection.vent*bed_share.iloc[3,counter]
-        counter +=1
-        if counter == 4: break
-    
     # New cases
     projection_admits = projection.iloc[:-1, :] - projection.shift(1)
     projection_admits["day"] = range(projection_admits.shape[0])
@@ -164,14 +140,6 @@ def build_prev_df_n(
         )
     )
     projection = pd.DataFrame.from_dict(data_dict)
-    
-    counter = 0
-    for i in hosp_list:
-        projection[groups[0]+"_"+i] = projection.hosp*bed_share.iloc[3,counter]
-        projection[groups[1]+"_"+i] = projection.icu*bed_share.iloc[3,counter]
-        projection[groups[2]+"_"+i] = projection.vent*bed_share.iloc[3,counter]
-        counter +=1
-        if counter == 4: break
     
     # New cases
     projection_admits = projection.iloc[:-1, :] - projection.shift(1)
@@ -406,47 +374,6 @@ def seijcrd(
     scale = n / (s_n + e_n+ i_n + j_n+ c_n+ r_n + d_n)
     return s_n * scale, e_n * scale, i_n * scale, j_n* scale, c_n*scale, r_n * scale, d_n * scale
 
-def sim_seijcrd_decay(
-    s: float, e:float, i: float, j:float, c: float, r: float, d: float, beta: float, gamma: float, alpha: float, n_days: int,
-    decay1:float, decay2:float, decay3: float, decay4: float, end_delta: int, fatal_hosp: float, hosp_rate: float, icu_rate: float, icu_days:float, crit_lag: float, death_days:float
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    """Simulate the SIR model forward in time."""
-    s, e, i, j, c, r, d= (float(v) for v in (s, e, i, c, j, r, d))
-    n = s + e + i + j+r + d
-    s_v, e_v, i_v, j_v, c_v, r_v, d_v = [s], [e], [i], [j], [c], [r], [d]
-    for day in range(n_days):
-        if 0<=day<=21:
-            beta = (alpha+(2 ** (1 / 1.61) - 1))*((2 ** (1 / 1.61) - 1) + (1/infectious_period)) / (alpha*S)
-            beta_decay=beta*(1-decay1)
-        elif 22<=day<=28:
-            beta = (alpha+(2 ** (1 / 2.65) - 1))*((2 ** (1 / 2.65) - 1)+ (1/infectious_period)) / (alpha*S)
-            beta_decay=beta*(1-decay2)
-        elif 29<=day<=end_delta: 
-            beta = (alpha+(2 ** (1 / 5.32) - 1))*((2 ** (1 / 5.32) - 1)+ (1/infectious_period)) / (alpha*S)
-            beta_decay=beta*(1-decay3)
-        else:
-            beta = (alpha+(2 ** (1 / 9.70) - 1))*((2 ** (1 / 9.70) - 1)+ (1/infectious_period)) / (alpha*S)
-            beta_decay=beta*(1-decay4)
-        s, e, i,j, c, r,d = seijcrd(s, e, i,j, c, r, d, beta_decay, gamma, alpha, n, fatal_hosp, hosp_rate, icu_rate, icu_days, crit_lag, death_days)
-        s_v.append(s)
-        e_v.append(e)
-        i_v.append(i)
-        j_v.append(j)
-        c_v.append(c)
-        r_v.append(r)
-        d_v.append(d)
-
-    return (
-        np.array(s_v),
-        np.array(e_v),
-        np.array(i_v),
-        np.array(j_v),
-        np.array(c_v),
-        np.array(r_v),
-        np.array(d_v)
-    )
-
-
 def betanew(t,beta):
     if start_day<= t <= int1_delta:
         beta_decay=beta*(1-decay1)
@@ -592,32 +519,21 @@ def add_date_column(
 
     
 # List of Hospitals
-hosp_list = ['kh', 'ecmc', 'chs', 'rpci']
-groups = ['hosp', 'icu', 'vent']
-
-# Hospital Bed Sharing Percentage
-# ignore the first 3 numbers
-data = {
-    'Kaleida' : [0.34, 0.34, 0.26, 0.38],
-    'ECMC': [0.14, 0.20, 0.17, 0.23], 
-    'CHS': [0.21, 0.17, 0.18, 0.33],
-    'RPCI': [0.0, 0.09, 0.06, 0.05]
-}
-bed_share = pd.DataFrame(data)
+# hosp_list = ['kh', 'ecmc', 'chs', 'rpci']
+# groups = ['hosp', 'icu', 'vent']
 
 url = 'https://raw.githubusercontent.com/gabai/stream_KH/master/Cases_Erie.csv'
 erie_df = pd.read_csv(url)
 erie_df['Date'] = pd.to_datetime(erie_df['Date'])
 
 # Populations and Infections
-erie = 1400000
-monroe = 741770
-cases_erie = erie_df['Cases'].iloc[-1]
-S_default = erie
-known_infections = erie_df['Cases'].iloc[-1]
-known_cases = erie_df['Admissions'].iloc[-1]
-regional_hosp_share = 1.0
-S = erie
+# erie = 1400000
+# cases_erie = erie_df['Cases'].iloc[-1]
+# S_default = erie
+# known_infections = erie_df['Cases'].iloc[-1]
+# known_cases = erie_df['Admissions'].iloc[-1]
+# regional_hosp_share = 1.0
+# S = erie
 
 
 # Widgets
@@ -633,8 +549,11 @@ S = erie
 # doubling_time = st.sidebar.number_input(
     # "Doubling Time (days)", value=3.0, step=1.0, format="%f")
 
-start_date = st.sidebar.date_input(
-    "Suspected first contact", datetime(2020,3,1))
+start_date = date(2020,3,1)
+
+
+# start_date = st.sidebar.date_input(
+    # "Suspected first contact", datetime(2020,3,1))
 start_day = 1
     
 # relative_contact_rate = st.sidebar.number_input(
@@ -680,14 +599,14 @@ step2_delta = (step2 - start_date).days
 # decay6 = st.sidebar.number_input(
     # "Phase 2 Reopening, change in social distancing %", 0, 100, value=0 ,step=5, format="%i")/100.0
 
-hosp_rate = (
-    st.sidebar.number_input("Hospitalization %", 0.0, 100.0, value=1.5, step=0.50, format="%f")/ 100.0)
+# hosp_rate = (
+    # st.sidebar.number_input("Hospitalization %", 0.0, 100.0, value=1.5, step=0.50, format="%f")/ 100.0)
 
-icu_rate = (
-    st.sidebar.number_input("ICU %", 0.0, 100.0, value=25.0, step=5.0, format="%f") / 100.0)
+# icu_rate = (
+    # st.sidebar.number_input("ICU %", 0.0, 100.0, value=25.0, step=5.0, format="%f") / 100.0)
 
-vent_rate = (
-    st.sidebar.number_input("Ventilated %", 0.0, 100.0, value=35.0, step=5.0, format="%f")/ 100.0)
+# vent_rate = (
+    # st.sidebar.number_input("Ventilated %", 0.0, 100.0, value=35.0, step=5.0, format="%f")/ 100.0)
 
 incubation_period =(
     st.sidebar.number_input("Incubation Period", 0.0, 12.0, value=3.1, step=0.1, format="%f"))
@@ -716,19 +635,19 @@ hosp_lag = st.sidebar.number_input(
 asymptomatic = 1-(st.sidebar.number_input(
     "Asymptomatic (%)", 0.0, 100.0, value=32.2 ,step=0.1, format="%f")/100.0)
 
-q = 1-(st.sidebar.number_input(
-"Symptomatic Isolation Rate (contact tracing/quarantine when symptomatic)", 0.0, 100.0, value=34.8 ,step=0.1, format="%f")/100.0)
+# q = 1-(st.sidebar.number_input(
+# "Symptomatic Isolation Rate (contact tracing/quarantine when symptomatic)", 0.0, 100.0, value=34.8 ,step=0.1, format="%f")/100.0)
 
-p_m1 = (st.sidebar.number_input(
-"Percent of people adhering to mask-wearing after April 22,2020", 0.0, 100.0, value=38.0 ,step=0.1, format="%f")/100.0)
-p_m2 = (st.sidebar.number_input(
-"Percent of people adhering to mask-wearing during Phased transitioning", 0.0, 100.0, value=45.0 ,step=0.1, format="%f")/100.0)
+# p_m1 = (st.sidebar.number_input(
+# "Percent of people adhering to mask-wearing after April 22,2020", 0.0, 100.0, value=38.0 ,step=0.1, format="%f")/100.0)
+# p_m2 = (st.sidebar.number_input(
+# "Percent of people adhering to mask-wearing during Phased transitioning", 0.0, 100.0, value=45.0 ,step=0.1, format="%f")/100.0)
 
 delta_p = 1/(st.sidebar.number_input(
 "Days a person is pre-symptomatic", 0.0, 10.0, value=1.7 ,step=1.0, format="%f"))
-hosp_los = st.sidebar.number_input("Hospital Length of Stay", value=6, step=1, format="%i")
-icu_los = st.sidebar.number_input("ICU Length of Stay", value=11, step=1, format="%i")
-vent_los = st.sidebar.number_input("Ventilator Length of Stay", value=10, step=1, format="%i")
+# hosp_los = st.sidebar.number_input("Hospital Length of Stay", value=6, step=1, format="%i")
+# icu_los = st.sidebar.number_input("ICU Length of Stay", value=11, step=1, format="%i")
+# vent_los = st.sidebar.number_input("Ventilator Length of Stay", value=10, step=1, format="%i")
 
 # regional_hosp_share = (
 # st.sidebar.number_input(
@@ -969,17 +888,6 @@ erie_lines_vent = erie_vent(erie_df)
 # Bar chart of Erie cases with layer of HERDS DAta Erie
 #st.altair_chart(erie_cases_bar + erie_lines, use_container_width=True)
 
-beta_decay = 0.0
-
-RateLos = namedtuple("RateLos", ("rate", "length_of_stay"))
-hospitalized=RateLos(hosp_rate, hosp_los)
-icu=RateLos(icu_rate, icu_los)
-ventilated=RateLos(vent_rate, vent_los)
-
-rates = tuple(each.rate for each in (hospitalized, icu, ventilated))
-lengths_of_stay = tuple(each.length_of_stay for each in (hospitalized, icu, ventilated))
-
-
 # General variables
 current_hosp=1
 incubation_period = 3.1
@@ -993,27 +901,35 @@ recovered = 0.0
 #r_naught = (intrinsic_growth_rate + gamma) / gamma
 #doubling_time_t = 1/np.log2(beta*S - gamma +1) # doubling time after distancing
 
-# for SEIJRD
-gamma_hosp = 1 / hosp_los
-icu_days = 1 / icu_los
-
 
 #############
 ### SIR model
+S_default = 1500000
+S = S_default
 doubling_time=3
 relative_contact_rate= 0
 intrinsic_growth_rate = 2 ** (1 / doubling_time) - 1
 beta = (intrinsic_growth_rate + gamma) / S * (1-relative_contact_rate)
 
-hosp_rate = 0.14
+hosp_rate = 0.1
 icu_rate = 0.04
 vent_rate = 0.02
 hosp_los = 10
 icu_los = 9
 vent_los = 7
 incubation_period = 5.2
-S_default = 1500000
 total_infections = current_hosp / regional_hosp_share / hosp_rate
+
+gamma_hosp = 1 / hosp_los
+icu_days = 1 / icu_los
+beta_decay = 0.0
+RateLos = namedtuple("RateLos", ("rate", "length_of_stay"))
+hospitalized=RateLos(hosp_rate, hosp_los)
+icu=RateLos(icu_rate, icu_los)
+ventilated=RateLos(vent_rate, vent_los)
+
+rates = tuple(each.rate for each in (hospitalized, icu, ventilated))
+lengths_of_stay = tuple(each.length_of_stay for each in (hospitalized, icu, ventilated))
 
 s_v, i_v, r_v = sim_sir(S-2, 1, 1 ,beta, gamma, n_days)
 susceptible_v, infected_v, recovered_v = s_v, i_v, r_v
@@ -1035,19 +951,20 @@ hospitalized_v, icu_v, ventilated_v = (
 
 ##############
 ### SEIR model v1 (0% SD)
+S_default = 1500000
+S = S_default
 doubling_time=3
 relative_contact_rate=0
 intrinsic_growth_rate = 2 ** (1 / doubling_time) - 1
 beta = (intrinsic_growth_rate + gamma) / S * (1-relative_contact_rate)
 
-hosp_rate = 0.14
+hosp_rate = 0.1
 icu_rate = 0.04
 vent_rate = 0.02
 hosp_los = 10
 icu_los = 9
 vent_los = 7
 incubation_period = 5.2
-S_default = 1500000
 total_infections = current_hosp / regional_hosp_share / hosp_rate
 
 beta2 = (intrinsic_growth_rate + (1/infectious_period)) / S * (1-relative_contact_rate)
@@ -1078,7 +995,8 @@ hospitalized_e1, icu_e1, ventilated_e1 = (
 
 ##############
 ### SEIR model v2 (30% SD)
-
+S_default = 1500000
+S = S_default
 doubling_time=3
 relative_contact_rate=0.3
 intrinsic_growth_rate = 2 ** (1 / doubling_time) - 1
@@ -1091,7 +1009,6 @@ hosp_los = 10
 icu_los = 9
 vent_los = 7
 incubation_period = 5.2
-S_default = 1500000
 total_infections = current_hosp / regional_hosp_share / hosp_rate
 
 beta2 = (intrinsic_growth_rate + (1/infectious_period)) / S * (1-relative_contact_rate)
@@ -1121,7 +1038,8 @@ hospitalized_e2, icu_e2, ventilated_e2 = (
 
 #####################################
 ## SEIR model with phase adjusted R_0 (version 1)
-
+S_default = 1500000
+S = S_default
 doubling_time=4
 relative_contact_rate=0
 intrinsic_growth_rate = 2 ** (1 / doubling_time) - 1
@@ -1140,7 +1058,6 @@ hosp_los = 10
 icu_los = 9
 vent_los = 7
 incubation_period = 5.8
-S_default = 1500000
 
 beta2 = (intrinsic_growth_rate + (1/infectious_period)) / S * (1-relative_contact_rate)
 beta3 = ((alpha+intrinsic_growth_rate)*(intrinsic_growth_rate + (1/infectious_period))) / (alpha*S) *(1-relative_contact_rate)
@@ -1170,7 +1087,8 @@ hospitalized_R1, icu_R1, ventilated_R1 = (
 
 #####################################
 ## SEIR model with phase adjusted R_0 (version 2)
-
+S_default = 1500000
+S = S_default
 doubling_time=3
 relative_contact_rate=0
 intrinsic_growth_rate = 2 ** (1 / doubling_time) - 1
@@ -1189,7 +1107,6 @@ hosp_los = 10
 icu_los = 9
 vent_los = 7
 incubation_period = 5.8
-S_default = 1500000
 
 beta2 = (intrinsic_growth_rate + (1/infectious_period)) / S * (1-relative_contact_rate)
 beta3 = ((alpha+intrinsic_growth_rate)*(intrinsic_growth_rate + (1/infectious_period))) / (alpha*S) *(1-relative_contact_rate)
@@ -1217,11 +1134,59 @@ hospitalized_R2, icu_R2, ventilated_R2 = (
             i_ventilated_R)
 
 
+#####################################
+## SEIR model with phase adjusted R_0 (version 2)
+S_default = 1500000
+S = S_default
+doubling_time=3
+relative_contact_rate=0
+intrinsic_growth_rate = 2 ** (1 / doubling_time) - 1
+beta = (intrinsic_growth_rate + gamma) / S * (1-relative_contact_rate)
+
+current_hosp=1
+decay1 = 0 # From 0-2 weeks
+decay2 = 0.1 # From 2-3 weeks
+decay3 = 0.3 # From 3 to face-mask mandate
+decay4 = 0.3 # From face-mask forward, didn't have phase 1 reopen here
+hosp_rate = 0.05
+icu_rate = 0.0125
+vent_rate = 0.01
+hosp_los = 5
+icu_los = 8
+vent_los = 8
+incubation_period = 5.8
+
+beta2 = (intrinsic_growth_rate + (1/infectious_period)) / S * (1-relative_contact_rate)
+beta3 = ((alpha+intrinsic_growth_rate)*(intrinsic_growth_rate + (1/infectious_period))) / (alpha*S) *(1-relative_contact_rate)
+beta4 = ((alpha+intrinsic_growth_rate)*(intrinsic_growth_rate + (1/infectious_period))) / (alpha*S) 
+gamma2= 1/infectious_period
+exposed2= beta4*S*total_infections
+S2= S-exposed2-total_infections
+
+s_R, e_R, i_R, r_R = sim_seir_decay(S-2, 1 ,1, 0.0, beta4, gamma2,alpha, n_days, decay1, decay2, decay3, decay4, end_delta)
+
+susceptible_R, exposed_R, infected_R, recovered_R = s_R, e_R, i_R, r_R
+
+i_hospitalized_R, i_icu_R, i_ventilated_R = get_dispositions(i_R, rates, regional_hosp_share)
+
+r_hospitalized_R, r_icu_R, r_ventilated_R = get_dispositions(r_R, rates, regional_hosp_share)
+
+dispositions_R3 = (
+            i_hospitalized_R + r_hospitalized_R,
+            i_icu_R + r_icu_R,
+            i_ventilated_R + r_ventilated_R)
+
+hospitalized_R3, icu_R3, ventilated_R3 = (
+            i_hospitalized_R,
+            i_icu_R,
+            i_ventilated_R)
 
 ##################################################################
 ## SEIR model with phase adjusted R_0 and Disease Related Fatality
 ## Model based on Erie cases with set parameters of extreme social distancing
 
+S_default = 1500000
+S = S_default
 current_hosp=1
 doubling_time=2
 relative_contact_rate=0
@@ -1241,7 +1206,6 @@ hosp_los = 5
 icu_los = 8
 vent_los = 8
 incubation_period = 5.8
-S_default = 1500000
 
 beta2 = (intrinsic_growth_rate + (1/infectious_period)) / S * (1-relative_contact_rate)
 beta3 = ((alpha+intrinsic_growth_rate)*(intrinsic_growth_rate + (1/infectious_period))) / (alpha*S) *(1-relative_contact_rate)
@@ -1271,7 +1235,8 @@ hospitalized_D_socialcases, icu_D, ventilated_D = (
 ##################################################################
 ## SEIR model with phase adjusted R_0 and Disease Related Fatality 
 # Version SEIRDJ
-
+S_default = 1500000
+S = S_default
 current_hosp = 1
 doubling_time = 3
 relative_contact_rate = 0
@@ -1289,7 +1254,6 @@ hosp_los = 5
 icu_los = 8
 vent_los = 8
 incubation_period = 5.8
-S_default = 1500000
 
 beta2 = (intrinsic_growth_rate + (1/infectious_period)) / S * (1-relative_contact_rate)
 beta3 = ((alpha+intrinsic_growth_rate)*(intrinsic_growth_rate + (1/infectious_period))) / (alpha*S) *(1-relative_contact_rate)
@@ -1322,7 +1286,8 @@ hospitalized_D, icu_D, ventilated_D = (
 ##################################################################
 ## SEIR model with phase adjusted R_0 and Disease Related Fatality
 # Asymptomatic Compartment
-
+S_default = 1400000
+S = S_default
 current_hosp=1
 doubling_time=3
 relative_contact_rate=0
@@ -1342,7 +1307,6 @@ hosp_los = 5
 icu_los = 11
 vent_los = 10
 incubation_period = 5.8
-S_default = 1400000
 
 beta2 = (intrinsic_growth_rate + (1/infectious_period)) / S * (1-relative_contact_rate)
 beta3 = ((alpha+intrinsic_growth_rate)*(intrinsic_growth_rate + (1/infectious_period))) / (alpha*S) *(1-relative_contact_rate)
@@ -1411,6 +1375,8 @@ hospitalized_A_ecases, icu_A, ventilated_A = (
 ## SEIR model with phase adjusted R_0 and Disease Related Fatality
 # Version 1
 
+S_default = 1400000
+S = S_default
 doubling_time=3
 relative_contact_rate=0
 intrinsic_growth_rate = 2 ** (1 / doubling_time) - 1
@@ -1431,7 +1397,6 @@ hosp_los = 5
 icu_los = 11
 vent_los = 10
 incubation_period = 5.8
-S_default = 1400000
 
 beta2 = (intrinsic_growth_rate + (1/infectious_period)) / S * (1-relative_contact_rate)
 beta3 = ((alpha+intrinsic_growth_rate)*(intrinsic_growth_rate + (1/infectious_period))) / (alpha*S) *(1-relative_contact_rate)
@@ -1507,6 +1472,8 @@ hospitalized_P1_ecases, icu_P1, ventilated_P1 = (
 ## SEIR model with phase adjusted R_0 and Disease Related Fatality
 # Version 2
 
+S_default = 1400000
+S = S_default
 doubling_time=3
 relative_contact_rate=0
 intrinsic_growth_rate = 2 ** (1 / doubling_time) - 1
@@ -1527,7 +1494,6 @@ hosp_los = 5
 icu_los = 11
 vent_los = 10
 incubation_period = 5.8
-S_default = 1400000
 
 beta2 = (intrinsic_growth_rate + (1/infectious_period)) / S * (1-relative_contact_rate)
 beta3 = ((alpha+intrinsic_growth_rate)*(intrinsic_growth_rate + (1/infectious_period))) / (alpha*S) *(1-relative_contact_rate)
@@ -1619,7 +1585,6 @@ projection_admits_e1 = build_admissions_df(dispositions_e1)
 # Census Table
 census_table_e1 = build_census_df(projection_admits_e1)
 
-
 ############
 # SEIR Model (version 2 w/ 30% social distancing)
 # New cases
@@ -1628,22 +1593,29 @@ projection_admits_e2 = build_admissions_df(dispositions_e2)
 census_table_e2 = build_census_df(projection_admits_e2)
 
 #############
-# SEIR Model with phase adjustment first iteration
+# SEIR Model with phase adjustment 1st iteration
 # New cases
 projection_admits_R1 = build_admissions_df(dispositions_R1)
 # Census Table
 census_table_R1 = build_census_df(projection_admits_R1)
 
 #############
-# SEIR Model with phase adjustment second iteration
+# SEIR Model with phase adjustment 2nd iteration
 # New cases
 projection_admits_R2 = build_admissions_df(dispositions_R2)
 # Census Table
 census_table_R2 = build_census_df(projection_admits_R2)
 
 #############
+# SEIR Model with phase adjustment 3rd iteration
+# New cases
+projection_admits_R3 = build_admissions_df(dispositions_R3)
+# Census Table
+census_table_R3 = build_census_df(projection_admits_R3)
+
+#############
 # SEIR Model with phase adjustment and Disease Fatality
-# New cases - using high social distancing
+# Using high social distancing
 projection_admits_D_socialcases = build_admissions_df(dispositions_D_socialcases)
 # Census Table
 census_table_D_socialcases = build_census_df(projection_admits_D_socialcases)
@@ -1654,7 +1626,6 @@ census_table_D_socialcases = build_census_df(projection_admits_D_socialcases)
 projection_admits_D = build_admissions_df(dispositions_D)
 # Census Table
 census_table_D = build_census_df(projection_admits_D)
-
 
 #############
 # SEAIJRD Model 
@@ -1721,7 +1692,7 @@ st.header("""Projected Census Models for Erie County""")
 graph_selection = erie_lines_ip
 
 
-### Model 1 - SIR ###
+### 1 - SIR ###
 def sir_graph(
     census: pd.DataFrame,
     plot_projection_days: int,
@@ -1755,11 +1726,10 @@ def sir_graph(
         .interactive()
     )
     
-sir_ip_c = sir_graph(census_table, plot_projection_days, as_date=as_date)
+sir_census = sir_graph(census_table, plot_projection_days, as_date=as_date)
 
-
-### Model 2 - SEIR w/ no SD ###
-def seir_graph(
+### 2 - SEIR w/ no SD ###
+def seir_graph1(
     census: pd.DataFrame,
     plot_projection_days: int,
     as_date:bool = False) -> alt.Chart:
@@ -1792,11 +1762,10 @@ def seir_graph(
         .interactive()
     )
     
-seir_0_SD = seir_graph(census_table_e1, plot_projection_days, as_date=as_date)
+seir_0SD = seir_graph1(census_table_e1, plot_projection_days, as_date=as_date)
 
-
-### Model 3 - SEIR w/ 30% social distancing ###
-def seirv2_graph(
+### 3 - SEIR w/ 30% social distancing ###
+def seir_graph2(
     census: pd.DataFrame,
     plot_projection_days: int,
     as_date:bool = False) -> alt.Chart:
@@ -1829,15 +1798,15 @@ def seirv2_graph(
         .interactive()
     )
     
-seir_30_SD = seirv2_graph(census_table_e2, plot_projection_days, as_date=as_date)
+seir_30SD = seir_graph2(census_table_e2, plot_projection_days, as_date=as_date)
 
-### Model 4 - SEIR w/ step-wise social distancing ###
-def seiraR0_graph(
+### 4 - SEIR w/ step-wise social distancing ###
+def seiraR0_graph1(
     census: pd.DataFrame,
     plot_projection_days: int,
     as_date:bool = False) -> alt.Chart:
     """docstring"""
-    census = census.rename(columns={"hosp": "SEIRaR0 Model"})
+    census = census.rename(columns={"hosp": "SEIRaR0 Model v1"})
 
     tooltip_dict = {False: "day", True: "date:T"}
     if as_date:
@@ -1849,7 +1818,7 @@ def seiraR0_graph(
     return (
         alt
         .Chart(census)
-        .transform_fold(fold=["SEIRaR0 Model"])
+        .transform_fold(fold=["SEIRaR0 Model v1"])
         .mark_line(point=False)
         .encode(
             x=alt.X(**x_kwargs),
@@ -1864,15 +1833,77 @@ def seiraR0_graph(
         )
         .interactive()
     )
-seir_d_ip_c = seiraR0_graph(census_table_D, plot_projection_days, as_date=as_date)
-###
+seir_R0_g1 = seiraR0_graph1(census_table_R1, plot_projection_days, as_date=as_date)
 
+def seiraR0_graph2(
+    census: pd.DataFrame,
+    plot_projection_days: int,
+    as_date:bool = False) -> alt.Chart:
+    """docstring"""
+    census = census.rename(columns={"hosp": "SEIRaR0 Model v2"})
 
-# Need to add the other iterations of SEIR v2
+    tooltip_dict = {False: "day", True: "date:T"}
+    if as_date:
+        census = add_date_column(census.head(plot_projection_days))
+        x_kwargs = {"shorthand": "date:T", "title": "Date"}
+    else:
+        x_kwargs = {"shorthand": "day", "title": "Days from initial infection"}
 
+    return (
+        alt
+        .Chart(census)
+        .transform_fold(fold=["SEIRaR0 Model v2"])
+        .mark_line(point=False)
+        .encode(
+            x=alt.X(**x_kwargs),
+            y=alt.Y("value:Q", title="Census"),
+            color=alt.value('black'),
+            #color="key:N",
+            tooltip=[
+                tooltip_dict[as_date],
+                alt.Tooltip("value:Q", format=".0f", title="Census"),
+                "key:N",
+            ],
+        )
+        .interactive()
+    )
+seir_R0_g2 = seiraR0_graph2(census_table_R2, plot_projection_days, as_date=as_date)
 
-### 4/20/20 for high social distancing model
-### Model 5 - SEIR ###
+def seiraR0_graph3(
+    census: pd.DataFrame,
+    plot_projection_days: int,
+    as_date:bool = False) -> alt.Chart:
+    """docstring"""
+    census = census.rename(columns={"hosp": "SEIRaR0 Model v3"})
+
+    tooltip_dict = {False: "day", True: "date:T"}
+    if as_date:
+        census = add_date_column(census.head(plot_projection_days))
+        x_kwargs = {"shorthand": "date:T", "title": "Date"}
+    else:
+        x_kwargs = {"shorthand": "day", "title": "Days from initial infection"}
+
+    return (
+        alt
+        .Chart(census)
+        .transform_fold(fold=["SEIRaR0 Model v3"])
+        .mark_line(point=False)
+        .encode(
+            x=alt.X(**x_kwargs),
+            y=alt.Y("value:Q", title="Census"),
+            color=alt.value('teal'),
+            #color="key:N",
+            tooltip=[
+                tooltip_dict[as_date],
+                alt.Tooltip("value:Q", format=".0f", title="Census"),
+                "key:N",
+            ],
+        )
+        .interactive()
+    )
+seir_R0_g3 = seiraR0_graph3(census_table_R3, plot_projection_days, as_date=as_date)
+
+### 5 - SEIR w/ high social distancing###
 def seirhsd_graph(
     census: pd.DataFrame,
     plot_projection_days: int,
@@ -1906,12 +1937,9 @@ def seirhsd_graph(
         .interactive()
     )
 
-seir_d_ip_highsocial = seirhsd_graph(census_table_D_socialcases, plot_projection_days, as_date=as_date)
-### 4/17/20 for stepwise SD/DT model
-#seir_d_ip_ecases = ip_census_chart(census_table_D_ecases, plot_projection_days, as_date=as_date)
+seir_highsocial = seirhsd_graph(census_table_D_socialcases, plot_projection_days, as_date=as_date)
 
-### 4/22/20 seaijrd
-### Model 6 - SEIR ###
+### 6 - SEIR w/ Disease Fatality ###
 def seirdja_graph(
     census: pd.DataFrame,
     plot_projection_days: int,
@@ -1945,9 +1973,9 @@ def seirdja_graph(
         .interactive()
     )
     
-seir_A_ip_ecases = seirdja_graph(census_table_A_ecases, plot_projection_days, as_date=as_date)
+seir_A = seirdja_graph(census_table_A_ecases, plot_projection_days, as_date=as_date)
 
-### Model 7 - SEIR ###
+### 7 - SEIR w/ Compartments ###
 def sepaijrd_graph(
     census: pd.DataFrame,
     plot_projection_days: int,
@@ -1980,11 +2008,11 @@ def sepaijrd_graph(
         )
         .interactive()
     )
-### 4/22/20 sepaijrd
-seir_P1_ip_ecases = sepaijrd_graph(census_table_P1_ecases, plot_projection_days, as_date=as_date)
+
+seir_comp = sepaijrd_graph(census_table_P1_ecases, plot_projection_days, as_date=as_date)
 
 
-### Model 8 - SEIR ### with mitigation
+### 8 - SEIR with mitigation ###
 def sepaijrd_mit_graph(
     census: pd.DataFrame,
     plot_projection_days: int,
@@ -2018,22 +2046,38 @@ def sepaijrd_mit_graph(
         .interactive()
     )
 
-seir_P2_ip_ecases = sepaijrd_mit_graph(census_table_P2_ecases, plot_projection_days, as_date=as_date)
+seir_mit = sepaijrd_mit_graph(census_table_P2_ecases, plot_projection_days, as_date=as_date)
 
 
-st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs Model (SEPAIJRD)")
+#st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs Model (SEPAIJRD)")
 st.altair_chart(
-    alt.layer(sir_ip_c.mark_line())
-    + alt.layer(seir_0_SD.mark_line())
-    + alt.layer(seir_30_SD.mark_line())
-    + alt.layer(seir_P1_ip_ecases.mark_line())
-    + alt.layer(seir_P2_ip_ecases.mark_line())
-    + alt.layer(seir_A_ip_ecases.mark_line())
-    + alt.layer(seir_d_ip_highsocial.mark_line())
+    alt.layer(sir_census.mark_line())
+    + alt.layer(seir_0SD.mark_line())
+    + alt.layer(seir_30SD.mark_line())
+    + alt.layer(seir_R0_g1.mark_line())
+    + alt.layer(seir_R0_g2.mark_line())
+    + alt.layer(seir_R0_g3.mark_line())
+    + alt.layer(seir_comp.mark_line())
+    + alt.layer(seir_mit.mark_line())
+    + alt.layer(seir_A.mark_line())
+    + alt.layer(seir_highsocial.mark_line())
     + alt.layer(graph_selection)
     + alt.layer(vertical1)
     , use_container_width=True)
 
 
-
-
+st.altair_chart(
+    #alt.layer(sir_census.mark_line())
+    #+ alt.layer(seir_0SD.mark_line())
+    #+ alt.layer(seir_30SD.mark_line())
+    #+ alt.layer(seir_R0_g1.mark_line())
+    #+ alt.layer(seir_R0_g2.mark_line())
+    #+ alt.layer(seir_R0_g3.mark_line())
+    #+ 
+    alt.layer(seir_comp.mark_line())
+    + alt.layer(seir_mit.mark_line())
+    #+ alt.layer(seir_A.mark_line())
+    #+ alt.layer(seir_highsocial.mark_line())
+    + alt.layer(graph_selection)
+    + alt.layer(vertical1)
+    , use_container_width=True)

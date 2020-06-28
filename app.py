@@ -823,7 +823,7 @@ p_m1 = (st.sidebar.number_input(
 p_m2 = (st.sidebar.number_input(
 "Percent of people adhering to mask-wearing during Phased transitioning", 0.0, 100.0, value=60.0 ,step=5.0, format="%f")/100.0)
 p_m3 = (st.sidebar.number_input(
-"Percent of people adhering to mask-wearing after Phased transitioning", 0.0, 100.0, value=60.0 ,step=5.0, format="%f")/100.0)
+"Percent of people adhering to mask-wearing after Phased transitioning", 0.0, 100.0, value=75.0 ,step=5.0, format="%f")/100.0)
 
 delta_p = 1/(st.sidebar.number_input(
 "Days a person is pre-symptomatic", 0.0, 10.0, value=1.7 ,step=1.0, format="%f"))
@@ -1355,7 +1355,7 @@ hospitalized_P0, icu_P0, ventilated_P0 = (
 ##################################################################
 ## SEIR model with phase adjusted R_0 and Disease Related Fatality,
 ## Asymptomatic, Hospitalization, Presymptomatic, and masks
-# Higher Facemask Use to 90%
+# Higher Facemask Use to 50%
 E0=100
 A0=100
 I0=100
@@ -1368,7 +1368,7 @@ S0=S-E0-P0-A0-I0-D0-J0-R0
 beta_j=0.6
 q=0.583
 l=0.717
-p_m3 = 0.9
+p_m3 = 0.6
 gamma_hosp=1/hosp_lag
 AAA=beta4*(1/gamma2)*S
 beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
@@ -1414,7 +1414,7 @@ hospitalized_P1, icu_P1, ventilated_P1 = (
 ##################################################################
 ## SEIR model with phase adjusted R_0 and Disease Related Fatality,
 ## Asymptomatic, Hospitalization, Presymptomatic, and masks
-# Lower Facemask Use to 50%
+# Lower Facemask Use to 40%
 E0=100
 A0=100
 I0=100
@@ -1427,7 +1427,7 @@ S0=S-E0-P0-A0-I0-D0-J0-R0
 beta_j=0.6
 q=0.583
 l=0.717
-p_m3 = 0.6
+p_m3 = 0.4
 gamma_hosp=1/hosp_lag
 AAA=beta4*(1/gamma2)*S
 beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
@@ -1469,6 +1469,68 @@ hospitalized_P2, icu_P2, ventilated_P2 = (
             i_hospitalized_P,
             i_icu_P,
             i_ventilated_P)
+
+
+
+##################################################################
+## SEIR model with phase adjusted R_0 and Disease Related Fatality,
+## Asymptomatic, Hospitalization, Presymptomatic, and masks
+# Lower Facemask Use to 25%
+E0=100
+A0=100
+I0=100
+D0=0
+R0=0
+J0=0
+P0=120
+x=0.5
+S0=S-E0-P0-A0-I0-D0-J0-R0
+beta_j=0.6
+q=0.583
+l=0.717
+p_m3 = 0.25
+gamma_hosp=1/hosp_lag
+AAA=beta4*(1/gamma2)*S
+beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
+
+R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
+beta_j=0.51
+R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
+
+S_p, E_p,P_p,A_p, I_p,J_p, R_p, D_p, RH_p=sim_sepaijrd_decay_ode(S0, E0, P0,A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
+                                                      decay1, decay2, decay3, decay4, decay5, decay6, decay7, start_day, int1_delta, int2_delta,
+                                                      end_delta, step2_delta, step3_delta, fatal_hosp,asymptomatic, hosp_rate, q,  l,x, p_m1, p_m2, p_m3, delta_p)
+
+icu_curve= J_p*icu_rate
+vent_curve=J_p*vent_rate
+
+hosp_rate_p=1.0
+RateLos = namedtuple("RateLos", ("rate", "length_of_stay"))
+hospitalized_p=RateLos(hosp_rate_p, hosp_los)
+icu_rate_p= icu_rate
+vent_rate_p= vent_rate
+icu=RateLos(icu_rate_p, icu_los)
+ventilated=RateLos(vent_rate_p, vent_los)
+
+
+rates_p = tuple(each.rate for each in (hospitalized_p, icu, ventilated))
+lengths_of_stay = tuple(each.length_of_stay for each in (hospitalized_p, icu, ventilated))
+
+
+i_hospitalized_P, i_icu_P, i_ventilated_P = get_dispositions(J_p, rates_p, regional_hosp_share)
+
+r_hospitalized_P, r_icu_P, r_ventilated_P = get_dispositions(RH_p, rates_p, regional_hosp_share)
+d_hospitalized_P, d_icu_P, d_ventilated_P = get_dispositions(D_p, rates_p, regional_hosp_share)
+dispositions_P3 = (
+            i_hospitalized_P + r_hospitalized_P+ d_hospitalized_P ,
+            i_icu_P+r_icu_P+d_icu_P,
+            i_ventilated_P+r_ventilated_P +d_ventilated_P)
+
+hospitalized_P3, icu_P3, ventilated_P3 = (
+            i_hospitalized_P,
+            i_icu_P,
+            i_ventilated_P)
+
 
 # Individual hospitals selection
 if hosp_options == 'Kaleida':
@@ -1604,6 +1666,11 @@ projection_admits_P2 = build_admissions_df_n(dispositions_P2)
 ## Census Table
 census_table_P2 = build_census_df(projection_admits_P2)
 
+# Lower Mask Use
+# New Cases
+projection_admits_P3 = build_admissions_df_n(dispositions_P3)
+## Census Table
+census_table_P3 = build_census_df(projection_admits_P3)
 
 # Erie Graph of Cases: SEIR
 # Admissions Graphs
@@ -1961,6 +2028,7 @@ seir_A_ip_ecases = ip_census_chart(census_table_A_ecases, plot_projection_days, 
 seir_P0 = ip_census_chart(census_table_P0, plot_projection_days, as_date=as_date)
 seir_P1 = ip_census_chart(census_table_P1, plot_projection_days, as_date=as_date)
 seir_P2 = ip_census_chart(census_table_P2, plot_projection_days, as_date=as_date)
+seir_P3 = ip_census_chart(census_table_P3, plot_projection_days, as_date=as_date)
 
 
 
@@ -1991,14 +2059,15 @@ st.altair_chart(
 
 
 # st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs Model (SEPAIJRD)")
-# st.altair_chart(
-    # alt.layer(seir_P0.mark_line())
-    # + alt.layer(seir_P1.mark_line())
-    # + alt.layer(seir_P2.mark_line())
-    # #+ alt.layer(seir_d_ip_highsocial.mark_line())
-    # + alt.layer(graph_selection)
-    # + alt.layer(vertical1)
-    # , use_container_width=True)
+st.altair_chart(
+    alt.layer(seir_P0.mark_line())
+    + alt.layer(seir_P1.mark_line())
+    #+ alt.layer(seir_P2.mark_line())
+    #+ alt.layer(seir_P3.mark_line())
+    #+ alt.layer(seir_d_ip_highsocial.mark_line())
+    + alt.layer(graph_selection)
+    + alt.layer(vertical1)
+    , use_container_width=True)
 
 #st.header("""Hospital Specific Projected Admissions and Census""")
 # By Hospital Admissions Chart - SEIR model with Phase Adjusted R_0 and Case Fatality

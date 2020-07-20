@@ -868,7 +868,7 @@ erie_admit24_line = alt.Chart(erie_df).mark_line(color='red', point=True).encode
     y='New_admits:Q')
 
 # Slider and Date
-n_days = st.slider("Number of days to project", 30, 200, 120, 1, "%i")
+n_days = st.slider("Number of days to project", 30, 200, 160, 1, "%i")
 as_date = st.checkbox(label="Present result as dates", value=False)
 
 

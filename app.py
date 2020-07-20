@@ -965,8 +965,9 @@ if as_date:
             .mark_line(strokeWidth=3, strokeDash=[2,3], point=True)
             .encode(
                 x=alt.X(day_date),
-                y=alt.Y("value:Q", title="Census"),
-                color="key:N",
+                y=alt.Y("value:Q", title="Hospital Census"),
+                #color="key:N",
+                color=alt.value('steelblue'),
                 tooltip=[alt.Tooltip("value:Q", format=".0f"),"key:N"]
             )
             .interactive()
@@ -986,8 +987,9 @@ else:
             .mark_line(strokeWidth=3, strokeDash=[2,3], point=True)
             .encode(
                 x=alt.X(day_date),
-                y=alt.Y("value:Q", title="Census"),
-                color="key:N",
+                y=alt.Y("value:Q", title="Hospital Census"),
+                #color="key:N",
+                color=alt.value('steelblue'),
                 tooltip=[alt.Tooltip("value:Q", format=".0f"),"key:N"]
             )
             .interactive()
@@ -1368,7 +1370,7 @@ S0=S-E0-P0-A0-I0-D0-J0-R0
 beta_j=0.6
 q=0.583
 l=0.717
-p_m3 = 0.6
+p_m3 = 0.5
 gamma_hosp=1/hosp_lag
 AAA=beta4*(1/gamma2)*S
 beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
@@ -1959,8 +1961,9 @@ def ip_census_chart(
         .mark_line(point=False)
         .encode(
             x=alt.X(**x_kwargs),
-            y=alt.Y("value:Q", title="Census", scale=alt.Scale(domain=[0, 400])),
-            color="key:N",
+            y=alt.Y("value:Q", title="Hospital Census"),
+            #color="key:N",
+            color=alt.value('orange'),
             tooltip=[
                 tooltip_dict[as_date],
                 alt.Tooltip("value:Q", format=".0f", title="Census"),
@@ -1972,38 +1975,6 @@ def ip_census_chart(
 
 #, scale=alt.Scale(domain=[0, 250])
 
-def ip_census_upper(
-    census: pd.DataFrame,
-    plot_projection_days: int,
-    as_date:bool = False) -> alt.Chart:
-    """docstring"""
-    census = census.rename(columns=columns_comp_census)
-
-    tooltip_dict = {False: "day", True: "date:T"}
-    if as_date:
-        census = add_date_column(census.head(plot_projection_days))
-        x_kwargs = {"shorthand": "date:T", "title": "Date"}
-    else:
-        x_kwargs = {"shorthand": "day", "title": "Days from initial infection"}
-
-    return (
-        alt
-        .Chart(census)
-        .transform_fold(fold=fold_comp_census)
-        .mark_line(point=False)
-        .encode(
-            x=alt.X(**x_kwargs),
-            y=alt.Y("value:Q", title="Census"),
-            color="key:N",
-            tooltip=[
-                tooltip_dict[as_date],
-                alt.Tooltip("value:Q", format=".0f", title="Census"),
-                "key:N",
-            ],
-        )
-        .interactive()
-    )
-################# Add 0% 10% 20% SD graph of SEIR MODEL ###################
 
     #, scale=alt.Scale(domain=[0, 40000])
     # scale=alt.Scale(domain=[-5, 9000])
@@ -2059,15 +2030,14 @@ st.altair_chart(
 
 
 # st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs Model (SEPAIJRD)")
-st.altair_chart(
-    alt.layer(seir_P0.mark_line())
-    + alt.layer(seir_P1.mark_line())
-    #+ alt.layer(seir_P2.mark_line())
-    #+ alt.layer(seir_P3.mark_line())
-    #+ alt.layer(seir_d_ip_highsocial.mark_line())
-    + alt.layer(graph_selection)
-    + alt.layer(vertical1)
-    , use_container_width=True)
+# st.altair_chart(
+    # alt.layer(seir_P0.mark_line())
+    # + alt.layer(seir_P1.mark_line())
+    # + alt.layer(seir_P2.mark_line())
+    # + alt.layer(seir_P3.mark_line())
+    # + alt.layer(graph_selection)
+    # + alt.layer(vertical1)
+    # , use_container_width=True)
 
 #st.header("""Hospital Specific Projected Admissions and Census""")
 # By Hospital Admissions Chart - SEIR model with Phase Adjusted R_0 and Case Fatality
@@ -2356,7 +2326,7 @@ def additional_projections_chart(p:np.ndarray,a:np.ndarray, i:np.ndarray, j:np.n
         .interactive()
     )
 
-st.altair_chart(additional_projections_chart(P_p,A_p, I_p, J_p, D_p), use_container_width=True)
+#st.altair_chart(additional_projections_chart(P_p,A_p, I_p, J_p, D_p), use_container_width=True)
 
 
 ############################### prevalence and incidence ###########################
@@ -2404,7 +2374,7 @@ def additional_projections_chart2(i, p)  -> alt.Chart:
         .interactive()
     )
 
-st.altair_chart(additional_projections_chart2(dispositions_inc2["incidencerate"], dispositions_prev["pointprevalencerate"]), use_container_width=True)
+#st.altair_chart(additional_projections_chart2(dispositions_inc2["incidencerate"], dispositions_prev["pointprevalencerate"]), use_container_width=True)
 
 
 

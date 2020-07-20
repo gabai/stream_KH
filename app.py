@@ -184,12 +184,7 @@ def build_census_df(
     """ALOS for each category of COVID-19 case (total guesses)"""
     n_days = np.shape(projection_admits)[0]
     los_dict = {
-    "hosp": hosp_los, "icu": icu_los, "vent": vent_los,
-    "hosp_kh": hosp_los, "icu_kh": icu_los, "vent_kh": vent_los,
-    "hosp_ecmc": hosp_los, "icu_ecmc": icu_los, "vent_ecmc": vent_los,
-    "hosp_chs": hosp_los, "icu_chs": icu_los, "vent_chs": vent_los,
-    "hosp_rpci": hosp_los, "icu_rpci": icu_los, "vent_rpci": vent_los
-    }
+    "hosp": hosp_los, "icu": icu_los, "vent": vent_los}
 
     census_dict = dict()
     for k, los in los_dict.items():
@@ -201,44 +196,7 @@ def build_census_df(
 
     census_df = pd.DataFrame(census_dict)
     census_df["day"] = census_df.index
-    census_df = census_df[["day", "hosp", "icu", "vent", 
-    "hosp_kh", "icu_kh", "vent_kh", 
-    "hosp_ecmc", "icu_ecmc", "vent_ecmc",
-    "hosp_chs", "icu_chs", "vent_chs",
-    "hosp_rpci", "icu_rpci", "vent_rpci"
-    ]]
-    
-    census_df['total_county_icu'] = icu_county
-    census_df['total_county_beds'] = beds_county
-    census_df['expanded_icu_county'] = expanded_icu_county_05
-    census_df['expanded_beds_county'] = expanded_beds_county_05
-    census_df['expanded_icu_county2'] = expanded_icu_county_1
-    census_df['expanded_beds_county2'] = expanded_beds_county_1
-    census_df['icu_beds'] = icu_val
-    census_df['total_beds'] = total_beds_val
-    census_df['total_vents'] = vent_val
-    census_df['expanded_beds'] = expanded_beds_val
-    census_df['expanded_icu_beds'] = expanded_icu_val
-    census_df['expanded_vent_beds'] = expanded_vent_val
-    census_df['expanded_beds2'] = expanded_beds2_val
-    census_df['expanded_icu_beds2'] = expanded_icu2_val
-    census_df['expanded_vent_beds2'] = expanded_vent2_val
-    
-    # PPE for hosp/icu
-    census_df['ppe_mild_d'] = census_df['hosp'] * ppe_mild_val_lower
-    census_df['ppe_mild_u'] = census_df['hosp'] * ppe_mild_val_upper
-    census_df['ppe_severe_d'] = census_df['icu'] * ppe_severe_val_lower
-    census_df['ppe_severe_u'] = census_df['icu'] * ppe_severe_val_upper
-    census_df['ppe_mean_mild'] = census_df[["ppe_mild_d","ppe_mild_u"]].mean(axis=1)
-    census_df['ppe_mean_severe'] = census_df[["ppe_severe_d","ppe_severe_u"]].mean(axis=1)
-    
-    for hosp in hosp_list:
-        census_df['ppe_mild_d_'+hosp] = census_df['hosp_'+hosp] * ppe_mild_val_lower
-        census_df['ppe_mild_u_'+hosp] = census_df['hosp_'+hosp] * ppe_mild_val_upper
-        census_df['ppe_severe_d_'+hosp] = census_df['icu_'+hosp] * ppe_severe_val_lower
-        census_df['ppe_severe_u_'+hosp] = census_df['icu_'+hosp] * ppe_severe_val_upper
-        census_df['ppe_mean_mild_'+hosp] = census_df[["ppe_mild_d_"+hosp,"ppe_mild_u_"+hosp]].mean(axis=1)
-        census_df['ppe_mean_severe_'+hosp] = census_df[["ppe_severe_d_"+hosp,"ppe_severe_u_"+hosp]].mean(axis=1)
+    census_df = census_df[["day", "hosp", "icu", "vent"]]
     
     census_df = census_df.head(n_days-10)
     

@@ -678,11 +678,11 @@ S = erie
 
 
 # Widgets
-#hosp_options = st.sidebar.radio(
-#    "Hospitals Systems", ('Kaleida', 'ECMC', 'CHS', 'RPCI'))
+hosp_options = st.sidebar.radio(
+   "Hospitals Systems", ('Kaleida', 'ECMC', 'CHS', 'RPCI'))
     
-#model_options = st.sidebar.radio(
-#    "Service", ('Inpatient', 'ICU', 'Ventilated'))
+model_options = st.sidebar.radio(
+   "Service", ('Inpatient', 'ICU', 'Ventilated'))
 
 current_hosp = st.sidebar.number_input(
     "Total Hospitalized Cases", value=known_cases, step=1.0, format="%f")
@@ -1492,64 +1492,64 @@ hospitalized_P3, icu_P3, ventilated_P3 = (
             i_ventilated_P)
 
 
-# # Individual hospitals selection
-# if hosp_options == 'Kaleida':
-    # col_name1 = {"hosp_kh": "Hospitalized - Kaleida", "icu_kh": "ICU - Kaleida", "vent_kh": "Ventilated - Kaleida"}
-    # fold_name1 = ["Hospitalized - Kaleida", "ICU - Kaleida", "Ventilated - Kaleida"]
-    # # Added expanded beds
-    # col_name2 = {"hosp_kh": "Hospitalized - Kaleida", "icu_kh": "ICU - Kaleida", "vent_kh": "Ventilated - Kaleida", "total_beds":"Total Beds", "icu_beds": "Total ICU Beds"}
-    # fold_name2 = ["Hospitalized - Kaleida", "ICU - Kaleida", "Ventilated - Kaleida", "Total Beds", "Total ICU Beds"]
-    # icu_val = 245
-    # total_beds_val = 1224
-    # vent_val = 206
-    # expanded_beds_val = 1319
-    # expanded_icu_val = 183
-    # expanded_vent_val = 309
-    # expanded_beds2_val = 1758
-    # expanded_icu2_val = 244
-    # expanded_vent2_val = 412
-# if hosp_options == 'ECMC':
-    # col_name1 = {"hosp_ecmc": "Hospitalized - ECMC", "icu_ecmc": "ICU - ECMC", "vent_ecmc": "Ventilated - ECMC"}
-    # fold_name1 = ["Hospitalized - ECMC", "ICU - ECMC", "Ventilated - ECMC"]
-    # col_name2 = {"hosp_ecmc": "Hospitalized - ECMC", "icu_ecmc": "ICU - ECMC", "vent_ecmc": "Ventilated - ECMC", "total_beds":"Total Beds", "icu_beds": "Total ICU Beds"}
-    # fold_name2 = ["Hospitalized - ECMC", "ICU - ECMC", "Ventilated - ECMC", "Total Beds", "Total ICU Beds"]
-    # icu_val = 46
-    # total_beds_val = 518
-    # vent_val = 0
-    # expanded_beds_val = 860
-    # expanded_icu_val = 54
-    # expanded_vent_val = 0
-    # expanded_beds2_val = 1146
-    # expanded_icu2_val = 72
-    # expanded_vent2_val = 0
-# if hosp_options == 'CHS':
-    # col_name1 = {"hosp_chs": "Hospitalized - CHS", "icu_chs": "ICU - CHS", "vent_chs": "Ventilated - CHS"}
-    # fold_name1 = ["Hospitalized - CHS", "ICU - CHS", "Ventilated - CHS"]
-    # col_name2 = {"hosp_chs": "Hospitalized - CHS", "icu_chs": "ICU - CHS", "vent_chs": "Ventilated - CHS", "total_beds":"Total Beds", "icu_beds": "Total ICU Beds"}
-    # fold_name2 = ["Hospitalized - CHS", "ICU - CHS", "Ventilated - CHS", "Total Beds", "Total ICU Beds"]
-    # icu_val = 163
-    # total_beds_val = 887
-    # vent_val = 0
-    # expanded_beds_val = 1193
-    # expanded_icu_val = 111
-    # expanded_vent_val = 0
-    # expanded_beds2_val = 1590 
-    # expanded_icu2_val = 148
-    # expanded_vent2_val = 0
-# if hosp_options == 'RPCI':
-    # col_name1 = {"hosp_rpci": "Hospitalized - Roswell", "icu_rpci": "ICU - Roswell", "vent_rpci": "Ventilated - Roswell"}
-    # fold_name1 = ["Hospitalized - Roswell", "ICU - Roswell", "Ventilated - Roswell"]
-    # col_name2 = {"hosp_rpci": "Hospitalized - Roswell", "icu_rpci": "ICU - Roswell", "vent_rpci": "Ventilated - Roswell", "total_beds":"Total Beds", "icu_beds": "Total ICU Beds"}
-    # fold_name2 = ["Hospitalized - Roswell", "ICU - Roswell", "Ventilated - Roswell", "Total Beds", "Total ICU Beds"]
-    # icu_val = 14
-    # total_beds_val = 133
-    # vent_val = 0
-    # expanded_beds_val = 200
-    # expanded_icu_val = 24
-    # expanded_vent_val = 0
-    # expanded_beds2_val = 266
-    # expanded_icu2_val = 28
-    # expanded_vent2_val = 0
+# Individual hospitals selection
+if hosp_options == 'Kaleida':
+    col_name1 = {"hosp_kh": "Hospitalized - Kaleida", "icu_kh": "ICU - Kaleida", "vent_kh": "Ventilated - Kaleida"}
+    fold_name1 = ["Hospitalized - Kaleida", "ICU - Kaleida", "Ventilated - Kaleida"]
+    # Added expanded beds
+    col_name2 = {"hosp_kh": "Hospitalized - Kaleida", "icu_kh": "ICU - Kaleida", "vent_kh": "Ventilated - Kaleida", "total_beds":"Total Beds", "icu_beds": "Total ICU Beds"}
+    fold_name2 = ["Hospitalized - Kaleida", "ICU - Kaleida", "Ventilated - Kaleida", "Total Beds", "Total ICU Beds"]
+    icu_val = 245
+    total_beds_val = 1224
+    vent_val = 206
+    expanded_beds_val = 1319
+    expanded_icu_val = 183
+    expanded_vent_val = 309
+    expanded_beds2_val = 1758
+    expanded_icu2_val = 244
+    expanded_vent2_val = 412
+if hosp_options == 'ECMC':
+    col_name1 = {"hosp_ecmc": "Hospitalized - ECMC", "icu_ecmc": "ICU - ECMC", "vent_ecmc": "Ventilated - ECMC"}
+    fold_name1 = ["Hospitalized - ECMC", "ICU - ECMC", "Ventilated - ECMC"]
+    col_name2 = {"hosp_ecmc": "Hospitalized - ECMC", "icu_ecmc": "ICU - ECMC", "vent_ecmc": "Ventilated - ECMC", "total_beds":"Total Beds", "icu_beds": "Total ICU Beds"}
+    fold_name2 = ["Hospitalized - ECMC", "ICU - ECMC", "Ventilated - ECMC", "Total Beds", "Total ICU Beds"]
+    icu_val = 46
+    total_beds_val = 518
+    vent_val = 0
+    expanded_beds_val = 860
+    expanded_icu_val = 54
+    expanded_vent_val = 0
+    expanded_beds2_val = 1146
+    expanded_icu2_val = 72
+    expanded_vent2_val = 0
+if hosp_options == 'CHS':
+    col_name1 = {"hosp_chs": "Hospitalized - CHS", "icu_chs": "ICU - CHS", "vent_chs": "Ventilated - CHS"}
+    fold_name1 = ["Hospitalized - CHS", "ICU - CHS", "Ventilated - CHS"]
+    col_name2 = {"hosp_chs": "Hospitalized - CHS", "icu_chs": "ICU - CHS", "vent_chs": "Ventilated - CHS", "total_beds":"Total Beds", "icu_beds": "Total ICU Beds"}
+    fold_name2 = ["Hospitalized - CHS", "ICU - CHS", "Ventilated - CHS", "Total Beds", "Total ICU Beds"]
+    icu_val = 163
+    total_beds_val = 887
+    vent_val = 0
+    expanded_beds_val = 1193
+    expanded_icu_val = 111
+    expanded_vent_val = 0
+    expanded_beds2_val = 1590 
+    expanded_icu2_val = 148
+    expanded_vent2_val = 0
+if hosp_options == 'RPCI':
+    col_name1 = {"hosp_rpci": "Hospitalized - Roswell", "icu_rpci": "ICU - Roswell", "vent_rpci": "Ventilated - Roswell"}
+    fold_name1 = ["Hospitalized - Roswell", "ICU - Roswell", "Ventilated - Roswell"]
+    col_name2 = {"hosp_rpci": "Hospitalized - Roswell", "icu_rpci": "ICU - Roswell", "vent_rpci": "Ventilated - Roswell", "total_beds":"Total Beds", "icu_beds": "Total ICU Beds"}
+    fold_name2 = ["Hospitalized - Roswell", "ICU - Roswell", "Ventilated - Roswell", "Total Beds", "Total ICU Beds"]
+    icu_val = 14
+    total_beds_val = 133
+    vent_val = 0
+    expanded_beds_val = 200
+    expanded_icu_val = 24
+    expanded_vent_val = 0
+    expanded_beds2_val = 266
+    expanded_icu2_val = 28
+    expanded_vent2_val = 0
     
 
 # Projection days
@@ -1671,20 +1671,20 @@ def regional_admissions_chart(
 # , scale=alt.Scale(domain=[0, 3250])
 
 
-# Comparison of Single line graph - Hospitalized, ICU, Vent and All
-# if model_options == "Inpatient":
-    # columns_comp = {"hosp": "Hospitalized"}
-    # fold_comp = ["Hospitalized"]
-    # capacity_col = {"total_county_beds":"Inpatient Beds"}
-    # capacity_fol = ["Inpatient Beds"]
-# if model_options == "ICU":
-    # columns_comp = {"icu": "ICU"}
-    # fold_comp = ["ICU"]
-    # capacity_col = {"total_county_icu": "ICU Beds"}
-    # capacity_fol = ["ICU Beds"]
-# if model_options == "Ventilated":
-    # columns_comp = {"vent": "Ventilated"}
-    # fold_comp = ["Ventilated"]
+#Comparison of Single line graph - Hospitalized, ICU, Vent and All
+if model_options == "Inpatient":
+    columns_comp = {"hosp": "Hospitalized"}
+    fold_comp = ["Hospitalized"]
+    capacity_col = {"total_county_beds":"Inpatient Beds"}
+    capacity_fol = ["Inpatient Beds"]
+if model_options == "ICU":
+    columns_comp = {"icu": "ICU"}
+    fold_comp = ["ICU"]
+    capacity_col = {"total_county_icu": "ICU Beds"}
+    capacity_fol = ["ICU Beds"]
+if model_options == "Ventilated":
+    columns_comp = {"vent": "Ventilated"}
+    fold_comp = ["Ventilated"]
 
 def ip_chart(
     projection_admits: pd.DataFrame, 
@@ -1885,18 +1885,18 @@ st.header("""Projected Census Models for Erie County""")
 
 
 # Comparison of Census Single line graph - Hospitalized, ICU, Vent
-# if model_options == "Inpatient":
-    # columns_comp_census = {"hosp": "Hospital Census"}
-    # fold_comp_census = ["Hospital Census"]
-    # graph_selection = erie_lines_ip
-# if model_options == "ICU":
-    # columns_comp_census = {"icu": "ICU Census"}
-    # fold_comp_census = ["ICU Census"]
-    # graph_selection = erie_lines_icu
-# if model_options == "Ventilated":
-    # columns_comp_census = {"vent": "Ventilated Census"}
-    # fold_comp_census = ["Ventilated Census"]
-    # graph_selection = erie_lines_vent
+if model_options == "Inpatient":
+    columns_comp_census = {"hosp": "Hospital Census"}
+    fold_comp_census = ["Hospital Census"]
+    graph_selection = erie_lines_ip
+if model_options == "ICU":
+    columns_comp_census = {"icu": "ICU Census"}
+    fold_comp_census = ["ICU Census"]
+    graph_selection = erie_lines_icu
+if model_options == "Ventilated":
+    columns_comp_census = {"vent": "Ventilated Census"}
+    fold_comp_census = ["Ventilated Census"]
+    graph_selection = erie_lines_vent
 
 def ip_census_chart(
     census: pd.DataFrame,

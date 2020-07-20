@@ -720,11 +720,11 @@ S = erie
 
 
 # Widgets
-hosp_options = st.sidebar.radio(
-    "Hospitals Systems", ('Kaleida', 'ECMC', 'CHS', 'RPCI'))
+#hosp_options = st.sidebar.radio(
+#    "Hospitals Systems", ('Kaleida', 'ECMC', 'CHS', 'RPCI'))
     
-model_options = st.sidebar.radio(
-    "Service", ('Inpatient', 'ICU', 'Ventilated'))
+#model_options = st.sidebar.radio(
+#    "Service", ('Inpatient', 'ICU', 'Ventilated'))
 
 current_hosp = st.sidebar.number_input(
     "Total Hospitalized Cases", value=known_cases, step=1.0, format="%f")
@@ -2307,7 +2307,7 @@ infection_total_t=max(d_D)+max(r_D)
 
 # st.altair_chart(additional_projections_chart(A_n, I_n, J_n, D_n), use_container_width=True)
 
-st.subheader("Presymptomatic, Asymptomatic, Symptomatic,Hospitalized,and Fatal individuals in the **region** across time")
+#st.subheader("Presymptomatic, Asymptomatic, Symptomatic,Hospitalized,and Fatal individuals in the **region** across time")
 
 def additional_projections_chart(p:np.ndarray,a:np.ndarray, i:np.ndarray, j:np.ndarray,d:np.ndarray)  -> alt.Chart:
     dat = pd.DataFrame({"Presymptomatic":p,"Asymptomatic":a,"Symptomatic":i, "Hospitalized":j,"Fatal":d})
@@ -2374,7 +2374,7 @@ def additional_projections_chart2(i, p)  -> alt.Chart:
         .interactive()
     )
 
-#st.altair_chart(additional_projections_chart2(dispositions_inc2["incidencerate"], dispositions_prev["pointprevalencerate"]), use_container_width=True)
+st.altair_chart(additional_projections_chart2(dispositions_inc2["incidencerate"], dispositions_prev["pointprevalencerate"]), use_container_width=True)
 
 
 

@@ -808,6 +808,7 @@ p_m5 = (st.sidebar.number_input(
 "Transition to school/college reopening, people adhering to mask-wearing", 0.0, 100.0, value=55.0 ,step=5.0, format="%f")/100.0)
 p_m6 = (st.sidebar.number_input(
 "College Reopening - Face mask adherance", 0.0, 100.0, value=50.0 ,step=5.0, format="%f")/100.0)
+"College Reopening - Face mask adherance", 0.0, 100.0, value=50.0 ,step=5.0, format="%f")/100.0)
 
 
 delta_p = 1/(st.sidebar.number_input(
@@ -895,7 +896,7 @@ erie_admit24_line = alt.Chart(erie_df).mark_line(color='red', point=True).encode
     y='New_admits:Q')
 
 # Slider and Date
-n_days = st.slider("Number of days to project", 30, 300, 250, 1, "%i")
+n_days = st.slider("Number of days to project", 30, 400, 250, 1, "%i")
 as_date = st.checkbox(label="Present result as dates", value=False)
 
 

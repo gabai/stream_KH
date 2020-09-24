@@ -256,7 +256,7 @@ def gen_seir(
 
 def sim_seir_decay(
     s: float, e:float, i: float, r: float, beta: float, gamma: float, alpha: float, n_days: int,
-    decay1:float, decay2:float, decay3: float, decay4: float, end_delta: int
+    decay1:float, decay2:float, decay3: float, decay4: float, step1_delta: int
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """Simulate the SIR model forward in time."""
     s, e, i, r = (float(v) for v in (s, e, i, r))
@@ -267,7 +267,7 @@ def sim_seir_decay(
             beta_decay=beta*(1-decay1)
         elif int1_delta<=day<=int2_delta:
             beta_decay=beta*(1-decay2)
-        elif int2_delta<=day<=end_delta:
+        elif int2_delta<=day<=step1_delta:
             beta_decay=beta*(1-decay3)
         else:
             beta_decay=beta*(1-decay4)
@@ -309,7 +309,7 @@ def seird(
 
 def sim_seird_decay(
         s: float, e:float, i: float, r: float, d: float, beta: float, gamma: float, alpha: float, n_days: int,
-        decay1:float, decay2:float, decay3: float, decay4: float, end_delta: int, fatal: float
+        decay1:float, decay2:float, decay3: float, decay4: float, step1_delta: int, fatal: float
         ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """Simulate the SIR model forward in time."""
         s, e, i, r, d= (float(v) for v in (s, e, i, r, d))
@@ -320,7 +320,7 @@ def sim_seird_decay(
                 beta_decay=beta*(1-decay1)
             elif int1_delta<=day<=int2_delta:
                 beta_decay=beta*(1-decay2)
-            elif int2_delta<=day<=end_delta:
+            elif int2_delta<=day<=step1_delta:
                 beta_decay=beta*(1-decay3)
             else:
                 beta_decay=beta*(1-decay4)
@@ -343,7 +343,7 @@ def sim_seird_decay(
 # Model with high social distancing
 def sim_seird_decay_social(
     s: float, e:float, i: float, r: float, d: float, beta: float, gamma: float, alpha: float, n_days: int,
-    decay1:float, decay2:float, decay3: float, decay4: float, end_delta: int, fatal: float
+    decay1:float, decay2:float, decay3: float, decay4: float, step1_delta: int, fatal: float
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """Simulate the SIR model forward in time."""
     s, e, i, r, d= (float(v) for v in (s, e, i, r, d))
@@ -356,7 +356,7 @@ def sim_seird_decay_social(
         elif int1_delta<=day<=int2_delta:
             beta = (alpha+(2 ** (1 / 2) - 1))*((2 ** (1 / 2) - 1)+ (1/infectious_period)) / (alpha*S)
             beta_decay=beta*(1-.52)
-        elif int2_delta<=day<=end_delta:
+        elif int2_delta<=day<=step1_delta:
             beta = (alpha+(2 ** (1 / 2) - 1))*((2 ** (1 / 2) - 1)+ (1/infectious_period)) / (alpha*S)
             beta_decay=beta*(1-.83)
         else:
@@ -380,7 +380,7 @@ def sim_seird_decay_social(
 # Model with dynamic doubling time
 def sim_seird_decay_erie(
     s: float, e:float, i: float, r: float, d: float, beta: float, gamma: float, alpha: float, n_days: int,
-    decay1:float, decay2:float, decay3: float, decay4: float, end_delta: int, fatal: float
+    decay1:float, decay2:float, decay3: float, decay4: float, step1_delta: int, fatal: float
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """Simulate the SIR model forward in time."""
     s, e, i, r, d= (float(v) for v in (s, e, i, r, d))
@@ -393,7 +393,7 @@ def sim_seird_decay_erie(
         elif int1_delta<=day<=int2_delta:
             beta = (alpha+(2 ** (1 / 2.65) - 1))*((2 ** (1 / 2.65) - 1)+ (1/infectious_period)) / (alpha*S)
             beta_decay=beta*(1-.3)
-        elif int2_delta<=day<=end_delta:
+        elif int2_delta<=day<=step1_delta:
             beta = (alpha+(2 ** (1 / 5.32) - 1))*((2 ** (1 / 5.32) - 1)+ (1/infectious_period)) / (alpha*S)
             beta_decay=beta*(1-.5)
         else:
@@ -445,7 +445,7 @@ def seijcrd(
 
 def sim_seijcrd_decay(
     s: float, e:float, i: float, j:float, c: float, r: float, d: float, beta: float, gamma: float, alpha: float, n_days: int,
-    decay1:float, decay2:float, decay3: float, decay4: float, end_delta: int, fatal_hosp: float, hosp_rate: float, icu_rate: float, icu_days:float, crit_lag: float, death_days:float
+    decay1:float, decay2:float, decay3: float, decay4: float, step1_delta: int, fatal_hosp: float, hosp_rate: float, icu_rate: float, icu_days:float, crit_lag: float, death_days:float
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """Simulate the SIR model forward in time."""
     s, e, i, j, c, r, d= (float(v) for v in (s, e, i, c, j, r, d))
@@ -458,7 +458,7 @@ def sim_seijcrd_decay(
         elif 22<=day<=28:
             beta = (alpha+(2 ** (1 / 2.65) - 1))*((2 ** (1 / 2.65) - 1)+ (1/infectious_period)) / (alpha*S)
             beta_decay=beta*(1-decay2)
-        elif 29<=day<=end_delta: 
+        elif 29<=day<=step1_delta: 
             beta = (alpha+(2 ** (1 / 5.32) - 1))*((2 ** (1 / 5.32) - 1)+ (1/infectious_period)) / (alpha*S)
             beta_decay=beta*(1-decay3)
         else:
@@ -491,16 +491,17 @@ def betanew(t,beta):
         beta_decay=beta*(1-decay2)
     elif int2_delta<=t<int3_delta:
         beta_decay=beta*(1-decay3)    
-    elif int3_delta<=t<=end_delta:
+    elif int3_delta<=t<=step1_delta:
         beta_decay=beta*(1-decay4)
-    elif end_delta<=t<=step2_delta:
+    elif step1_delta<=t<=step2_delta:
         beta_decay=beta*(1-decay5)
     else:
         beta_decay=beta*(1-decay6)    
     return beta_decay
 
 #The SIR model differential equations with ODE solver.
-def derivdecay(y, t, N, beta, gamma1, gamma2, alpha, p, hosp,q,l,n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, start_day, int1_delta, int2_delta, end_delta, step2_delta, step3_delta, step4_delta, fatal_hosp ):
+def derivdecay(y, t, N, beta, gamma1, gamma2, alpha, p, hosp, q, l, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, 
+                start_day, int1_delta, int2_delta, step1_delta, step2_delta, step3_delta, step4_delta, step5_delta, fatal_hosp ):
     S, E, A, I,J, R,D,counter = y
     dSdt = - betanew(t, beta) * S * (q*I + l*J + A)/N 
     dEdt = betanew(t, beta) * S * (q*I + l*J + A)/N   - alpha * E
@@ -513,45 +514,50 @@ def derivdecay(y, t, N, beta, gamma1, gamma2, alpha, p, hosp,q,l,n_days, decay1,
     return dSdt, dEdt,dAdt, dIdt, dJdt, dRdt, dDdt, counter
 
 def sim_seaijrd_decay_ode(
-    s, e,a,i, j,r, d, beta, gamma1, gamma2, alpha, n_days,decay1,decay2,decay3, decay4, decay5, decay6, decay7, decay8, start_day, int1_delta, int2_delta, end_delta, step2_delta, step3_delta, step4_delta, fatal_hosp, p, hosp, q,
+    s, e,a,i, j,r, d, beta, gamma1, gamma2, alpha, n_days,decay1,decay2,decay3, decay4, decay5, decay6, decay7, decay8, decay9, 
+    start_day, int1_delta, int2_delta, step1_delta, step2_delta, step3_delta, step4_delta, step5_delta, fatal_hosp, p, hosp, q,
     l):
     n = s + e + a + i + j+ r + d
     rh=0
     y0= s,e,a,i,j,r,d, rh
     
     t=np.arange(0, n_days, step=1)
-    ret = odeint(derivdecay, y0, t, args=(n, beta, gamma1, gamma2, alpha, p, hosp,q,l, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, start_day, int1_delta, int2_delta, end_delta, step2_delta, step3_delta, step4_delta, fatal_hosp))
+    ret = odeint(derivdecay, y0, t, args=(n, beta, gamma1, gamma2, alpha, p, hosp,q,l, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, 
+    start_day, int1_delta, int2_delta, step1_delta, step2_delta, step3_delta, step4_delta, step5_delta, fatal_hosp))
     S_n, E_n,A_n, I_n,J_n, R_n, D_n ,RH_n= ret.T
     
     return (S_n, E_n,A_n, I_n,J_n, R_n, D_n, RH_n)
 
 
 ####The SIR model differential equations with ODE solver. Presymptomatic and masks
-def betanew2(t,beta,x,p_m1, pm_2, p_m3, p_m4, p_m5):
+def betanew2(t,beta,x,p_m1, pm_2, p_m3, p_m4, p_m5, p_m6):
     if start_day<= t <= int1_delta:
         beta_decay=beta*(1-decay1)
     elif int1_delta<=t<int2_delta:
         beta_decay=beta*(1-decay2)
     elif int2_delta<=t<int3_delta:
         beta_decay=beta*(1-decay3)
-    elif int2_delta<=t<=end_delta:
+    elif int3_delta<=t<=step1_delta:
         beta_decay=beta*(1-decay4)*(1-(x*p_m1))**2
-    elif end_delta<=t<=step2_delta:
+    elif step1_delta<=t<=step2_delta:
         beta_decay=beta*(1-decay5)*(1-(x*p_m2))**2 
     elif step2_delta<=t<=step3_delta:
         beta_decay=beta*(1-decay6)*(1-(x*p_m3))**2 
     elif step3_delta<=t<=step4_delta:
         beta_decay=beta*(1-decay7)*(1-(x*p_m4))**2 
+    elif step4_delta<=t<=step5_delta:
+        beta_decay=beta*(1-decay8)*(1-(x*p_m5))**2 
     else:
-        beta_decay=beta*(1-decay8)*(1-(x*p_m5))**2    
+        beta_decay=beta*(1-decay9)*(1-(x*p_m6))**2  
     return beta_decay
 
-def derivdecayP(y, t, beta, gamma1, gamma2, alpha, sym, hosp,q,l,n_days, decay1,decay2, decay3, decay4, decay5, decay6, decay7,  decay8, start_day, int1_delta, int2_delta, end_delta,
-                step2_delta, step3_delta, step4_delta, fatal_hosp, x, p_m1, p_m2, p_m3, p_m4, p_m5, delta_p ):
+def derivdecayP(y, t, beta, gamma1, gamma2, alpha, sym, hosp,q,l,n_days, decay1,decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, 
+                start_day, int1_delta, int2_delta, step1_delta, step2_delta, step3_delta, step4_delta, step5_delta, 
+                fatal_hosp, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, delta_p ):
     S, E, P,A, I,J, R,D,counter = y
     N=S+E+P+A+I+J+R+D
-    dSdt = - betanew2(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5) * S * (q*I + l*J +P+ A)/N 
-    dEdt = betanew2(t, beta, x, p_m1, p_m2, p_m3,  p_m4, p_m5) * S * (q*I + l*J +P+ A)/N   - alpha * E
+    dSdt = - betanew2(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6) * S * (q*I + l*J +P+ A)/N 
+    dEdt = betanew2(t, beta, x, p_m1, p_m2, p_m3,  p_m4, p_m5, p_m6) * S * (q*I + l*J +P+ A)/N   - alpha * E
     dPdt = alpha * E - delta_p * P
     dAdt = delta_p* P *(1-sym)-gamma1*A
     dIdt = sym* delta_p* P - gamma1 * I- hosp*I
@@ -562,16 +568,16 @@ def derivdecayP(y, t, beta, gamma1, gamma2, alpha, sym, hosp,q,l,n_days, decay1,
     return dSdt, dEdt,dPdt,dAdt, dIdt, dJdt, dRdt, dDdt, counter
 
 def sim_sepaijrd_decay_ode(
-    s, e,p,a,i, j,r, d, beta, gamma1, gamma2, alpha, n_days,decay1,decay2,decay3, decay4, decay5, decay6, decay7, decay8, start_day, int1_delta,
-    int2_delta, end_delta, step2_delta, step3_delta, step4_delta, fatal_hosp, sym, hosp, q,
-    l,x, p_m1, p_m2, p_m3,  p_m4, p_m5, delta_p):
+    s, e,p,a,i, j,r, d, beta, gamma1, gamma2, alpha, n_days,decay1,decay2,decay3, decay4, decay5, decay6, decay7, decay8, decay9, start_day, int1_delta,
+    int2_delta, step1_delta, step2_delta, step3_delta, step4_delta, step5_delta, fatal_hosp, sym, hosp, q,
+    l,x, p_m1, p_m2, p_m3,  p_m4, p_m5, p_m6, delta_p):
     n = s + e + p+a + i + j+ r + d
     rh=0
     y0= s,e,p,a,i,j,r,d, rh
     
     t=np.arange(0, n_days, step=1)
-    ret = odeint(derivdecayP, y0, t, args=(beta, gamma1, gamma2, alpha, sym, hosp,q,l, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, start_day, int1_delta,
-                                           int2_delta, end_delta, step2_delta, step3_delta, step4_delta, fatal_hosp, x, p_m1, p_m2, p_m3,  p_m4,  p_m5,delta_p))
+    ret = odeint(derivdecayP, y0, t, args=(beta, gamma1, gamma2, alpha, sym, hosp,q,l, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, start_day, int1_delta,
+                                           int2_delta, step1_delta, step2_delta, step3_delta, step4_delta, step5_delta, fatal_hosp, x, p_m1, p_m2, p_m3,  p_m4,  p_m5, p_m6, delta_p))
     S_n, E_n,P_n,A_n, I_n,J_n, R_n, D_n ,RH_n= ret.T
     
     return (S_n, E_n,P_n,A_n, I_n,J_n, R_n, D_n, RH_n)
@@ -720,10 +726,10 @@ int3_delta = (intervention3 - start_date).days
 decay4 = st.sidebar.number_input(
     "NYS Facemask Mandate, change in social distancing %", 0, 100, value=25 ,step=5, format="%i")/100.0
 
-end_date = st.sidebar.date_input(
+step1 = st.sidebar.date_input(
     "Phase 1 Reopening", datetime(2020,5,19))
 # Delta from start and end date for decay4
-end_delta = (end_date - start_date).days
+step1_delta = (step1 - start_date).days
 decay5 = st.sidebar.number_input(
     "Phase 1 Reopening, change in social distancing %", 0, 100, value=15 ,step=5, format="%i")/100.0
 
@@ -744,6 +750,12 @@ step4 = st.sidebar.date_input(
 step4_delta = (step4 - start_date).days
 decay8 = st.sidebar.number_input(
     "Phase 4 Reopening, change in social distancing %", 0, 100, value=0 ,step=5, format="%i")/100.0
+
+step5 = st.sidebar.date_input(
+    "School/College reopening", datetime(2020,8,15))
+step5_delta = (step5 - start_date).days
+decay9 = st.sidebar.number_input(
+    "College Reopening, change in social distancing %", 0, 100, value=0 ,step=5, format="%i")/100.0
 
 hosp_rate = (
     st.sidebar.number_input("Hospitalization %", 0.0, 100.0, value=1.5, step=0.50, format="%f")/ 100.0)
@@ -793,7 +805,10 @@ p_m3 = (st.sidebar.number_input(
 p_m4 = (st.sidebar.number_input(
 "Phase four reopening, people adhering to mask-wearing", 0.0, 100.0, value=60.0 ,step=5.0, format="%f")/100.0)
 p_m5 = (st.sidebar.number_input(
-"After Phased reopening, people adhering to mask-wearing", 0.0, 100.0, value=55.0 ,step=5.0, format="%f")/100.0)
+"Transition to school/college reopening, people adhering to mask-wearing", 0.0, 100.0, value=55.0 ,step=5.0, format="%f")/100.0)
+p_m6 = (st.sidebar.number_input(
+"College Reopening - Face mask adherance", 0.0, 100.0, value=45.0 ,step=5.0, format="%f")/100.0)
+
 
 delta_p = 1/(st.sidebar.number_input(
 "Days a person is pre-symptomatic", 0.0, 10.0, value=1.7 ,step=1.0, format="%f"))
@@ -880,7 +895,7 @@ erie_admit24_line = alt.Chart(erie_df).mark_line(color='red', point=True).encode
     y='New_admits:Q')
 
 # Slider and Date
-n_days = st.slider("Number of days to project", 30, 300, 200, 1, "%i")
+n_days = st.slider("Number of days to project", 30, 300, 250, 1, "%i")
 as_date = st.checkbox(label="Present result as dates", value=False)
 
 
@@ -1120,7 +1135,7 @@ hospitalized_e, icu_e, ventilated_e = (
 #####################################
 ## SEIR model with phase adjusted R_0
 
-s_R, e_R, i_R, r_R = sim_seir_decay(S-2, 1 ,1, 0.0, beta4, gamma2,alpha, n_days, decay1, decay2, decay3, decay4, end_delta)
+s_R, e_R, i_R, r_R = sim_seir_decay(S-2, 1 ,1, 0.0, beta4, gamma2,alpha, n_days, decay1, decay2, decay3, decay4, step1_delta)
 
 susceptible_R, exposed_R, infected_R, recovered_R = s_R, e_R, i_R, r_R
 
@@ -1142,7 +1157,7 @@ hospitalized_R, icu_R, ventilated_R = (
 ##################################################################
 ## SEIR model with phase adjusted R_0 and Disease Related Fatality
 
-s_D, e_D, i_D, r_D, d_D = sim_seird_decay(S-2, 1, 1 , 0.0, 0.0, beta4, gamma2,alpha, n_days, decay1, decay2, decay3, decay4, end_delta, fatal)
+s_D, e_D, i_D, r_D, d_D = sim_seird_decay(S-2, 1, 1 , 0.0, 0.0, beta4, gamma2,alpha, n_days, decay1, decay2, decay3, decay4, step1_delta, fatal)
 
 susceptible_D, exposed_D, infected_D, recovered_D = s_D, e_D, i_D, r_D
 
@@ -1165,7 +1180,7 @@ hospitalized_D, icu_D, ventilated_D = (
 ## SEIR model with phase adjusted R_0 and Disease Related Fatality
 ## (Dr. W) Model based on Erie cases with set parameters of extreme social distancing
 
-s_D, e_D, i_D, r_D, d_D = sim_seird_decay_social(S-2, 1, 1 , 0.0, 0.0, beta4, gamma2,alpha, n_days, decay1, decay2, decay3, decay4, end_delta, fatal)
+s_D, e_D, i_D, r_D, d_D = sim_seird_decay_social(S-2, 1, 1 , 0.0, 0.0, beta4, gamma2,alpha, n_days, decay1, decay2, decay3, decay4, step1_delta, fatal)
 
 susceptible_D, exposed_D, infected_D, recovered_D = s_D, e_D, i_D, r_D
 
@@ -1188,7 +1203,7 @@ hospitalized_D_socialcases, icu_D, ventilated_D = (
 ## SEIR model with phase adjusted R_0 and Disease Related Fatality
 ## (Gabe) Model based on Erie cases with set parameters of doubling time and social distancing
 
-s_D, e_D, i_D, r_D, d_D = sim_seird_decay_erie(S-2, 1, 1 , 0.0, 0.0, beta4, gamma2,alpha, n_days, decay1, decay2, decay3, decay4, end_delta, fatal)
+s_D, e_D, i_D, r_D, d_D = sim_seird_decay_erie(S-2, 1, 1 , 0.0, 0.0, beta4, gamma2,alpha, n_days, decay1, decay2, decay3, decay4, step1_delta, fatal)
 
 susceptible_D, exposed_D, infected_D, recovered_D = s_D, e_D, i_D, r_D
 
@@ -1232,8 +1247,8 @@ beta_j=0.9
 R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
 
 S_n, E_n,A_n, I_n,J_n, R_n, D_n, RH_n=sim_seaijrd_decay_ode(S0, E0, A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
-                                                      decay1,decay2,decay3, decay4, decay5, decay6, decay7, decay8, start_day, int1_delta, int2_delta,
-                                                      end_delta, step2_delta, step3_delta, step4_delta, fatal_hosp,asymptomatic, hosp_rate, q,  l)
+                                                      decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, start_day, int1_delta, int2_delta,
+                                                      step1_delta, step2_delta, step3_delta, step4_delta, step5_delta, fatal_hosp,asymptomatic, hosp_rate, q,  l)
 
 
 icu_curve= J_n*icu_rate
@@ -1290,8 +1305,9 @@ beta_j=0.51
 R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
 
 S_p, E_p,P_p,A_p, I_p,J_p, R_p, D_p, RH_p=sim_sepaijrd_decay_ode(S0, E0, P0,A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
-                                                      decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, start_day, int1_delta, int2_delta,
-                                                      end_delta, step2_delta, step3_delta, step4_delta, fatal_hosp,asymptomatic, hosp_rate, q,  l,x, p_m1, p_m2, p_m3, p_m4, p_m5, delta_p)
+                                                      decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, start_day, int1_delta, int2_delta,
+                                                      step1_delta, step2_delta, step3_delta, step4_delta, step5_delta, fatal_hosp,asymptomatic, hosp_rate, q,  l, x, 
+                                                      p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, delta_p)
 
 icu_curve= J_p*icu_rate
 vent_curve=J_p*vent_rate
@@ -1350,8 +1366,9 @@ beta_j=0.51
 R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
 
 S_p, E_p,P_p,A_p, I_p,J_p, R_p, D_p, RH_p=sim_sepaijrd_decay_ode(S0, E0, P0,A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
-                                                      decay1, decay2, decay3, decay4, decay5, decay6, decay7,  decay8, start_day, int1_delta, int2_delta,
-                                                      end_delta, step2_delta, step3_delta, step4_delta, fatal_hosp,asymptomatic, hosp_rate, q, l, x, p_m1, p_m2, p_m3, p_m4, p_m5, delta_p)
+                                                      decay1, decay2, decay3, decay4, decay5, decay6, decay7,  decay8, decay9,  start_day, int1_delta, int2_delta,
+                                                      step1_delta, step2_delta, step3_delta, step4_delta, step5_delta, fatal_hosp,asymptomatic, hosp_rate, q, l, x, 
+                                                      p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, delta_p)
 
 icu_curve= J_p*icu_rate
 vent_curve=J_p*vent_rate
@@ -1409,8 +1426,9 @@ beta_j=0.51
 R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
 
 S_p, E_p,P_p,A_p, I_p,J_p, R_p, D_p, RH_p=sim_sepaijrd_decay_ode(S0, E0, P0,A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
-                                                      decay1, decay2, decay3, decay4, decay5, decay6, decay7,  decay8, start_day, int1_delta, int2_delta,
-                                                      end_delta, step2_delta, step3_delta, step4_delta, fatal_hosp,asymptomatic, hosp_rate, q,  l,x, p_m1, p_m2, p_m3, p_m4, p_m5, delta_p)
+                                                      decay1, decay2, decay3, decay4, decay5, decay6, decay7,  decay8, decay9, start_day, int1_delta, int2_delta,
+                                                      step1_delta, step2_delta, step3_delta, step4_delta, step5_delta, fatal_hosp,asymptomatic, hosp_rate, q, l, x, 
+                                                      p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, delta_p)
 
 icu_curve= J_p*icu_rate
 vent_curve=J_p*vent_rate
@@ -1470,8 +1488,9 @@ beta_j=0.51
 R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
 
 S_p, E_p,P_p,A_p, I_p,J_p, R_p, D_p, RH_p=sim_sepaijrd_decay_ode(S0, E0, P0,A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
-                                                      decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, start_day, int1_delta, int2_delta,
-                                                      end_delta, step2_delta, step3_delta, step4_delta, fatal_hosp, asymptomatic, hosp_rate, q,  l,x, p_m1, p_m2, p_m3, p_m4, p_m5, delta_p)
+                                                      decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, start_day, int1_delta, int2_delta,
+                                                      step1_delta, step2_delta, step3_delta, step4_delta, step5_delta, fatal_hosp, asymptomatic, hosp_rate, q, l, x, 
+                                                      p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, delta_p)
 
 icu_curve= J_p*icu_rate
 vent_curve=J_p*vent_rate
@@ -1743,7 +1762,7 @@ def ip_chart(
 # Phase 2 reopen
 # Phase 3 reopen
 # Phase 4 reopen 7/20/20
-vertical = pd.DataFrame({'day': [int1_delta, int2_delta, int3_delta, end_delta, step2_delta, step3_delta, step4_delta]})
+vertical = pd.DataFrame({'day': [int1_delta, int2_delta, int3_delta, step1_delta, step2_delta, step3_delta, step4_delta, step5_delta]})
 
 def vertical_chart(
     projection_admits: pd.DataFrame, 

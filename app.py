@@ -724,38 +724,38 @@ if password == secret:
         "NYS Facemask Mandate", datetime(2020,4,15))
     int3_delta = (intervention3 - start_date).days
     decay4 = st.sidebar.number_input(
-        "NYS Facemask Mandate, change in social distancing %", 0, 100, value=25 ,step=5, format="%i")/100.0
+        "NYS Facemask Mandate, social distancing %", 0, 100, value=25 ,step=5, format="%i")/100.0
 
     step1 = st.sidebar.date_input(
         "Phase 1 Reopening", datetime(2020,5,19))
     # Delta from start and end date for decay4
     step1_delta = (step1 - start_date).days
     decay5 = st.sidebar.number_input(
-        "Phase 1 Reopening, change in social distancing %", 0, 100, value=15 ,step=5, format="%i")/100.0
+        "Phase 1 Reopening, social distancing %", 0, 100, value=15 ,step=5, format="%i")/100.0
 
     step2 = st.sidebar.date_input(
         "Phase 2 Reopening", datetime(2020,6,2))
     step2_delta = (step2 - start_date).days
     decay6 = st.sidebar.number_input(
-        "Phase 2 Reopening, change in social distancing %", 0, 100, value=0 ,step=5, format="%i")/100.0
+        "Phase 2 Reopening, social distancing %", 0, 100, value=0 ,step=5, format="%i")/100.0
         
     step3 = st.sidebar.date_input(
         "Phase 3 Reopening", datetime(2020,6,16))
     step3_delta = (step3 - start_date).days
     decay7 = st.sidebar.number_input(
-        "Phase 3 Reopening, change in social distancing %", 0, 100, value=0 ,step=5, format="%i")/100.0
+        "Phase 3 Reopening, social distancing %", 0, 100, value=0 ,step=5, format="%i")/100.0
 
     step4 = st.sidebar.date_input(
         "Phase 4 Reopening", datetime(2020,7,20))
     step4_delta = (step4 - start_date).days
     decay8 = st.sidebar.number_input(
-        "Phase 4 Reopening, change in social distancing %", 0, 100, value=0 ,step=5, format="%i")/100.0
+        "Phase 4 Reopening, social distancing %", 0, 100, value=0 ,step=5, format="%i")/100.0
 
     step5 = st.sidebar.date_input(
         "School/College reopening", datetime(2020,8,15))
     step5_delta = (step5 - start_date).days
     decay9 = st.sidebar.number_input(
-        "College Reopening, change in social distancing %", 0, 100, value=0 ,step=5, format="%i")/100.0
+        "College Reopening, social distancing %", 0, 100, value=0 ,step=5, format="%i")/100.0
 
     hosp_rate = (
         st.sidebar.number_input("Hospitalization %", 0.0, 100.0, value=1.5, step=0.50, format="%f")/ 100.0)
@@ -1283,6 +1283,7 @@ if password == secret:
     ##################################################################
     ## SEIR model with phase adjusted R_0 and Disease Related Fatality,
     ## Asymptomatic, Hospitalization, Presymptomatic, and masks
+    # No change in facemask use (for comparison)
     E0=100
     A0=100
     I0=100
@@ -1355,7 +1356,7 @@ if password == secret:
     beta_j=0.6
     q=0.583
     l=0.717
-    p_m5 = 0.5
+    p_m6 = 0.45
     gamma_hosp=1/hosp_lag
     AAA=beta4*(1/gamma2)*S
     beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
@@ -1415,7 +1416,7 @@ if password == secret:
     beta_j=0.6
     q=0.583
     l=0.717
-    p_m5 = 0.4
+    p_m6 = 0.55
     gamma_hosp=1/hosp_lag
     AAA=beta4*(1/gamma2)*S
     beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
@@ -1477,7 +1478,7 @@ if password == secret:
     beta_j=0.6
     q=0.583
     l=0.717
-    p_m5 = 0.60
+    p_m6 = 0.60
     gamma_hosp=1/hosp_lag
     AAA=beta4*(1/gamma2)*S
     beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
@@ -1757,10 +1758,11 @@ if password == secret:
     # Schools 3/18/20
     # Non-essential business 3/22/20
     # Facemask 4/15/20
-    # Phase 1 reopen
-    # Phase 2 reopen
-    # Phase 3 reopen
+    # Phase 1 reopen 5/19/20
+    # Phase 2 reopen 6/2/20
+    # Phase 3 reopen 6/16/20
     # Phase 4 reopen 7/20/20
+    # Schools Reopen 8/15/20
     vertical = pd.DataFrame({'day': [int1_delta, int2_delta, int3_delta, step1_delta, step2_delta, step3_delta, step4_delta, step5_delta]})
 
     def vertical_chart(
@@ -2009,6 +2011,8 @@ if password == secret:
         #+ alt.layer(vertical1)
         #, use_container_width=True)
 
+    # Main Graph - GA
+    # Active as of 10/5/20
     st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs Model (SEPAIJRD)")
     st.altair_chart(
         #alt.layer(seir_ip_c.mark_line())
@@ -2021,16 +2025,16 @@ if password == secret:
         + alt.layer(vertical1)
         , use_container_width=True)
 
-
-    # st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs Model (SEPAIJRD)")
-    # st.altair_chart(
-        # alt.layer(seir_P0.mark_line())
-        # + alt.layer(seir_P1.mark_line())
-        # + alt.layer(seir_P2.mark_line())
-        # + alt.layer(seir_P3.mark_line())
-        # + alt.layer(graph_selection)
-        # + alt.layer(vertical1)
-        # , use_container_width=True)
+    # Comparison Graph w/ Multiple Lines
+    st.subheader("Comparison of Facemask Use for Erie County: Data and Disease Model (SEPAIJRD)")
+    st.altair_chart(
+        alt.layer(seir_P0.mark_line())
+        + alt.layer(seir_P1.mark_line())
+        + alt.layer(seir_P2.mark_line())
+        #+ alt.layer(seir_P3.mark_line())
+        + alt.layer(graph_selection)
+        + alt.layer(vertical1)
+        , use_container_width=True)
 
     #st.header("""Hospital Specific Projected Admissions and Census""")
     # By Hospital Admissions Chart - SEIR model with Phase Adjusted R_0 and Case Fatality

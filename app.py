@@ -500,8 +500,8 @@ if password == secret:
         return beta_decay
 
     #The SIR model differential equations with ODE solver.
-    def derivdecay(y, t, N, beta, gamma1, gamma2, alpha, p, hosp, q, l, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, 
-                    start_day, int1_delta, int2_delta, step1_delta, step2_delta, step3_delta, step4_delta, step5_delta, fatal_hosp ):
+    def derivdecay(y, t, N, beta, gamma1, gamma2, alpha, p, hosp, q, l, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, decay10, 
+                    start_day, int1_delta, int2_delta, step1_delta, step2_delta, step3_delta, step4_delta, step5_delta, step6_delta, fatal_hosp ):
         S, E, A, I,J, R,D,counter = y
         dSdt = - betanew(t, beta) * S * (q*I + l*J + A)/N 
         dEdt = betanew(t, beta) * S * (q*I + l*J + A)/N   - alpha * E
@@ -514,23 +514,23 @@ if password == secret:
         return dSdt, dEdt,dAdt, dIdt, dJdt, dRdt, dDdt, counter
 
     def sim_seaijrd_decay_ode(
-        s, e,a,i, j,r, d, beta, gamma1, gamma2, alpha, n_days,decay1,decay2,decay3, decay4, decay5, decay6, decay7, decay8, decay9, 
-        start_day, int1_delta, int2_delta, step1_delta, step2_delta, step3_delta, step4_delta, step5_delta, fatal_hosp, p, hosp, q,
+        s, e,a,i, j,r, d, beta, gamma1, gamma2, alpha, n_days,decay1,decay2,decay3, decay4, decay5, decay6, decay7, decay8, decay9, decay10, 
+        start_day, int1_delta, int2_delta, step1_delta, step2_delta, step3_delta, step4_delta, step5_delta, step6_delta, fatal_hosp, p, hosp, q,
         l):
         n = s + e + a + i + j+ r + d
         rh=0
         y0= s,e,a,i,j,r,d, rh
         
         t=np.arange(0, n_days, step=1)
-        ret = odeint(derivdecay, y0, t, args=(n, beta, gamma1, gamma2, alpha, p, hosp,q,l, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, 
-        start_day, int1_delta, int2_delta, step1_delta, step2_delta, step3_delta, step4_delta, step5_delta, fatal_hosp))
+        ret = odeint(derivdecay, y0, t, args=(n, beta, gamma1, gamma2, alpha, p, hosp,q,l, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, decay10,
+        start_day, int1_delta, int2_delta, step1_delta, step2_delta, step3_delta, step4_delta, step5_delta, step6_delta, fatal_hosp))
         S_n, E_n,A_n, I_n,J_n, R_n, D_n ,RH_n= ret.T
         
         return (S_n, E_n,A_n, I_n,J_n, R_n, D_n, RH_n)
 
 
     ####The SIR model differential equations with ODE solver. Presymptomatic and masks
-    def betanew2(t,beta,x,p_m1, pm_2, p_m3, p_m4, p_m5, p_m6):
+    def betanew2(t,beta,x,p_m1, pm_2, p_m3, p_m4, p_m5, p_m6, p_m7):
         if start_day<= t <= int1_delta:
             beta_decay=beta*(1-decay1)
         elif int1_delta<=t<int2_delta:
@@ -547,17 +547,19 @@ if password == secret:
             beta_decay=beta*(1-decay7)*(1-(x*p_m4))**2 
         elif step4_delta<=t<=step5_delta:
             beta_decay=beta*(1-decay8)*(1-(x*p_m5))**2 
+        elif step5_delta<=t<=step6_delta:
+            beta_decay=beta*(1-decay9)*(1-(x*p_m6))**2 
         else:
-            beta_decay=beta*(1-decay9)*(1-(x*p_m6))**2  
+            beta_decay=beta*(1-decay10)*(1-(x*p_m7))**2  
         return beta_decay
 
-    def derivdecayP(y, t, beta, gamma1, gamma2, alpha, sym, hosp,q,l,n_days, decay1,decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, 
-                    start_day, int1_delta, int2_delta, step1_delta, step2_delta, step3_delta, step4_delta, step5_delta, 
-                    fatal_hosp, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, delta_p ):
+    def derivdecayP(y, t, beta, gamma1, gamma2, alpha, sym, hosp,q,l,n_days, decay1,decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, decay10,
+                    start_day, int1_delta, int2_delta, step1_delta, step2_delta, step3_delta, step4_delta, step5_delta, step6_delta,
+                    fatal_hosp, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, delta_p ):
         S, E, P,A, I,J, R,D,counter = y
         N=S+E+P+A+I+J+R+D
-        dSdt = - betanew2(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6) * S * (q*I + l*J +P+ A)/N 
-        dEdt = betanew2(t, beta, x, p_m1, p_m2, p_m3,  p_m4, p_m5, p_m6) * S * (q*I + l*J +P+ A)/N   - alpha * E
+        dSdt = - betanew2(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7) * S * (q*I + l*J +P+ A)/N 
+        dEdt = betanew2(t, beta, x, p_m1, p_m2, p_m3,  p_m4, p_m5, p_m6, p_m7) * S * (q*I + l*J +P+ A)/N   - alpha * E
         dPdt = alpha * E - delta_p * P
         dAdt = delta_p* P *(1-sym)-gamma1*A
         dIdt = sym* delta_p* P - gamma1 * I- hosp*I
@@ -568,16 +570,16 @@ if password == secret:
         return dSdt, dEdt,dPdt,dAdt, dIdt, dJdt, dRdt, dDdt, counter
 
     def sim_sepaijrd_decay_ode(
-        s, e,p,a,i, j,r, d, beta, gamma1, gamma2, alpha, n_days,decay1,decay2,decay3, decay4, decay5, decay6, decay7, decay8, decay9, start_day, int1_delta,
-        int2_delta, step1_delta, step2_delta, step3_delta, step4_delta, step5_delta, fatal_hosp, sym, hosp, q,
-        l,x, p_m1, p_m2, p_m3,  p_m4, p_m5, p_m6, delta_p):
+        s, e,p,a,i, j,r, d, beta, gamma1, gamma2, alpha, n_days,decay1,decay2,decay3, decay4, decay5, decay6, decay7, decay8, decay9, decay10, 
+        start_day, int1_delta, int2_delta, step1_delta, step2_delta, step3_delta, step4_delta, step5_delta, step6_delta, fatal_hosp, sym, hosp, q,
+        l,x, p_m1, p_m2, p_m3,  p_m4, p_m5, p_m6, p_m7, delta_p):
         n = s + e + p+a + i + j+ r + d
         rh=0
         y0= s,e,p,a,i,j,r,d, rh
         
         t=np.arange(0, n_days, step=1)
-        ret = odeint(derivdecayP, y0, t, args=(beta, gamma1, gamma2, alpha, sym, hosp,q,l, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, start_day, int1_delta,
-                                               int2_delta, step1_delta, step2_delta, step3_delta, step4_delta, step5_delta, fatal_hosp, x, p_m1, p_m2, p_m3,  p_m4,  p_m5, p_m6, delta_p))
+        ret = odeint(derivdecayP, y0, t, args=(beta, gamma1, gamma2, alpha, sym, hosp,q,l, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, decay10,
+        start_day, int1_delta, int2_delta, step1_delta, step2_delta, step3_delta, step4_delta, step5_delta, step6_delta, fatal_hosp, x, p_m1, p_m2, p_m3,  p_m4,  p_m5, p_m6, p_m7, delta_p))
         S_n, E_n,P_n,A_n, I_n,J_n, R_n, D_n ,RH_n= ret.T
         
         return (S_n, E_n,P_n,A_n, I_n,J_n, R_n, D_n, RH_n)
@@ -752,10 +754,16 @@ if password == secret:
         "Phase 4 Reopening, social distancing %", 0, 100, value=0 ,step=5, format="%i")/100.0
 
     step5 = st.sidebar.date_input(
-        "School/College reopening", datetime(2020,8,15))
+        "School Reopening", datetime(2020,8,15))
     step5_delta = (step5 - start_date).days
     decay9 = st.sidebar.number_input(
-        "College Reopening, social distancing %", 0, 100, value=0 ,step=5, format="%i")/100.0
+        "School Reopening, social distancing %", 0, 100, value=0 ,step=5, format="%i")/100.0
+        
+    step6 = st.sidebar.date_input(
+        "Facemask Use Change Sept", datetime(2020,9,15))
+    step6_delta = (step6 - start_date).days
+    decay10 = st.sidebar.number_input(
+        "Current social distancing %", 0, 100, value=0 ,step=5, format="%i")/100.0    
 
     hosp_rate = (
         st.sidebar.number_input("Hospitalization %", 0.0, 100.0, value=1.5, step=0.50, format="%f")/ 100.0)
@@ -807,7 +815,11 @@ if password == secret:
     p_m5 = (st.sidebar.number_input(
     "Transition to school/college reopening, people adhering to mask-wearing", 0.0, 100.0, value=55.0 ,step=5.0, format="%f")/100.0)
     p_m6 = (st.sidebar.number_input(
-    "College Reopening - Face mask adherance", 0.0, 100.0, value=50.0 ,step=5.0, format="%f")/100.0)
+    "Face mask adherance Aug-Sept", 0.0, 100.0, value=50.0 ,step=5.0, format="%f")/100.0)
+    p_m7 = (st.sidebar.number_input(
+    "Face mask adherance Sept-Oct", 0.0, 100.0, value=45.0 ,step=5.0, format="%f")/100.0)
+
+    curve_change_val = p_m7
 
     delta_p = 1/(st.sidebar.number_input(
     "Days a person is pre-symptomatic", 0.0, 10.0, value=1.7 ,step=1.0, format="%f"))
@@ -894,7 +906,7 @@ if password == secret:
         y='New_admits:Q')
 
     # Slider and Date
-    n_days = st.slider("Number of days to project", 30, 400, 250, 1, "%i")
+    n_days = st.slider("Number of days to project", 30, 400, 300, 1, "%i")
     as_date = st.checkbox(label="Present result as dates", value=False)
 
 
@@ -1246,8 +1258,8 @@ if password == secret:
     R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
 
     S_n, E_n,A_n, I_n,J_n, R_n, D_n, RH_n=sim_seaijrd_decay_ode(S0, E0, A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
-                                                          decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, start_day, int1_delta, int2_delta,
-                                                          step1_delta, step2_delta, step3_delta, step4_delta, step5_delta, fatal_hosp,asymptomatic, hosp_rate, q,  l)
+                                                          decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, decay10, start_day, int1_delta, int2_delta,
+                                                          step1_delta, step2_delta, step3_delta, step4_delta, step5_delta, step6_delta, fatal_hosp,asymptomatic, hosp_rate, q,  l)
 
 
     icu_curve= J_n*icu_rate
@@ -1305,9 +1317,9 @@ if password == secret:
     R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
 
     S_p, E_p,P_p,A_p, I_p,J_p, R_p, D_p, RH_p=sim_sepaijrd_decay_ode(S0, E0, P0,A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
-                                                          decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, start_day, int1_delta, int2_delta,
-                                                          step1_delta, step2_delta, step3_delta, step4_delta, step5_delta, fatal_hosp,asymptomatic, hosp_rate, q,  l, x, 
-                                                          p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, delta_p)
+                                                          decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, decay10, start_day, int1_delta, int2_delta,
+                                                          step1_delta, step2_delta, step3_delta, step4_delta, step5_delta, step6_delta, fatal_hosp,asymptomatic, hosp_rate, q,  l, x, 
+                                                          p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, delta_p)
 
     icu_curve= J_p*icu_rate
     vent_curve=J_p*vent_rate
@@ -1356,7 +1368,7 @@ if password == secret:
     beta_j=0.6
     q=0.583
     l=0.717
-    p_m6 = 0.45
+    p_m7 = 0.50
     gamma_hosp=1/hosp_lag
     AAA=beta4*(1/gamma2)*S
     beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
@@ -1366,9 +1378,9 @@ if password == secret:
     R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
 
     S_p, E_p,P_p,A_p, I_p,J_p, R_p, D_p, RH_p=sim_sepaijrd_decay_ode(S0, E0, P0,A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
-                                                          decay1, decay2, decay3, decay4, decay5, decay6, decay7,  decay8, decay9,  start_day, int1_delta, int2_delta,
-                                                          step1_delta, step2_delta, step3_delta, step4_delta, step5_delta, fatal_hosp,asymptomatic, hosp_rate, q, l, x, 
-                                                          p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, delta_p)
+                                                          decay1, decay2, decay3, decay4, decay5, decay6, decay7,  decay8, decay9, decay10, start_day, int1_delta, int2_delta,
+                                                          step1_delta, step2_delta, step3_delta, step4_delta, step5_delta, step6_delta, fatal_hosp,asymptomatic, hosp_rate, q, l, x, 
+                                                          p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, delta_p)
 
     icu_curve= J_p*icu_rate
     vent_curve=J_p*vent_rate
@@ -1416,7 +1428,7 @@ if password == secret:
     beta_j=0.6
     q=0.583
     l=0.717
-    p_m6 = 0.55
+    p_m7 = 0.40
     gamma_hosp=1/hosp_lag
     AAA=beta4*(1/gamma2)*S
     beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
@@ -1426,9 +1438,9 @@ if password == secret:
     R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
 
     S_p, E_p,P_p,A_p, I_p,J_p, R_p, D_p, RH_p=sim_sepaijrd_decay_ode(S0, E0, P0,A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
-                                                          decay1, decay2, decay3, decay4, decay5, decay6, decay7,  decay8, decay9, start_day, int1_delta, int2_delta,
-                                                          step1_delta, step2_delta, step3_delta, step4_delta, step5_delta, fatal_hosp,asymptomatic, hosp_rate, q, l, x, 
-                                                          p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, delta_p)
+                                                          decay1, decay2, decay3, decay4, decay5, decay6, decay7,  decay8, decay9, decay10, start_day, int1_delta, int2_delta,
+                                                          step1_delta, step2_delta, step3_delta, step4_delta, step5_delta, step6_delta, fatal_hosp,asymptomatic, hosp_rate, q, l, x, 
+                                                          p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, delta_p)
 
     icu_curve= J_p*icu_rate
     vent_curve=J_p*vent_rate
@@ -1478,7 +1490,7 @@ if password == secret:
     beta_j=0.6
     q=0.583
     l=0.717
-    p_m6 = 0.60
+    p_m7 = 0.60
     gamma_hosp=1/hosp_lag
     AAA=beta4*(1/gamma2)*S
     beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
@@ -1488,9 +1500,9 @@ if password == secret:
     R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
 
     S_p, E_p,P_p,A_p, I_p,J_p, R_p, D_p, RH_p=sim_sepaijrd_decay_ode(S0, E0, P0,A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
-                                                          decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, start_day, int1_delta, int2_delta,
-                                                          step1_delta, step2_delta, step3_delta, step4_delta, step5_delta, fatal_hosp, asymptomatic, hosp_rate, q, l, x, 
-                                                          p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, delta_p)
+                                                          decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, decay10, start_day, int1_delta, int2_delta,
+                                                          step1_delta, step2_delta, step3_delta, step4_delta, step5_delta, step6_delta, fatal_hosp, asymptomatic, hosp_rate, q, l, x, 
+                                                          p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, delta_p)
 
     icu_curve= J_p*icu_rate
     vent_curve=J_p*vent_rate
@@ -1763,7 +1775,7 @@ if password == secret:
     # Phase 3 reopen 6/16/20
     # Phase 4 reopen 7/20/20
     # Schools Reopen 8/15/20
-    vertical = pd.DataFrame({'day': [int1_delta, int2_delta, int3_delta, step1_delta, step2_delta, step3_delta, step4_delta, step5_delta]})
+    vertical = pd.DataFrame({'day': [int1_delta, int2_delta, int3_delta, step1_delta, step2_delta, step3_delta, step4_delta, step5_delta, step6_delta]})
 
     def vertical_chart(
         projection_admits: pd.DataFrame, 
@@ -2375,7 +2387,7 @@ if password == secret:
 
 
 
-      
+          
 
 
 

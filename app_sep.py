@@ -627,7 +627,7 @@ doubling_time = st.sidebar.number_input(
     "Doubling Time (days)", value=3.0, step=1.0, format="%f")
 
 start_date = st.sidebar.date_input(
-    "Suspected first contact", datetime(2020,9,1))
+    "Suspected first contact", datetime(2020,10,9))
 start_day = 1
 
 relative_contact_rate = st.sidebar.number_input(
@@ -637,10 +637,10 @@ decay1 = st.sidebar.number_input(
     "Social distancing 1 - Percent", 0, 100, value=0, step=5, format="%i")/100.0
 
 intervention1 = st.sidebar.date_input(
-    "Date of change Social Distancing 2", datetime(2020,11,30))
+    "Date of change Social Distancing 2", datetime(2020,11,20))
 int1_delta = (intervention1 - start_date).days
 decay2 = st.sidebar.number_input(
-    "Social distancing 2 - Percent", 0, 100, value=50, step=5, format="%i")/100.0
+    "Social distancing 2 - Percent", 0, 100, value=45, step=5, format="%i")/100.0
 
 intervention2 = st.sidebar.date_input(
     "Date of change in Social Distancing 3", datetime(2020,12,31))
@@ -688,9 +688,9 @@ q = 1-(st.sidebar.number_input(
 "Symptomatic Isolation Rate (contact tracing/quarantine when symptomatic)", 0.0, 100.0, value=34.8 ,step=0.1, format="%f")/100.0)
 
 p_m1 = (st.sidebar.number_input(
-"Mask-wearing 1", 0.0, 100.0, value=40.0 ,step=5.0, format="%f")/100.0)
+"Mask-wearing 1", 0.0, 100.0, value=20.0 ,step=5.0, format="%f")/100.0)
 p_m2 = (st.sidebar.number_input(
-"Mask-wearing 2", 0.0, 100.0, value=50.0 ,step=5.0, format="%f")/100.0)
+"Mask-wearing 2", 0.0, 100.0, value=40.0 ,step=5.0, format="%f")/100.0)
 p_m3 = (st.sidebar.number_input(
 "Mask-wearing 3", 0.0, 100.0, value=40.0 ,step=5.0, format="%f")/100.0)
 
@@ -780,7 +780,7 @@ erie_admit24_line = alt.Chart(erie_df).mark_line(color='red', point=True).encode
     y='New_admits:Q')
 
 # Slider and Date
-n_days = st.slider("Number of days to project", 30, 400, 300, 1, "%i")
+n_days = st.slider("Number of days to project", 30, 400, 90, 1, "%i")
 as_date = st.checkbox(label="Present result as dates", value=False)
 
 
@@ -1242,7 +1242,8 @@ S0=S-E0-P0-A0-I0-D0-J0-R0
 beta_j=0.6
 q=0.583
 l=0.717
-p_m2 = 0.55
+#p_m2 = 0.55
+decay2 = 0.225
 gamma_hosp=1/hosp_lag
 AAA=beta4*(1/gamma2)*S
 beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
@@ -1302,7 +1303,8 @@ S0=S-E0-P0-A0-I0-D0-J0-R0
 beta_j=0.6
 q=0.583
 l=0.717
-p_m2 = 0.45
+#p_m2 = 0.45
+#decay2 = 0.35
 gamma_hosp=1/hosp_lag
 AAA=beta4*(1/gamma2)*S
 beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
@@ -1365,7 +1367,8 @@ S0=S-E0-P0-A0-I0-D0-J0-R0
 beta_j=0.6
 q=0.583
 l=0.717
-p_m1 = 0.45
+#p_m1 = 0.45
+#intervention2 = 0.45
 gamma_hosp=1/hosp_lag
 AAA=beta4*(1/gamma2)*S
 beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))

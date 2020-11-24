@@ -498,9 +498,9 @@ def sim_seaijrd_decay_ode(
     t=np.arange(0, n_days, step=1)
     ret = odeint(derivdecay, y0, t, args=(n, beta, gamma1, gamma2, alpha, p, hosp,q,l, n_days, decay1, decay2, decay3,
     start_day, int1_delta, int2_delta, fatal_hosp))
-    S_n, E_n,A_n, I_n,J_n, R_n, D_n ,RH_n= ret.T
+    S_n, E_n, A_n, I_n,J_n, R_n, D_n ,RH_n= ret.T
     
-    return (S_n, E_n,A_n, I_n,J_n, R_n, D_n, RH_n)
+    return (S_n, E_n, A_n, I_n,J_n, R_n, D_n, RH_n)
 
 
 ####The SIR model differential equations with ODE solver. Presymptomatic and masks
@@ -545,9 +545,9 @@ def sim_sepaijrd_decay_ode(
     decay1, decay2, decay3,
     start_day, int1_delta, int2_delta, fatal_hosp, x, 
     p_m1, p_m2, p_m3, delta_p))
-    S_n, E_n,P_n,A_n, I_n,J_n, R_n, D_n ,RH_n= ret.T
+    S_n, E_n, P_n, A_n, I_n, J_n, R_n, D_n, RH_n= ret.T
     
-    return (S_n, E_n,P_n,A_n, I_n,J_n, R_n, D_n, RH_n)
+    return (S_n, E_n,P_n, A_n, I_n,J_n, R_n, D_n, RH_n)
 
     
 # End Models # 
@@ -627,7 +627,7 @@ doubling_time = st.sidebar.number_input(
     "Doubling Time (days)", value=3.0, step=1.0, format="%f")
 
 start_date = st.sidebar.date_input(
-    "Suspected first contact", datetime(2020,10,9))
+    "Suspected first contact", datetime(2020,10,11))
 start_day = 1
 
 relative_contact_rate = st.sidebar.number_input(
@@ -1173,9 +1173,9 @@ hospitalized_R, icu_R, ventilated_R = (
 E0=100
 A0=100
 I0=100
-D0=0
-R0=0
-J0=0
+D0=380
+R0=200
+J0=80
 P0=220
 x=0.5
 S0=S-E0-P0-A0-I0-D0-J0-R0
@@ -1235,7 +1235,7 @@ A0=100
 I0=100
 D0=0
 R0=0
-J0=0
+J0=45
 P0=220
 x=0.5
 S0=S-E0-P0-A0-I0-D0-J0-R0
@@ -1296,7 +1296,7 @@ A0=100
 I0=100
 D0=0
 R0=0
-J0=0
+J0=45
 P0=220
 x=0.5
 S0=S-E0-P0-A0-I0-D0-J0-R0
@@ -2223,44 +2223,44 @@ def ppe_chart(
 # st.markdown("""Incidence is measured as the number of new cases daily, (from compartments A, I) prevalence is measured
 # as the population infected with the disease (A,I,J) daily.""")
 
-### incidence
-# dispositions_inc= (A_n+I_n+J_n+R_n+D_n)
-# dispositions_inc=pd.DataFrame(dispositions_inc, columns=['newcases']) 
-# dispositions_inc2 = dispositions_inc.iloc[:-1, :] - dispositions_inc.shift(1)
-# dispositions_inc2["day"] = range(dispositions_inc2.shape[0])
-# dispositions_inc2["TotalCases"]=S_n
-# dispositions_inc2.at[0,'newcases']=0
-# dispositions_inc2["incidencerate"]=dispositions_inc2['newcases']/dispositions_inc2['TotalCases']
+## incidence
+dispositions_inc= (A_n+I_n+J_n+R_n+D_n)
+dispositions_inc=pd.DataFrame(dispositions_inc, columns=['newcases']) 
+dispositions_inc2 = dispositions_inc.iloc[:-1, :] - dispositions_inc.shift(1)
+dispositions_inc2["day"] = range(dispositions_inc2.shape[0])
+dispositions_inc2["TotalCases"]=S_n
+dispositions_inc2.at[0,'newcases']=0
+dispositions_inc2["incidencerate"]=dispositions_inc2['newcases']/dispositions_inc2['TotalCases']
 
-# # total number of new cases daily/total number of people disease free at the start of the day
+# total number of new cases daily/total number of people disease free at the start of the day
 
-# ### prevalence
+### prevalence
 
-# dispositions_prev=(A_n+I_n+J_n)
-# dispositions_prev=pd.DataFrame(dispositions_prev, columns=['cumucases']) 
-# dispositions_prev["day"] = range(dispositions_prev.shape[0])    
-# dispositions_prev["TotalCases"]=1400000.0
-# dispositions_prev["pointprevalencerate"]=dispositions_prev['cumucases']/dispositions_prev['TotalCases']
-# #total number of infected people during that day/ total number in population
+dispositions_prev=(A_n+I_n+J_n)
+dispositions_prev=pd.DataFrame(dispositions_prev, columns=['cumucases']) 
+dispositions_prev["day"] = range(dispositions_prev.shape[0])    
+dispositions_prev["TotalCases"]=1400000.0
+dispositions_prev["pointprevalencerate"]=dispositions_prev['cumucases']/dispositions_prev['TotalCases']
+#total number of infected people during that day/ total number in population
 
-# def additional_projections_chart2(i, p)  -> alt.Chart:
-    # dat = pd.DataFrame({"Incidence Rate":i,"Prevalence Rate":p})
+def additional_projections_chart2(i, p)  -> alt.Chart:
+    dat = pd.DataFrame({"Incidence Rate":i,"Prevalence Rate":p})
 
-    # return (
-        # alt
-        # .Chart(dat.reset_index())
-        # .transform_fold(fold=["Incidence Rate", "Prevalence Rate"])
-        # .mark_line(point=False)
-        # .encode(
-            # x=alt.X("index", title="Days from initial infection"),
-            # y=alt.Y("value:Q", title="Case Volume"),
-            # tooltip=["key:N", "value:Q"], 
-            # color="key:N"
-        # )
-        # .interactive()
-    # )
+    return (
+        alt
+        .Chart(dat.reset_index())
+        .transform_fold(fold=["Incidence Rate", "Prevalence Rate"])
+        .mark_line(point=False)
+        .encode(
+            x=alt.X("index", title="Days from initial infection"),
+            y=alt.Y("value:Q", title="Case Volume"),
+            tooltip=["key:N", "value:Q"], 
+            color="key:N"
+        )
+        .interactive()
+    )
 
-#st.altair_chart(additional_projections_chart2(dispositions_inc2["incidencerate"], dispositions_prev["pointprevalencerate"]), use_container_width=True)
+st.altair_chart(additional_projections_chart2(dispositions_inc2["incidencerate"], dispositions_prev["pointprevalencerate"]), use_container_width=True)
 
 
 

@@ -798,7 +798,7 @@ erie_admit24_line = alt.Chart(erie_df).mark_line(color='red', point=True).encode
 
 # Slider and Date
 n_days = st.slider("Number of days to project", 30, 400, 80, 1, "%i")
-as_date = st.checkbox(label="Present result as dates", value=False)
+as_date = st.checkbox(label="Present result as dates", value=True)
 
 
 #st.header("""Erie County: Reported Cases, Census and Admissions""")
@@ -1936,7 +1936,7 @@ st.altair_chart(
     , use_container_width=True)
 
 # Comparison Graph w/ Multiple Lines
-st.subheader("Comparison of Facemask Use for Erie County: Data and Disease Model (SEPAIJRD)")
+#st.subheader("Comparison of Facemask Use for Erie County: Data and Disease Model (SEPAIJRD)")
 #st.altair_chart(
 #    alt.layer(seir_P0.mark_line())
 #    + alt.layer(seir_P1.mark_line())
@@ -1946,13 +1946,13 @@ st.subheader("Comparison of Facemask Use for Erie County: Data and Disease Model
 #    + alt.layer(vertical1)
 #    , use_container_width=True)
 
-st.altair_chart(
-    alt.layer(seir_P0.mark_line())
-    + alt.layer(seir_P1.mark_line())
-    #+ alt.layer(seir_P3.mark_line())
-    + alt.layer(erie_lines_ip)
-    + alt.layer(vertical1)
-    , use_container_width=True)
+# st.altair_chart(
+    # alt.layer(seir_P0.mark_line())
+    # + alt.layer(seir_P1.mark_line())
+    # #+ alt.layer(seir_P3.mark_line())
+    # + alt.layer(erie_lines_ip)
+    # + alt.layer(vertical1)
+    # , use_container_width=True)
 
 #st.header("""Hospital Specific Projected Admissions and Census""")
 # By Hospital Admissions Chart - SEIR model with Phase Adjusted R_0 and Case Fatality

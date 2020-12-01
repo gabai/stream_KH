@@ -534,7 +534,7 @@ def derivdecayP(y, t, beta, gamma1, gamma2, alpha, sym, hosp,q,l,n_days, decay1,
     return dSdt, dEdt,dPdt,dAdt, dIdt, dJdt, dRdt, dDdt, counter
 
 def sim_sepaijrd_decay_ode(
-    s, e,p,a,i, j,r, d, beta, gamma1, gamma2, alpha, n_days,decay1, decay2, decay3, 
+    s, e,p,a,i, j,r, d, beta, gamma1, gamma2, alpha, n_days, decay1, decay2, decay3, 
     start_day, int1_delta, int2_delta, 
     fatal_hosp, sym, hosp, q,
     l,x, 
@@ -631,32 +631,32 @@ doubling_time = st.sidebar.number_input(
     "Doubling Time (days)", value=3.0, step=1.0, format="%f")
 
 start_date = st.sidebar.date_input(
-    "Suspected first contact", datetime(2020,10,23))
+    "Suspected first contact", datetime(2020,10,25))
 start_day = 1
 
 relative_contact_rate = st.sidebar.number_input(
     "Social distancing (% reduction in social contact) Unadjusted Model", 0, 100, value=0, step=5, format="%i")/100.0
 
 decay1 = st.sidebar.number_input(
-    "Social distancing 1 - Percent", 0, 100, value=0, step=5, format="%i")/100.0
+    "Social distancing 1 - Percent", 0, 100, value=2, step=5, format="%i")/100.0
 
 intervention1 = st.sidebar.date_input(
     "Date of change Social Distancing 2", datetime(2020,11,20))
 int1_delta = (intervention1 - start_date).days
 decay2 = st.sidebar.number_input(
-    "Social distancing 2 - Percent", 0, 100, value=45, step=5, format="%i")/100.0
+    "Social distancing 2 - Percent", 0, 100, value=2, step=5, format="%i")/100.0
 
 intervention2 = st.sidebar.date_input(
-    "Date of change in Social Distancing 3", datetime(2020,12,31))
+    "Date of change in Social Distancing 3", datetime(2020,12,4))
 int2_delta = (intervention2 - start_date).days
 decay3 = st.sidebar.number_input(
-    "Social distancing 3 - Percent", 0, 100, value=25, step=5, format="%i")/100.0
+    "Social distancing 3 - Percent", 0, 100, value=45, step=5, format="%i")/100.0
 
 hosp_rate = (
     st.sidebar.number_input("Hospitalization %", 0.0, 100.0, value=1.5, step=0.50, format="%f")/ 100.0)
 
 icu_rate = (
-    st.sidebar.number_input("ICU %", 0.0, 100.0, value=25.0, step=5.0, format="%f") / 100.0)
+    st.sidebar.number_input("ICU %", 0.0, 100.0, value=32.0, step=5.0, format="%f") / 100.0)
 
 vent_rate = (
     st.sidebar.number_input("Ventilated %", 0.0, 100.0, value=35.0, step=5.0, format="%f")/ 100.0)
@@ -694,14 +694,14 @@ q = 1-(st.sidebar.number_input(
 p_m1 = (st.sidebar.number_input(
 "Mask-wearing 1", 0.0, 100.0, value=10.0 ,step=5.0, format="%f")/100.0)
 p_m2 = (st.sidebar.number_input(
-"Mask-wearing 2", 0.0, 100.0, value=40.0 ,step=5.0, format="%f")/100.0)
+"Mask-wearing 2", 0.0, 100.0, value=30.0 ,step=5.0, format="%f")/100.0)
 p_m3 = (st.sidebar.number_input(
 "Mask-wearing 3", 0.0, 100.0, value=40.0 ,step=5.0, format="%f")/100.0)
 
 
 delta_p = 1/(st.sidebar.number_input(
 "Days a person is pre-symptomatic", 0.0, 10.0, value=1.7 ,step=1.0, format="%f"))
-hosp_los = st.sidebar.number_input("Hospital Length of Stay", value=6, step=1, format="%i")
+hosp_los = st.sidebar.number_input("Hospital Length of Stay", value=8, step=1, format="%i")
 icu_los = st.sidebar.number_input("ICU Length of Stay", value=11, step=1, format="%i")
 vent_los = st.sidebar.number_input("Ventilator Length of Stay", value=10, step=1, format="%i")
 
@@ -1173,7 +1173,7 @@ hospitalized_R, icu_R, ventilated_R = (
 ##################################################################
 ## SEIR model with phase adjusted R_0 and Disease Related Fatality,
 ## Asymptomatic, Hospitalization, Presymptomatic, and masks
-# No change in facemask use (for comparison)
+# Main Curve 12/1/20
 E0=667
 A0=195
 I0=393
@@ -1217,15 +1217,15 @@ lengths_of_stay = tuple(each.length_of_stay for each in (hospitalized_p, icu, ve
 
 
 i_hospitalized_P, i_icu_P, i_ventilated_P = get_dispositions(J_p, rates_p, regional_hosp_share)
-#st.dataframe(i_hospitalized_P)
+st.dataframe(i_hospitalized_P)
 r_hospitalized_P, r_icu_P, r_ventilated_P = get_dispositions(RH_p, rates_p, regional_hosp_share)
 d_hospitalized_P, d_icu_P, d_ventilated_P = get_dispositions(D_p, rates_p, regional_hosp_share)
 dispositions_P0 = (
             i_hospitalized_P + r_hospitalized_P+ d_hospitalized_P ,
             i_icu_P+r_icu_P+d_icu_P,
             i_ventilated_P+r_ventilated_P +d_ventilated_P)
-#st.dataframe(i_hospitalized_P + r_hospitalized_P+ d_hospitalized_P)
-#st.dataframe(dispositions_P0)
+st.dataframe(i_hospitalized_P + r_hospitalized_P+ d_hospitalized_P)
+st.dataframe(dispositions_P0)
 hospitalized_P0, icu_P0, ventilated_P0 = (
             i_hospitalized_P,
             i_icu_P,
@@ -1235,7 +1235,7 @@ hospitalized_P0, icu_P0, ventilated_P0 = (
 ##################################################################
 ## SEIR model with phase adjusted R_0 and Disease Related Fatality,
 ## Asymptomatic, Hospitalization, Presymptomatic, and masks
-# Higher Facemask Use
+# Higher Value of Intervention 12/1/20
 E0=667
 A0=195
 I0=393
@@ -1249,7 +1249,7 @@ S0=1286318.1612
 beta_j=0.6
 q=0.583
 l=0.717
-#p_m2 = 0.55
+p_m2 = 0.40
 decay2 = 0.225
 gamma_hosp=1/hosp_lag
 AAA=beta4*(1/gamma2)*S
@@ -1297,7 +1297,7 @@ hospitalized_P1, icu_P1, ventilated_P1 = (
 ##################################################################
 ## SEIR model with phase adjusted R_0 and Disease Related Fatality,
 ## Asymptomatic, Hospitalization, Presymptomatic, and masks
-# Lower Facemask Use for new intervention
+# Lower value of intervention 12/1/20
 E0=667
 A0=195
 I0=393
@@ -1362,7 +1362,7 @@ hospitalized_P2, icu_P2, ventilated_P2 = (
 ## SEIR model with phase adjusted R_0 and Disease Related Fatality,
 ## Asymptomatic, Hospitalization, Presymptomatic, and masks
 # Higher Facemask Use
-# Not in use at the moment 11/16/20
+# Not in use as of 11/16/20
 E0=100
 A0=100
 I0=100
@@ -1396,7 +1396,6 @@ vent_curve=J_p*vent_rate
 hosp_rate_p=1.0
 RateLos = namedtuple("RateLos", ("rate", "length_of_stay"))
 hospitalized_p=RateLos(hosp_rate_p, hosp_los)
-#st.dataframe(hospitalized_p)
 icu_rate_p= icu_rate
 vent_rate_p= vent_rate
 icu=RateLos(icu_rate_p, icu_los)
@@ -1892,9 +1891,9 @@ def ip_census_chart(
 ### 4/22/20 sepaijrd
 #seir_P_ip_ecases = ip_census_chart(census_table_P_ecases, plot_projection_days, as_date=as_date)
 ### 6/22/20 sepaijrd
-seir_P0 = ip_census_chart(census_table_P0[6:len(census_table_P0)], plot_projection_days, as_date=as_date)
-seir_P1 = ip_census_chart(census_table_P1[6:len(census_table_P1)], plot_projection_days, as_date=as_date)
-seir_P2 = ip_census_chart(census_table_P2[6:len(census_table_P2)], plot_projection_days, as_date=as_date)
+seir_P0 = ip_census_chart(census_table_P0[9:len(census_table_P0)], plot_projection_days, as_date=as_date)
+seir_P1 = ip_census_chart(census_table_P1[9:len(census_table_P1)], plot_projection_days, as_date=as_date)
+seir_P2 = ip_census_chart(census_table_P2[9:len(census_table_P2)], plot_projection_days, as_date=as_date)
 seir_P3 = ip_census_chart(census_table_P3, plot_projection_days, as_date=as_date)
 
 

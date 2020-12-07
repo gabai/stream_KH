@@ -620,7 +620,7 @@ def add_date_column(
 
     return df
 
-    
+
 url = 'https://raw.githubusercontent.com/gabai/stream_KH/master/Cases_Erie.csv'
 erie_df = pd.read_csv(url)
 erie_df['Date'] = pd.to_datetime(erie_df['Date'])
@@ -663,7 +663,7 @@ intervention2 = st.sidebar.date_input(
     "Date of change in Social Distancing 3", datetime(2020,12,4))
 int2_delta = (intervention2 - start_date).days
 decay3 = st.sidebar.number_input(
-    "Social distancing 3 - Percent", 0, 100, value=45, step=5, format="%i")/100.0
+    "Social distancing 3 - Percent", 0, 100, value=22, step=5, format="%i")/100.0
 
 hosp_rate = (
     st.sidebar.number_input("Hospitalization %", 0.0, 100.0, value=1.5, step=0.50, format="%f")/ 100.0)
@@ -709,7 +709,7 @@ p_m1 = (st.sidebar.number_input(
 p_m2 = (st.sidebar.number_input(
 "Mask-wearing 2", 0.0, 100.0, value=45.0 ,step=5.0, format="%f")/100.0)
 p_m3 = (st.sidebar.number_input(
-"Mask-wearing 3", 0.0, 100.0, value=60.0 ,step=5.0, format="%f")/100.0)
+"Mask-wearing 3", 0.0, 100.0, value=45.0 ,step=5.0, format="%f")/100.0)
 
 
 delta_p = 1/(st.sidebar.number_input(

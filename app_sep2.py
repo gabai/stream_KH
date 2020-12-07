@@ -657,7 +657,7 @@ intervention1 = st.sidebar.date_input(
     "Date of change Social Distancing 2", datetime(2020,11,20))
 int1_delta = (intervention1 - start_date).days
 decay2 = st.sidebar.number_input(
-    "Social distancing 2 - Percent", 0, 100, value=0, step=5, format="%i")/100.0
+    "Social distancing 2 - Percent", 0, 100, value=15, step=5, format="%i")/100.0
 
 intervention2 = st.sidebar.date_input(
     "Date of change in Social Distancing 3", datetime(2020,12,4))
@@ -707,7 +707,7 @@ q = 1-(st.sidebar.number_input(
 p_m1 = (st.sidebar.number_input(
 "Mask-wearing 1", 0.0, 100.0, value=10.0 ,step=5.0, format="%f")/100.0)
 p_m2 = (st.sidebar.number_input(
-"Mask-wearing 2", 0.0, 100.0, value=45.0 ,step=5.0, format="%f")/100.0)
+"Mask-wearing 2", 0.0, 100.0, value=35.0 ,step=5.0, format="%f")/100.0)
 p_m3 = (st.sidebar.number_input(
 "Mask-wearing 3", 0.0, 100.0, value=45.0 ,step=5.0, format="%f")/100.0)
 

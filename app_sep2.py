@@ -660,7 +660,7 @@ decay2 = st.sidebar.number_input(
     "Social distancing 2 - Percent", 0, 100, value=15, step=5, format="%i")/100.0
 
 intervention2 = st.sidebar.date_input(
-    "Date of change in Social Distancing 3", datetime(2020,12,4))
+    "Date of change in Social Distancing 3", datetime(2021,2,28))
 int2_delta = (intervention2 - start_date).days
 decay3 = st.sidebar.number_input(
     "Social distancing 3 - Percent", 0, 100, value=22, step=5, format="%i")/100.0
@@ -1264,8 +1264,8 @@ S0=1286318.1612
 beta_j=0.6
 q=0.583
 l=0.717
-p_m2 = 0.40
-decay2 = 0.225
+p_m2 = 0.35
+decay2 = 0.15
 gamma_hosp=1/hosp_lag
 AAA=beta4*(1/gamma2)*S
 beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
@@ -1670,7 +1670,7 @@ def ip_chart(
 
 
 ###################### Vertical Lines Graph ###################
-vertical = pd.DataFrame({'day': [int1_delta, int2_delta]})
+vertical = pd.DataFrame({'day': [int1_delta]})
 
 def vertical_chart(
     projection_admits: pd.DataFrame, 
@@ -1936,15 +1936,15 @@ st.altair_chart(
     , use_container_width=True)
 
 # Comparison Graph w/ Multiple Lines
-#st.subheader("Comparison of Facemask Use for Erie County: Data and Disease Model (SEPAIJRD)")
-#st.altair_chart(
-#    alt.layer(seir_P0.mark_line())
-#    + alt.layer(seir_P1.mark_line())
-#    + alt.layer(seir_P2.mark_line())
+st.subheader("Comparison of Facemask Use for Erie County: Data and Disease Model (SEPAIJRD)")
+st.altair_chart(
+    alt.layer(seir_P0.mark_line())
+    + alt.layer(seir_P1.mark_line())
+    + alt.layer(seir_P2.mark_line())
     #+ alt.layer(seir_P3.mark_line())
-#    + alt.layer(erie_lines_ip)
-#    + alt.layer(vertical1)
-#    , use_container_width=True)
+    + alt.layer(erie_lines_ip)
+    + alt.layer(vertical1)
+    , use_container_width=True)
 
 # st.altair_chart(
     # alt.layer(seir_P0.mark_line())

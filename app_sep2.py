@@ -660,10 +660,10 @@ decay2 = st.sidebar.number_input(
     "Social distancing 2 - Percent", 0, 100, value=15, step=5, format="%i")/100.0
 
 intervention2 = st.sidebar.date_input(
-    "Date of change in Social Distancing 3", datetime(2021,2,28))
+    "Date of change in Social Distancing 3", datetime(2020,12,1))
 int2_delta = (intervention2 - start_date).days
 decay3 = st.sidebar.number_input(
-    "Social distancing 3 - Percent", 0, 100, value=22, step=5, format="%i")/100.0
+    "Social distancing 3 - Percent", 0, 100, value=20, step=5, format="%i")/100.0
 
 hosp_rate = (
     st.sidebar.number_input("Hospitalization %", 0.0, 100.0, value=1.5, step=0.50, format="%f")/ 100.0)
@@ -709,7 +709,7 @@ p_m1 = (st.sidebar.number_input(
 p_m2 = (st.sidebar.number_input(
 "Mask-wearing 2", 0.0, 100.0, value=30.0 ,step=5.0, format="%f")/100.0)
 p_m3 = (st.sidebar.number_input(
-"Mask-wearing 3", 0.0, 100.0, value=45.0 ,step=5.0, format="%f")/100.0)
+"Mask-wearing 3", 0.0, 100.0, value=35.0 ,step=5.0, format="%f")/100.0)
 
 
 delta_p = 1/(st.sidebar.number_input(
@@ -1670,7 +1670,7 @@ def ip_chart(
 
 
 ###################### Vertical Lines Graph ###################
-vertical = pd.DataFrame({'day': [int1_delta]})
+vertical = pd.DataFrame({'day': [int1_delta, int2_delta]})
 
 def vertical_chart(
     projection_admits: pd.DataFrame, 

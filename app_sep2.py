@@ -709,7 +709,7 @@ p_m1 = (st.sidebar.number_input(
 p_m2 = (st.sidebar.number_input(
 "Mask-wearing 2", 0.0, 100.0, value=30.0 ,step=5.0, format="%f")/100.0)
 p_m3 = (st.sidebar.number_input(
-"Mask-wearing 3", 0.0, 100.0, value=35.0 ,step=5.0, format="%f")/100.0)
+"Mask-wearing 3", 0.0, 100.0, value=32.0 ,step=5.0, format="%f")/100.0)
 
 
 delta_p = 1/(st.sidebar.number_input(

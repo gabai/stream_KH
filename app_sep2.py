@@ -532,6 +532,20 @@ def betanew2(t, beta, x, p_m1, pm_2, p_m3, p_m4, p_m5):
         beta_decay=beta*(1-decay5)*(1-(x*p_m5))**2
     return beta_decay
 
+# def betanewstrain(t, beta, x, p_m1, pm_2, p_m3, p_m4, p_m5):
+    # beta_decay = 0.0
+    # if start_day<=t<=int1_delta:
+        # beta_decay=beta*(1-decay1)*(1-(x*p_m1))**2
+    # elif int1_delta<t<=int2_delta:
+        # beta_decay=beta*(1-decay2)*(1-(x*p_m2))**2
+    # elif int2_delta<t<=int3_delta:
+        # beta_decay=beta*(1-decay3)*(1-(x*p_m3))**2
+    # elif int3_delta<t<=int4_delta:
+        # beta_decay=beta*(1-decay4)*(1-(x*p_m4))**2
+    # else:
+        # beta_decay=beta*(1-decay5)*(1-(x*p_m5))**2
+    # return beta_decay
+
 def derivdecayP(y, t, beta, gamma1, gamma2, alpha, sym, hosp, q, l, n_days, decay1, decay2, decay3, decay4, decay5,
                 start_day, int1_delta, int2_delta, int3_delta, int4_delta,
                 fatal_hosp, x, p_m1, p_m2, p_m3, p_m4, p_m5, delta_p):
@@ -680,7 +694,7 @@ decay5 = st.sidebar.number_input(
     "Social distancing 5 - Percent", 0, 100, value=25, step=5, format="%i")/100.0
 
 hosp_rate = (
-    st.sidebar.number_input("Hospitalization %", 0.0, 100.0, value=1.0, step=0.50, format="%f")/ 100.0)
+    st.sidebar.number_input("Hospitalization %", 0.0, 100.0, value=1.5, step=0.50, format="%f")/ 100.0)
 
 icu_rate = (
     st.sidebar.number_input("ICU %", 0.0, 100.0, value=32.0, step=5.0, format="%f") / 100.0)
@@ -734,7 +748,7 @@ new_strain = (st.sidebar.number_input(
 
 delta_p = 1/(st.sidebar.number_input(
 "Days a person is pre-symptomatic", 0.0, 10.0, value=1.7 ,step=1.0, format="%f"))
-hosp_los = st.sidebar.number_input("Hospital Length of Stay", value=12, step=1, format="%i")
+hosp_los = st.sidebar.number_input("Hospital Length of Stay", value=8, step=1, format="%i")
 icu_los = st.sidebar.number_input("ICU Length of Stay", value=11, step=1, format="%i")
 vent_los = st.sidebar.number_input("Ventilator Length of Stay", value=10, step=1, format="%i")
 
@@ -765,9 +779,7 @@ recovered = 0.0
 gamma = 1 / recovery_days
 
 # Contact rate, beta
-beta = (
-    intrinsic_growth_rate + gamma
-) / S * (1-relative_contact_rate) # {rate based on doubling time} / {initial S}
+beta = (intrinsic_growth_rate + gamma) / S * (1-relative_contact_rate)
 
 r_t = beta / gamma * S # r_t is r_0 after distancing
 r_naught = (intrinsic_growth_rate + gamma) / gamma
@@ -786,9 +798,7 @@ beta3 = (
 
 ## converting beta to intrinsic growth rate calculation
 # https://www.sciencedirect.com/science/article/pii/S2468042719300491
-beta4 = (
-    (alpha+intrinsic_growth_rate)*(intrinsic_growth_rate + (1/infectious_period))
-) / (alpha*S) 
+beta4 = ((alpha+intrinsic_growth_rate)*(intrinsic_growth_rate + (1/infectious_period))) / (alpha*S) 
 
 
 # for SEIJRD
@@ -1265,7 +1275,7 @@ hospitalized_e, icu_e, ventilated_e = (
 ##################################################################
 ## SEIR model with phase adjusted R_0 and Disease Related Fatality,
 ## Asymptomatic, Hospitalization, Presymptomatic, and masks
-# Main Curve 12/1/20
+# Main Curve 1/5/20
 E0=667
 A0=195
 I0=393
@@ -1406,6 +1416,7 @@ S0=1286318.1612
 beta_j=0.6
 q=0.583
 l=0.717
+#beta = beta*(1-new_strain)
 p_m5 = p_m5*(1-new_strain)
 decay5 = decay5*(1-new_strain)
 gamma_hosp=1/hosp_lag
@@ -1416,7 +1427,7 @@ R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(a
 beta_j=0.51
 R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
 
-S_p, E_p,P_p,A_p, I_p,J_p, R_p, D_p, RH_p=sim_sepaijrd_decay_ode(S0, E0, P0,A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
+S_p, E_p,P_p,A_p, I_p,J_p, R_p, D_p, RH_p=sim_sepaijrd_decay_ode(S0, E0, P0,A0,I0,J0, R0, D0, beta_j, gamma2, gamma_hosp, alpha, n_days,
                                                       decay1, decay2, decay3, decay4, decay5, start_day, int1_delta, int2_delta, int3_delta, int4_delta,
                                                       fatal_hosp, asymptomatic, hosp_rate, q,  l, x, 
                                                       p_m1, p_m2, p_m3, p_m4, p_m5, delta_p)

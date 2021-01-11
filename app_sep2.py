@@ -1011,7 +1011,7 @@ if as_date:
     def erie_admit(projection_admits: pd.DataFrame) -> alt.Chart:
         """docstring"""
     
-        projection_admits = projection_admits.rename(columns={"New_admits": "Admissions 24 hr"})
+        projection_admits = projection_admits.rename(columns={"Admits_24h": "Admissions 24 hr"})
     
         return(
             alt
@@ -1033,7 +1033,7 @@ else:
         projection_admits: pd.DataFrame) -> alt.Chart:
         """docstring"""
     
-        projection_admits = projection_admits.rename(columns={"New_admits": "Admissions 24 hr"})
+        projection_admits = projection_admits.rename(columns={"Admits_24h": "Admissions 24 hr"})
     
         return(
             alt

@@ -688,7 +688,7 @@ decay4 = st.sidebar.number_input(
     "Social distancing 4 - Percent", 0, 100, value=25, step=5, format="%i")/100.0
 
 intervention4 = st.sidebar.date_input(
-    "Date of change in Social Distancing 5", datetime(2021,1,15))
+    "Date of change in Social Distancing 5", datetime(2021,1,06))
 int4_delta = (intervention4 - start_date).days
 decay5 = st.sidebar.number_input(
     "Social distancing 5 - Percent", 0, 100, value=25, step=5, format="%i")/100.0
@@ -741,7 +741,7 @@ p_m3 = (st.sidebar.number_input(
 p_m4 = (st.sidebar.number_input(
 "Mask-wearing 4", 0.0, 100.0, value=20.0 ,step=5.0, format="%f")/100.0)
 p_m5 = (st.sidebar.number_input(
-"Mask-wearing 5", 0.0, 100.0, value=20.0 ,step=5.0, format="%f")/100.0)
+"Mask-wearing 5", 0.0, 100.0, value=30.0 ,step=5.0, format="%f")/100.0)
 
 new_strain = (st.sidebar.number_input(
 "New Strain Increased Transmission (%)", 0.0, 100.0, value=50.0 ,step=5.0, format="%f")/100.0)

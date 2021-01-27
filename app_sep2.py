@@ -746,6 +746,9 @@ p_m5 = (st.sidebar.number_input(
 new_strain = (st.sidebar.number_input(
 "New Strain Increased Transmission (%)", 0.0, 100.0, value=50.0 ,step=5.0, format="%f")/100.0)
 
+vaccine_rate = (st.sidebar.number_input(
+"Vaccination Rate (%)", 0.0, 100.0, value=10.0 ,step=5.0, format="%f")/100.0)
+
 delta_p = 1/(st.sidebar.number_input(
 "Days a person is pre-symptomatic", 0.0, 10.0, value=1.7 ,step=1.0, format="%f"))
 hosp_los = st.sidebar.number_input("Hospital Length of Stay", value=8, step=1, format="%i")
@@ -1363,7 +1366,7 @@ beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(
 R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
 beta_j=0.51
 R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
-
+st.write(R0_n)
 S_p, E_p,P_p,A_p, I_p,J_p, R_p, D_p, RH_p=sim_sepaijrd_decay_ode(S0, E0, P0,A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
                                                       decay1, decay2, decay3, decay4, decay5, start_day, int1_delta, int2_delta, int3_delta, int4_delta,
                                                       fatal_hosp, asymptomatic, hosp_rate, q,  l, x, 
@@ -1426,7 +1429,6 @@ beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(
 R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
 beta_j=0.51
 R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
-
 S_p, E_p,P_p,A_p, I_p,J_p, R_p, D_p, RH_p=sim_sepaijrd_decay_ode(S0, E0, P0,A0,I0,J0, R0, D0, beta_j, gamma2, gamma_hosp, alpha, n_days,
                                                       decay1, decay2, decay3, decay4, decay5, start_day, int1_delta, int2_delta, int3_delta, int4_delta,
                                                       fatal_hosp, asymptomatic, hosp_rate, q,  l, x, 

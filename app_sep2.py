@@ -532,6 +532,37 @@ def betanew2(t, beta, x, p_m1, pm_2, p_m3, p_m4, p_m5):
         beta_decay=beta*(1-decay5)*(1-(x*p_m5))**2
     return beta_decay
 
+
+### changing up new_strain
+def betanew3(t, beta, x, p_m1, pm_2, p_m3, p_m4, p_m5, new_strain, fracNS):
+    beta_decay = 0.0
+    if start_day<=t<=int1_delta:
+        beta_decay=beta*(1-decay1)*(1-(x*p_m1))**2
+    elif int1_delta<t<=int2_delta:
+        beta_decay=beta*(1-decay2)*(1-(x*p_m2))**2
+    elif int2_delta<t<=int3_delta:
+        beta_decay=beta*(1-decay3)*(1-(x*p_m3))**2
+        #beta_decay=((1-fracNS)*beta*(1-decay3)*(1-(x*p_m3))**2)+(fracNS*(1+new_strain)*beta*(1-decay3)*(1-(x*p_m3))**2)
+    elif int3_delta<t<=int4_delta:
+        beta_decay=beta*(1-decay4)*(1-(x*p_m4))**2
+        #beta_decay=((1-fracNS)*beta*(1-decay4)*(1-(x*p_m4))**2)+(fracNS*(1+new_strain)*beta*(1-decay4)*(1-(x*p_m4))**2)
+    else:
+        beta_decay=((1-fracNS)*beta*(1-decay5)*(1-(x*p_m5))**2)+(fracNS*(1+new_strain)*beta*(1-decay5)*(1-(x*p_m5))**2)
+    return beta_decay
+
+
+####### what if we want to do this for vaccination!
+
+def phinew2(t, phi):
+    phi_decay = 0.0
+    if start_day<=t<=int1_delta:
+        phi_decay=0
+    elif int1_delta<t<=int4_delta:
+        phi_decay=0
+    elif int4_delta<t<=n_days:
+        phi_decay=phi
+    return phi_decay
+
 # def betanewstrain(t, beta, x, p_m1, pm_2, p_m3, p_m4, p_m5):
     # beta_decay = 0.0
     # if start_day<=t<=int1_delta:
@@ -561,6 +592,64 @@ def derivdecayP(y, t, beta, gamma1, gamma2, alpha, sym, hosp, q, l, n_days, deca
     dDdt = fatal_hosp * gamma2 * J
     counter = (1-fatal_hosp)*gamma2 * J
     return dSdt, dEdt,dPdt,dAdt, dIdt, dJdt, dRdt, dDdt, counter
+## vaccination rate is standard across time
+def derivdecayV(y, t, beta, gamma1, gamma2, alpha, sym, hosp, q, l, n_days, decay1, decay2, decay3, decay4, decay5,
+                start_day, int1_delta, int2_delta, int3_delta, int4_delta,
+                fatal_hosp, x, p_m1, p_m2, p_m3, p_m4, p_m5, delta_p, sigma, phi):
+    # here sigma=scaling rate of how effective the vaccine is
+    # phi=rate suscepitble individuals are vaccinated at each time step
+    S, V,E, P,A, I,J, R,D,counter = y
+    N=S+E+P+A+I+J+R+D+V
+    dSdt = - betanew2(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5) * S * (q*I + l*J +P+ A)/N - (phi*S)
+    dVdt = (phi*S)-(sigma * betanew2(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5) * V * (q*I + l*J +P+ A)/N )
+    dEdt = (betanew2(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5) * S * (q*I + l*J +P+ A)/N )+(sigma * betanew2(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5) * V * (q*I + l*J +P+ A)/N )  - alpha * E
+    dPdt = alpha * E - delta_p * P
+    dAdt = delta_p* P *(1-sym)-gamma1*A
+    dIdt = sym* delta_p* P - gamma1 * I- hosp*I
+    dJdt = hosp * I -gamma2*J
+    dRdt = (1-fatal_hosp)*gamma2 * J + gamma1*(A+I)
+    dDdt = fatal_hosp * gamma2 * J
+    counter = (1-fatal_hosp)*gamma2 * J
+    return dSdt, dVdt,dEdt,dPdt,dAdt, dIdt, dJdt, dRdt, dDdt, counter
+### this adds in the fact that vaccination was not in the first part of this!
+def derivdecayVtime(y, t, beta, gamma1, gamma2, alpha, sym, hosp, q, l, n_days, decay1, decay2, decay3, decay4, decay5,
+                start_day, int1_delta, int2_delta, int3_delta, int4_delta,
+                fatal_hosp, x, p_m1, p_m2, p_m3, p_m4, p_m5, delta_p, sigma, phi):
+    # here sigma=scaling rate of how effective the vaccine is
+    # phi=rate suscepitble individuals are vaccinated at each time step
+    S, V,E, P,A, I,J, R,D,counter = y
+    N=S+E+P+A+I+J+R+D+V
+    dSdt = - betanew2(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5) * S * (q*I + l*J +P+ A)/N - (phinew2(t,phi)*S)
+    dVdt = (phinew2(t,phi)*S)-(sigma * betanew2(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5) * V * (q*I + l*J +P+ A)/N )
+    dEdt = (betanew2(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5) * S * (q*I + l*J +P+ A)/N )+(sigma * betanew2(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5) * V * (q*I + l*J +P+ A)/N )  - alpha * E
+    dPdt = alpha * E - delta_p * P
+    dAdt = delta_p* P *(1-sym)-gamma1*A
+    dIdt = sym* delta_p* P - gamma1 * I- hosp*I
+    dJdt = hosp * I -gamma2*J
+    dRdt = (1-fatal_hosp)*gamma2 * J + gamma1*(A+I)
+    dDdt = fatal_hosp * gamma2 * J
+    counter = (1-fatal_hosp)*gamma2 * J
+    return dSdt, dVdt,dEdt,dPdt,dAdt, dIdt, dJdt, dRdt, dDdt, counter
+###add in New Strain
+def derivdecayVNS(y, t, beta, gamma1, gamma2, alpha, sym, hosp, q, l, n_days, decay1, decay2, decay3, decay4, decay5,
+                start_day, int1_delta, int2_delta, int3_delta, int4_delta,
+                fatal_hosp, x, p_m1, p_m2, p_m3, p_m4, p_m5, delta_p, sigma, phi,new_strain, fracNS):
+    # here sigma=scaling rate of how effective the vaccine is
+    # phi=rate suscepitble individuals are vaccinated at each time step
+    S, V,E, P,A, I,J, R,D,counter = y
+    N=S+E+P+A+I+J+R+D+V
+    dSdt = - betanew3(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5,new_strain, fracNS) * S * (q*I + l*J +P+ A)/N - (phinew2(t,phi)*S)
+    dVdt = (phinew2(t,phi)*S)-(sigma * betanew3(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5, new_strain, fracNS) * V * (q*I + l*J +P+ A)/N )
+    dEdt = (betanew3(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5, new_strain, fracNS) * S * (q*I + l*J +P+ A)/N )+(sigma * betanew3(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5, new_strain, fracNS) * V * (q*I + l*J +P+ A)/N )  - alpha * E
+    dPdt = alpha * E - delta_p * P
+    dAdt = delta_p* P *(1-sym)-gamma1*A
+    dIdt = sym* delta_p* P - gamma1 * I- hosp*I
+    dJdt = hosp * I -gamma2*J
+    dRdt = (1-fatal_hosp)*gamma2 * J + gamma1*(A+I)
+    dDdt = fatal_hosp * gamma2 * J
+    counter = (1-fatal_hosp)*gamma2 * J
+    return dSdt, dVdt,dEdt,dPdt,dAdt, dIdt, dJdt, dRdt, dDdt, counter
+
 
 def sim_sepaijrd_decay_ode(
     s, e,p,a,i, j,r, d, beta, gamma1, gamma2, alpha, n_days, decay1, decay2, decay3, decay4, decay5,
@@ -580,6 +669,44 @@ def sim_sepaijrd_decay_ode(
     S_n, E_n,P_n,A_n, I_n,J_n, R_n, D_n ,RH_n= ret.T
     
     return (S_n, E_n,P_n,A_n, I_n,J_n, R_n, D_n, RH_n)
+
+def sim_svepaijrd_decay_ode(
+    s,v, e,p,a,i, j,r, d, beta, gamma1, gamma2, alpha, n_days, decay1, decay2, decay3, decay4, decay5,
+    start_day, int1_delta, int2_delta, int3_delta, int4_delta,
+    fatal_hosp, sym, hosp, q,
+    l,x, 
+    p_m1, p_m2, p_m3, p_m4, p_m5, delta_p, sigma, phi):
+    n = s + v+ e + p+a + i + j+ r + d
+    rh=0
+    y0= s,v,e,p,a,i,j,r,d, rh
+    
+    t=np.arange(0, n_days, step=1)
+    ret = odeint(derivdecayVtime, y0, t, args=(beta, gamma1, gamma2, alpha, sym, hosp,q , l, n_days, 
+    decay1, decay2, decay3, decay4, decay5,
+    start_day, int1_delta, int2_delta, int3_delta, int4_delta, fatal_hosp, x, 
+    p_m1, p_m2, p_m3, p_m4, p_m5, delta_p, sigma, phi))
+    S_n, V_n, E_n,P_n,A_n, I_n,J_n, R_n, D_n ,RH_n= ret.T
+    
+    return (S_n, V_n,E_n,P_n,A_n, I_n,J_n, R_n, D_n, RH_n)
+
+def sim_svepaijrdNS_decay_ode(
+    s,v, e,p,a,i, j,r, d, beta, gamma1, gamma2, alpha, n_days, decay1, decay2, decay3, decay4, decay5,
+    start_day, int1_delta, int2_delta, int3_delta, int4_delta,
+    fatal_hosp, sym, hosp, q,
+    l,x, 
+    p_m1, p_m2, p_m3, p_m4, p_m5, delta_p, sigma, phi,new_strain, fracNS):
+    n = s + v+ e + p+a + i + j+ r + d
+    rh=0
+    y0= s,v,e,p,a,i,j,r,d, rh
+    
+    t=np.arange(0, n_days, step=1)
+    ret = odeint(derivdecayVNS, y0, t, args=(beta, gamma1, gamma2, alpha, sym, hosp,q , l, n_days, 
+    decay1, decay2, decay3, decay4, decay5,
+    start_day, int1_delta, int2_delta, int3_delta, int4_delta, fatal_hosp, x, 
+    p_m1, p_m2, p_m3, p_m4, p_m5, delta_p, sigma, phi, new_strain, fracNS))
+    S_n, V_n, E_n,P_n,A_n, I_n,J_n, R_n, D_n ,RH_n= ret.T
+    
+    return (S_n, V_n,E_n,P_n,A_n, I_n,J_n, R_n, D_n, RH_n)
 
     
 # End Models # 
@@ -744,10 +871,13 @@ p_m5 = (st.sidebar.number_input(
 "Mask-wearing 5", 0.0, 100.0, value=30.0 ,step=5.0, format="%f")/100.0)
 
 new_strain = (st.sidebar.number_input(
-"New Strain Increased Transmission (%)", 0.0, 100.0, value=50.0 ,step=5.0, format="%f")/100.0)
+"New Strain Increased Transmission w.r.t. Old Strain (%)", 0.0, 1000.0, value=50.0 ,step=5.0, format="%f")/100.0)
 
-vaccine_rate = (st.sidebar.number_input(
-"Vaccination Rate (%)", 0.0, 100.0, value=10.0 ,step=5.0, format="%f")/100.0)
+phi = (st.sidebar.number_input(
+"Vaccination Rate (%)", 0.0, 100.0, value=0.2 ,step=0.5, format="%f")/100.0)
+
+fracNS = (st.sidebar.number_input(
+"Percent of Population with new strain (%)", 0.0, 100.0, value=0.0 ,step=5.0, format="%f")/100.0)
 
 # NYS 1/27/21: 8.1 doses per 100,000 population
 # NYS 1/27/21: 7% of population w/ at least 1 shot
@@ -1295,7 +1425,7 @@ P0=357
 x=0.5
 #S0=S-E0-P0-A0-I0-D0-J0-R0
 S0=1286318.1612
-#beta_j=0.6
+beta_j=0.6
 q=0.583
 l=0.717
 gamma_hosp=1/hosp_lag
@@ -1359,11 +1489,9 @@ P0=357
 x=0.5
 #S0=S-E0-P0-A0-I0-D0-J0-R0
 S0=1286318.1612
-#beta_j=0.06
+beta_j=0.06
 q=0.583
 l=0.717
-#p_m5 = 0.10
-#decay5 = 0.10
 gamma_hosp=1/hosp_lag
 AAA=beta4*(1/gamma2)*S
 beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
@@ -1371,7 +1499,7 @@ beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(
 R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
 beta_j=0.51
 R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
-st.write(R0_n)
+#st.write(R0_n)
 # Print out the transmission rate, probability 
 S_p, E_p,P_p,A_p, I_p,J_p, R_p, D_p, RH_p=sim_sepaijrd_decay_ode(S0, E0, P0,A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
                                                       decay1, decay2, decay3, decay4, decay5, start_day, int1_delta, int2_delta, int3_delta, int4_delta,
@@ -1422,11 +1550,11 @@ P0=357
 x=0.5
 #S0=S-E0-P0-A0-I0-D0-J0-R0
 S0=1286318.1612
-#beta_j=0.6 #beta for the whole model
+beta_j=0.6
 q=0.583
 l=0.717
-p_m5 = p_m5*(1-new_strain)
-decay5 = decay5*(1-new_strain)
+#p_m5 = p_m5*(1-new_strain) 
+#decay5 = decay5*(1-new_strain)
 gamma_hosp=1/hosp_lag
 AAA=beta4*(1/gamma2)*S
 beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
@@ -1436,7 +1564,7 @@ beta_j=0.51
 R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
 S_p, E_p,P_p,A_p, I_p,J_p, R_p, D_p, RH_p=sim_sepaijrd_decay_ode(S0, E0, P0,A0,I0,J0, R0, D0, beta_j, gamma2, gamma_hosp, alpha, n_days,
                                                       decay1, decay2, decay3, decay4, decay5, start_day, int1_delta, int2_delta, int3_delta, int4_delta,
-                                                      fatal_hosp, asymptomatic, hosp_rate, q, l, x, 
+                                                      fatal_hosp, asymptomatic, hosp_rate, q,  l, x, 
                                                       p_m1, p_m2, p_m3, p_m4, p_m5, delta_p)
 
 icu_curve= J_p*icu_rate
@@ -1488,8 +1616,6 @@ S0=S-E0-P0-A0-I0-D0-J0-R0
 beta_j=0.6
 q=0.583
 l=0.717
-#p_m1 = 0.45
-#intervention2 = 0.45
 gamma_hosp=1/hosp_lag
 AAA=beta4*(1/gamma2)*S
 beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
@@ -1533,6 +1659,145 @@ hospitalized_P3, icu_P3, ventilated_P3 = (
             i_icu_P,
             i_ventilated_P)
 
+
+##################################################################
+## SEIR model with phase adjusted R_0 and Disease Related Fatality,
+## Asymptomatic, Hospitalization, Presymptomatic, and masks
+# Vaccination Curve 2/3/20
+E0=667
+V0=0
+A0=195
+I0=393
+D0=322
+R0=111725
+J0=22
+P0=357
+x=0.5
+#S0=S-E0-P0-A0-I0-D0-J0-R0
+S0=1286318.1612
+#beta_j=0.6
+q=0.583
+l=0.717
+sigma=(1-0.9) #10% of those vaccinated are still getting infected
+#phi=0.005 #how many susceptible people are fully vaccinated each day
+#p_m5=0.3 # reset from above to widget value
+#decay5=0.25 #reset from above to widget value
+gamma_hosp=1/hosp_lag
+AAA=beta4*(1/gamma2)*S
+beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
+
+R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
+beta_j=0.51
+R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
+
+###### 
+
+S_v, V_v,E_v,P_v,A_v, I_v,J_v, R_v, D_v, RH_v=sim_svepaijrd_decay_ode(S0, V0,E0, P0,A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
+                                                      decay1, decay2, decay3, decay4, decay5, start_day, int1_delta, int2_delta, int3_delta, int4_delta,
+                                                      fatal_hosp, asymptomatic, hosp_rate, q,  l, x, 
+                                                      p_m1, p_m2, p_m3, p_m4, p_m5, delta_p, sigma, phi)
+
+icu_curve= J_v*icu_rate
+vent_curve=J_v*vent_rate
+
+hosp_rate_v=1.0
+RateLos = namedtuple("RateLos", ("rate", "length_of_stay"))
+hospitalized_v=RateLos(hosp_rate_v, hosp_los)
+icu_rate_v= icu_rate
+vent_rate_v= vent_rate
+icu=RateLos(icu_rate_v, icu_los)
+ventilated=RateLos(vent_rate_v, vent_los)
+
+
+rates_v = tuple(each.rate for each in (hospitalized_v, icu, ventilated))
+lengths_of_stay = tuple(each.length_of_stay for each in (hospitalized_v, icu, ventilated))
+
+
+i_hospitalized_V, i_icu_V, i_ventilated_V= get_dispositions(J_v, rates_v, regional_hosp_share)
+#st.dataframe(i_hospitalized_P)
+#st.dataframe(J_p)
+r_hospitalized_V, r_icu_V, r_ventilated_V = get_dispositions(RH_v, rates_v, regional_hosp_share)
+d_hospitalized_V, d_icu_V, d_ventilated_V = get_dispositions(D_v, rates_v, regional_hosp_share)
+dispositions_V0 = (
+            i_hospitalized_V + r_hospitalized_V+ d_hospitalized_V,
+            i_icu_V+r_icu_V+d_icu_V,
+            i_ventilated_V+r_ventilated_V +d_ventilated_V)
+#st.dataframe(i_hospitalized_P + r_hospitalized_P+ d_hospitalized_P)
+#st.dataframe(dispositions_P0)
+hospitalized_V0, icu_V0, ventilated_V0 = (
+            i_hospitalized_V,
+            i_icu_V,
+            i_ventilated_V)
+
+
+
+##################################################################
+## SEIR model with phase adjusted R_0 and Disease Related Fatality,
+## Asymptomatic, Hospitalization, Presymptomatic, and masks
+# Vaccination Curve + New strain 2/3/20
+E0=667
+V0=0
+A0=195
+I0=393
+D0=322
+R0=111725
+J0=22
+P0=357
+x=0.5
+#S0=S-E0-P0-A0-I0-D0-J0-R0
+S0=1286318.1612
+#beta_j=0.6
+q=0.583
+l=0.717
+sigma=(1-0.9) #10% of those vaccinated are still getting infected
+#phi=0.005 #how many susceptible people are fully vaccinated each day
+#fracNS=0.15
+gamma_hosp=1/hosp_lag
+AAA=beta4*(1/gamma2)*S
+beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
+
+R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
+beta_j=0.51
+R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
+
+###### 
+
+S_vNS, V_v,NSE_vNS,P_vNS,A_vNS, I_vNS,J_vNS, R_vNS, D_vNS, RH_vNS=sim_svepaijrdNS_decay_ode(S0, V0,E0, P0,A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
+                                                      decay1, decay2, decay3, decay4, decay5, start_day, int1_delta, int2_delta, int3_delta, int4_delta,
+                                                      fatal_hosp, asymptomatic, hosp_rate, q,  l, x, 
+                                                      p_m1, p_m2, p_m3, p_m4, p_m5, delta_p, sigma, phi, new_strain, fracNS)
+
+icu_curve= J_vNS*icu_rate
+vent_curve=J_vNS*vent_rate
+
+hosp_rate_vNS=1.0
+RateLos = namedtuple("RateLos", ("rate", "length_of_stay"))
+hospitalized_vNS=RateLos(hosp_rate_vNS, hosp_los)
+icu_rate_vNS= icu_rate
+vent_rate_vNS= vent_rate
+icu=RateLos(icu_rate_vNS, icu_los)
+ventilated=RateLos(vent_rate_vNS, vent_los)
+
+
+rates_vNS = tuple(each.rate for each in (hospitalized_vNS, icu, ventilated))
+lengths_of_stay = tuple(each.length_of_stay for each in (hospitalized_vNS, icu, ventilated))
+
+
+i_hospitalized_VNS, i_icu_VNS, i_ventilated_VNS= get_dispositions(J_vNS, rates_vNS, regional_hosp_share)
+#st.dataframe(i_hospitalized_P)
+#st.dataframe(J_p)
+r_hospitalized_VNS, r_icu_VNS, r_ventilated_VNS = get_dispositions(RH_vNS, rates_vNS, regional_hosp_share)
+d_hospitalized_VNS, d_icu_VNS, d_ventilated_VNS = get_dispositions(D_vNS, rates_vNS, regional_hosp_share)
+dispositions_VNS0 = (
+            i_hospitalized_VNS + r_hospitalized_VNS+ d_hospitalized_VNS,
+            i_icu_VNS+r_icu_VNS+d_icu_VNS,
+            i_ventilated_VNS+r_ventilated_VNS +d_ventilated_VNS)
+#st.dataframe(i_hospitalized_P + r_hospitalized_P+ d_hospitalized_P)
+#st.dataframe(dispositions_P0)
+hospitalized_VNS0, icu_VNS0, ventilated_VNS0 = (
+            i_hospitalized_VNS,
+            i_icu_VNS,
+            i_ventilated_VNS)
 
 # Individual hospitals selection
 # if hosp_options == 'Kaleida':
@@ -1675,6 +1940,26 @@ census_table_P2 = build_census_df(projection_admits_P2)
 projection_admits_P3 = build_admissions_df_n(dispositions_P3)
 ## Census Table
 census_table_P3 = build_census_df(projection_admits_P3)
+
+
+ #SVEPAIJRD Model 
+# Base model
+# New Cases
+projection_admits_V0 = build_admissions_df_n(dispositions_V0)
+#st.dataframe(dispositions_P0)
+#st.dataframe(projection_admits_P0)
+## Census Table
+census_table_V0 = build_census_df(projection_admits_V0)
+
+ #SVEPAIJRD Model +New Strain
+# Base model
+# New Cases
+projection_admits_VNS0 = build_admissions_df_n(dispositions_VNS0)
+#st.dataframe(dispositions_P0)
+#st.dataframe(projection_admits_P0)
+## Census Table
+census_table_VNS0 = build_census_df(projection_admits_VNS0)
+#st.dataframe(census_table_P0)
 
 # Erie Graph of Cases: SEIR
 # Admissions Graphs
@@ -1837,18 +2122,18 @@ admits_graph_P= regional_admissions_chart(projection_admits_P0,
     # #+ erie_admit24_line
     # , use_container_width=True)
     
-st.subheader("Projected number of **daily** COVID-19 admissions for Erie County: SEIR - Phase Adjusted R_0 with Case Fatality with Asymptomatic, Pre-Symptomatic, and Mask-use")
-st.altair_chart(
-    #admits_graph_seir
-    #+ 
-    #admits_graph 
-    #+ 
-    vertical1
-    #+ admits_graph_ecases
-    + admits_graph_P
-    #+ admits_graph_highsocial
-    + erie_admit24_line
-    , use_container_width=True)
+# st.subheader("Projected number of **daily** COVID-19 admissions for Erie County: SEIR - Phase Adjusted R_0 with Case Fatality with Asymptomatic, Pre-Symptomatic, and Mask-use")
+# st.altair_chart(
+    # #admits_graph_seir
+    # #+ 
+    # #admits_graph 
+    # #+ 
+    # vertical1
+    # #+ admits_graph_ecases
+    # + admits_graph_P
+    # #+ admits_graph_highsocial
+    # + erie_admit24_line
+    # , use_container_width=True)
 
 
 if st.checkbox("Show more about the assumptions and specifications of the SEIR model"):
@@ -1869,6 +2154,71 @@ The epidemic proceeds via a growth and decline process. This is the core model o
     st.markdown(
     """where $\gamma$ is $1/mean\ infectious\ rate$, $$\\alpha$$ is $1/mean\ incubation\ period$, $$\\rho$$ is the rate of social distancing at time $t$,
 and $$\\beta$$ is the rate of transmission. More information, including parameter specifications and reasons for model choice can be found [here]("https://github.com/gabai/stream_KH/wiki).""")
+
+
+##### with vaccinations
+    ### SEPAIJRD
+admits_graph_V= regional_admissions_chart(projection_admits_V0, 
+        plot_projection_days, 
+        as_date=as_date)
+        
+# st.altair_chart(
+    # #admits_graph_seir
+    # #+ 
+    # #admits_graph 
+    # #+ 
+    # vertical1
+    # #+ admits_graph_ecases
+    # + admits_graph_A
+    # #+ admits_graph_highsocial
+    # #+ erie_admit24_line
+    # , use_container_width=True)
+    
+# st.subheader("Projected number of **daily** COVID-19 admissions for Erie County: SEIR - Phase Adjusted R_0 with Case Fatality with Asymptomatic, Pre-Symptomatic, Vaccinations, and Mask-use")
+# st.altair_chart(
+    # #admits_graph_seir
+    # #+ 
+    # #admits_graph 
+    # #+ 
+    # vertical1
+    # #+ admits_graph_ecases
+    # + admits_graph_V
+    # #+ admits_graph_highsocial
+    # + erie_admit24_line
+    # , use_container_width=True)
+
+
+##### with vaccinations +New Strain
+    ### SEPAIJRD
+admits_graph_VNS= regional_admissions_chart(projection_admits_VNS0, 
+        plot_projection_days, 
+        as_date=as_date)
+        
+# st.altair_chart(
+    # #admits_graph_seir
+    # #+ 
+    # #admits_graph 
+    # #+ 
+    # vertical1
+    # #+ admits_graph_ecases
+    # + admits_graph_A
+    # #+ admits_graph_highsocial
+    # #+ erie_admit24_line
+    # , use_container_width=True)
+    
+st.subheader("Projected number of **daily** COVID-19 admissions for Erie County: SEIR - Phase Adjusted R_0 with Case Fatality with Asymptomatic, Pre-Symptomatic, Vaccinations, New Strain transmissibility, and Mask-use")
+st.altair_chart(
+    #admits_graph_seir
+    #+ 
+    #admits_graph 
+    #+ 
+    vertical1
+    #+ admits_graph_ecases
+    + admits_graph_VNS
+    #+ admits_graph_highsocial
+    + erie_admit24_line
+    , use_container_width=True)
+
 
 
 #sir = regional_admissions_chart(projection_admits, plot_projection_days, as_date=as_date)
@@ -2004,7 +2354,8 @@ seir_P1 = ip_census_chart(census_table_P1[9:len(census_table_P1)], plot_projecti
 seir_P2 = ip_census_chart(census_table_P2[9:len(census_table_P2)], plot_projection_days, as_date=as_date)
 seir_P3 = ip_census_chart(census_table_P3, plot_projection_days, as_date=as_date)
 
-
+seir_V0 = ip_census_chart(census_table_V0[9:len(census_table_V0)], plot_projection_days, as_date=as_date)
+seir_VNS0 = ip_census_chart(census_table_VNS0[9:len(census_table_VNS0)], plot_projection_days, as_date=as_date)
 
 # Chart of Model Comparison for SEIR and Adjusted with Erie County Data
 #st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs Model (SEAIJRD)")
@@ -2033,16 +2384,31 @@ st.altair_chart(
     + alt.layer(vertical1)
     , use_container_width=True)
 
-# Comparison Graph w/ Multiple Lines
-st.subheader("Comparison of Facemask Use for Erie County: Data and Disease Model (SEPAIJRD)")
+# Main Graph - VACCINATIONS + strain
+# Active as of 2/3/21
+st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs Model (SVEPAIJRD)")
 st.altair_chart(
-    alt.layer(seir_P0.mark_line())
-    + alt.layer(seir_P1.mark_line())
-    + alt.layer(seir_P2.mark_line())
-    #+ alt.layer(seir_P3.mark_line())
+    #alt.layer(seir_ip_c.mark_line())
+    #+ alt.layer(seir_d_ip_c.mark_line())
+    #+ alt.layer(seir_d_ip_ecases.mark_line())
+    #+ 
+    alt.layer(seir_VNS0.mark_line())
+    #+ alt.layer(seir_d_ip_highsocial.mark_line())
     + alt.layer(erie_lines_ip)
     + alt.layer(vertical1)
     , use_container_width=True)
+
+
+# # Comparison Graph w/ Multiple Lines
+# st.subheader("Comparison of Facemask Use for Erie County: Data and Disease Model (SEPAIJRD)")
+# st.altair_chart(
+    # alt.layer(seir_P0.mark_line())
+    # + alt.layer(seir_P1.mark_line())
+    # + alt.layer(seir_P2.mark_line())
+    # #+ alt.layer(seir_P3.mark_line())
+    # + alt.layer(erie_lines_ip)
+    # + alt.layer(vertical1)
+    # , use_container_width=True)
 
 # st.altair_chart(
     # alt.layer(seir_P0.mark_line())
@@ -2393,6 +2759,5 @@ def ppe_chart(
 #st.dataframe(erie_df)
 #st.dataframe(projection_admits_P0)
       
-
 
 

@@ -1295,7 +1295,7 @@ P0=357
 x=0.5
 #S0=S-E0-P0-A0-I0-D0-J0-R0
 S0=1286318.1612
-beta_j=0.6
+#beta_j=0.6
 q=0.583
 l=0.717
 gamma_hosp=1/hosp_lag
@@ -1359,12 +1359,11 @@ P0=357
 x=0.5
 #S0=S-E0-P0-A0-I0-D0-J0-R0
 S0=1286318.1612
-beta_j=0.06
+#beta_j=0.06
 q=0.583
 l=0.717
 #p_m5 = 0.10
 #decay5 = 0.10
-#beta_decay=beta5
 gamma_hosp=1/hosp_lag
 AAA=beta4*(1/gamma2)*S
 beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
@@ -1423,10 +1422,9 @@ P0=357
 x=0.5
 #S0=S-E0-P0-A0-I0-D0-J0-R0
 S0=1286318.1612
-beta_j=0.6
+#beta_j=0.6 #beta for the whole model
 q=0.583
 l=0.717
-#beta = beta*(1-new_strain)
 p_m5 = p_m5*(1-new_strain)
 decay5 = decay5*(1-new_strain)
 gamma_hosp=1/hosp_lag
@@ -1438,7 +1436,7 @@ beta_j=0.51
 R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
 S_p, E_p,P_p,A_p, I_p,J_p, R_p, D_p, RH_p=sim_sepaijrd_decay_ode(S0, E0, P0,A0,I0,J0, R0, D0, beta_j, gamma2, gamma_hosp, alpha, n_days,
                                                       decay1, decay2, decay3, decay4, decay5, start_day, int1_delta, int2_delta, int3_delta, int4_delta,
-                                                      fatal_hosp, asymptomatic, hosp_rate, q,  l, x, 
+                                                      fatal_hosp, asymptomatic, hosp_rate, q, l, x, 
                                                       p_m1, p_m2, p_m3, p_m4, p_m5, delta_p)
 
 icu_curve= J_p*icu_rate

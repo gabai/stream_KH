@@ -2621,7 +2621,7 @@ st.altair_chart(
 
 # Main Graph - VACCINATIONS
 # Active as of 2/3/21
-st.subheader("Comparison of COVID-19 hospital admissions for Erie County: Model Comparison - Efficacy of Vaccine (SVEPAIJRD)")
+st.subheader("Comparison of COVID-19 hospital admissions for Erie County: Model Comparison - Effect of Vaccination Rate (SVEPAIJRD)")
 st.altair_chart(
     #alt.layer(seir_ip_c.mark_line())
     #+ alt.layer(seir_d_ip_c.mark_line())

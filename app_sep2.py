@@ -561,13 +561,13 @@ def betanew3(t, beta, x, p_m1, pm_2, p_m3, p_m4, p_m5, p_m6, new_strain, fracNS)
 def phinew2(t, phi):
     phi_decay = 0.0
     if start_day<=t<=int1_delta:
-        phi_decay=0
+        phi_decay = 0
     elif int1_delta<t<=int4_delta:
-        phi_decay=0
+        phi_decay = 0
     elif int4_delta<t<=int5_delta:
-        phi_decay=0.002
+        phi_decay = 0.002
     elif int5_delta<t<=n_days:
-        phi_decay=phi
+        phi_decay = phi
     return phi_decay
 
 # def betanewstrain(t, beta, x, p_m1, pm_2, p_m3, p_m4, p_m5):
@@ -1690,7 +1690,7 @@ S0=1286318.1612
 q=0.583
 l=0.717
 sigma=(1-0.9) #10% of those vaccinated are still getting infected
-phi = 0.002 #how many susceptible people are fully vaccinated each day
+#phi = 0.002 #how many susceptible people are fully vaccinated each day
 #fracNS = 0.0
 gamma_hosp=1/hosp_lag
 AAA=beta4*(1/gamma2)*S
@@ -1754,7 +1754,7 @@ S0=1286318.1612
 q=0.583
 l=0.717
 sigma=(1-0.9) #30% of those vaccinated are still getting infected
-phi = 0.005 #how many susceptible people are fully vaccinated each day
+phi = 0.0045 #how many susceptible people are fully vaccinated each day
 #fracNS = 0.0 # Fraction of the population with new strain.
 gamma_hosp=1/hosp_lag
 AAA=beta4*(1/gamma2)*S
@@ -1817,8 +1817,8 @@ x=0.5
 S0=1286318.1612
 q=0.583
 l=0.717
-sigma=(1-0.9) #50% of those vaccinated are still getting infected
-phi = 0.01 #how many susceptible people are fully vaccinated each day
+sigma=(1-0.9) #10% of those vaccinated are still getting infected
+phi = 0.006 #how many susceptible people are fully vaccinated each day
 #fracNS = 0.0
 gamma_hosp=1/hosp_lag
 AAA=beta4*(1/gamma2)*S
@@ -1864,6 +1864,13 @@ hospitalized_V2, icu_V2, ventilated_V2 = (
             i_icu_V,
             i_ventilated_V)
 
+
+
+
+
+
+
+
 ##################################################################
 ## SEIR model with phase adjusted R_0 and Disease Related Fatality,
 ## Asymptomatic, Hospitalization, Presymptomatic, and masks
@@ -1880,7 +1887,7 @@ x=0.5
 S0=1286318.1612
 q=0.583
 l=0.717
-sigma=(1-0.9) #50% of those vaccinated are still getting infected
+sigma=(1-0.9) #10% of those vaccinated are still getting infected
 #phi = 0.002 #how many susceptible people are fully vaccinated each day
 #fracNS = 0.50
 gamma_hosp=1/hosp_lag

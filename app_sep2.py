@@ -565,7 +565,7 @@ def phinew2(t, phi):
     elif int1_delta<t<=int4_delta:
         phi_decay=0
     elif int4_delta<t<=int5_delta:
-        phi_decay=phi
+        phi_decay=0.002
     elif int5_delta<t<=n_days:
         phi_decay=phi
     return phi_decay
@@ -828,7 +828,7 @@ decay5 = st.sidebar.number_input(
     "Social distancing 5 - Percent", 0, 100, value=20, step=5, format="%i")/100.0
 
 intervention5 = st.sidebar.date_input(
-    "Date of change in Social Distancing 6", datetime(2021,2,15))
+    "Date of change in Social Distancing 6", datetime(2021,2,1))
 int5_delta = (intervention5 - start_date).days
 decay6 = st.sidebar.number_input(
     "Social distancing 6 - Percent", 0, 100, value=20, step=5, format="%i")/100.0
@@ -886,13 +886,13 @@ p_m6 = (st.sidebar.number_input(
 "Mask-wearing 6", 0.0, 100.0, value=30.0 ,step=5.0, format="%f")/100.0)
 
 new_strain = (st.sidebar.number_input(
-"New Strain Increased Transmission w.r.t. Old Strain (%)", 0.0, 1000.0, value=50.0 ,step=5.0, format="%f")/100.0)
+"New Strain Increased Transmission w.r.t. Old Strain (%)", 0.0, 1000.0, value=40.0 ,step=5.0, format="%f")/100.0)
 
 phi = (st.sidebar.number_input(
-"Vaccination Rate (%)", 0.0, 100.0, value=0.2 ,step=0.5, format="%f")/100.0)
+"Vaccination Rate (%)", 0.0, 100.0, value=0.3 ,step=0.5, format="%f")/100.0)
 
 fracNS = (st.sidebar.number_input(
-"Percent of Population with new strain (%)", 0.0, 100.0, value=15.0 ,step=5.0, format="%f")/100.0)
+"Percent of Population with new strain (%)", 0.0, 100.0, value=50.0 ,step=5.0, format="%f")/100.0)
 
 # NYS 1/27/21: 8.1 doses per 100,000 population
 # NYS 1/27/21: 7% of population w/ at least 1 shot
@@ -1690,7 +1690,7 @@ S0=1286318.1612
 q=0.583
 l=0.717
 sigma=(1-0.9) #10% of those vaccinated are still getting infected
-#phi = 0.002 #how many susceptible people are fully vaccinated each day
+phi = 0.002 #how many susceptible people are fully vaccinated each day
 #fracNS = 0.0
 gamma_hosp=1/hosp_lag
 AAA=beta4*(1/gamma2)*S
@@ -1724,22 +1724,145 @@ lengths_of_stay = tuple(each.length_of_stay for each in (hospitalized_v, icu, ve
 
 
 i_hospitalized_V, i_icu_V, i_ventilated_V= get_dispositions(J_v, rates_v, regional_hosp_share)
-#st.dataframe(i_hospitalized_P)
-#st.dataframe(J_p)
 r_hospitalized_V, r_icu_V, r_ventilated_V = get_dispositions(RH_v, rates_v, regional_hosp_share)
 d_hospitalized_V, d_icu_V, d_ventilated_V = get_dispositions(D_v, rates_v, regional_hosp_share)
 dispositions_V0 = (
             i_hospitalized_V + r_hospitalized_V+ d_hospitalized_V,
             i_icu_V+r_icu_V+d_icu_V,
             i_ventilated_V+r_ventilated_V +d_ventilated_V)
-#st.dataframe(i_hospitalized_P + r_hospitalized_P+ d_hospitalized_P)
-#st.dataframe(dispositions_P0)
 hospitalized_V0, icu_V0, ventilated_V0 = (
             i_hospitalized_V,
             i_icu_V,
             i_ventilated_V)
 
 
+##################################################################
+## SEIR model with phase adjusted R_0 and Disease Related Fatality,
+## Asymptomatic, Hospitalization, Presymptomatic, and masks
+# Vaccination Curve 2/3/20
+# Extra curve 1 - 70% - 2/15/21
+E0=667
+V0=0
+A0=195
+I0=393
+D0=322
+R0=111725
+J0=22
+P0=357
+x=0.5
+S0=1286318.1612
+q=0.583
+l=0.717
+sigma=(1-0.9) #30% of those vaccinated are still getting infected
+phi = 0.005 #how many susceptible people are fully vaccinated each day
+#fracNS = 0.0 # Fraction of the population with new strain.
+gamma_hosp=1/hosp_lag
+AAA=beta4*(1/gamma2)*S
+beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
+
+R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
+beta_j=0.51
+R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
+
+###### 
+
+S_v, V_v,E_v,P_v,A_v, I_v,J_v, R_v, D_v, RH_v=sim_svepaijrd_decay_ode(S0, V0,E0, P0,A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
+                                                      decay1, decay2, decay3, decay4, decay5, decay6, start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta,
+                                                      fatal_hosp, asymptomatic, hosp_rate, q,  l, x, 
+                                                      p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, delta_p, sigma, phi)
+
+icu_curve= J_v*icu_rate
+vent_curve=J_v*vent_rate
+
+hosp_rate_v=1.0
+RateLos = namedtuple("RateLos", ("rate", "length_of_stay"))
+hospitalized_v=RateLos(hosp_rate_v, hosp_los)
+icu_rate_v= icu_rate
+vent_rate_v= vent_rate
+icu=RateLos(icu_rate_v, icu_los)
+ventilated=RateLos(vent_rate_v, vent_los)
+
+
+rates_v = tuple(each.rate for each in (hospitalized_v, icu, ventilated))
+lengths_of_stay = tuple(each.length_of_stay for each in (hospitalized_v, icu, ventilated))
+
+
+i_hospitalized_V, i_icu_V, i_ventilated_V= get_dispositions(J_v, rates_v, regional_hosp_share)
+r_hospitalized_V, r_icu_V, r_ventilated_V = get_dispositions(RH_v, rates_v, regional_hosp_share)
+d_hospitalized_V, d_icu_V, d_ventilated_V = get_dispositions(D_v, rates_v, regional_hosp_share)
+dispositions_V1 = (
+            i_hospitalized_V + r_hospitalized_V+ d_hospitalized_V,
+            i_icu_V+r_icu_V+d_icu_V,
+            i_ventilated_V+r_ventilated_V +d_ventilated_V)
+hospitalized_V1, icu_V1, ventilated_V1 = (
+            i_hospitalized_V,
+            i_icu_V,
+            i_ventilated_V)
+            
+            
+##################################################################
+## SEIR model with phase adjusted R_0 and Disease Related Fatality,
+## Asymptomatic, Hospitalization, Presymptomatic, and masks
+# Vaccination Curve 2/3/20
+# Extra curve 2 - 50% - 2/15/21
+E0=667
+V0=0
+A0=195
+I0=393
+D0=322
+R0=111725
+J0=22
+P0=357
+x=0.5
+S0=1286318.1612
+q=0.583
+l=0.717
+sigma=(1-0.9) #50% of those vaccinated are still getting infected
+phi = 0.01 #how many susceptible people are fully vaccinated each day
+#fracNS = 0.0
+gamma_hosp=1/hosp_lag
+AAA=beta4*(1/gamma2)*S
+beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
+
+R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
+beta_j=0.51
+R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
+
+###### 
+
+S_v, V_v,E_v,P_v,A_v, I_v,J_v, R_v, D_v, RH_v=sim_svepaijrd_decay_ode(S0, V0,E0, P0,A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
+                                                      decay1, decay2, decay3, decay4, decay5, decay6, start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta,
+                                                      fatal_hosp, asymptomatic, hosp_rate, q,  l, x, 
+                                                      p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, delta_p, sigma, phi)
+
+icu_curve= J_v*icu_rate
+vent_curve=J_v*vent_rate
+
+hosp_rate_v=1.0
+RateLos = namedtuple("RateLos", ("rate", "length_of_stay"))
+hospitalized_v=RateLos(hosp_rate_v, hosp_los)
+icu_rate_v= icu_rate
+vent_rate_v= vent_rate
+icu=RateLos(icu_rate_v, icu_los)
+ventilated=RateLos(vent_rate_v, vent_los)
+
+
+rates_v = tuple(each.rate for each in (hospitalized_v, icu, ventilated))
+lengths_of_stay = tuple(each.length_of_stay for each in (hospitalized_v, icu, ventilated))
+
+
+i_hospitalized_V, i_icu_V, i_ventilated_V= get_dispositions(J_v, rates_v, regional_hosp_share)
+r_hospitalized_V, r_icu_V, r_ventilated_V = get_dispositions(RH_v, rates_v, regional_hosp_share)
+d_hospitalized_V, d_icu_V, d_ventilated_V = get_dispositions(D_v, rates_v, regional_hosp_share)
+dispositions_V2 = (
+            i_hospitalized_V + r_hospitalized_V+ d_hospitalized_V,
+            i_icu_V+r_icu_V+d_icu_V,
+            i_ventilated_V+r_ventilated_V +d_ventilated_V)
+
+hospitalized_V2, icu_V2, ventilated_V2 = (
+            i_hospitalized_V,
+            i_icu_V,
+            i_ventilated_V)
 
 ##################################################################
 ## SEIR model with phase adjusted R_0 and Disease Related Fatality,
@@ -1757,9 +1880,9 @@ x=0.5
 S0=1286318.1612
 q=0.583
 l=0.717
-sigma=(1-0.9) #10% of those vaccinated are still getting infected
-#phi = 0.0 #how many susceptible people are fully vaccinated each day
-#fracNS = 0.25
+sigma=(1-0.9) #50% of those vaccinated are still getting infected
+#phi = 0.002 #how many susceptible people are fully vaccinated each day
+#fracNS = 0.50
 gamma_hosp=1/hosp_lag
 AAA=beta4*(1/gamma2)*S
 beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
@@ -1792,80 +1915,148 @@ lengths_of_stay = tuple(each.length_of_stay for each in (hospitalized_vNS, icu, 
 
 
 i_hospitalized_VNS, i_icu_VNS, i_ventilated_VNS= get_dispositions(J_vNS, rates_vNS, regional_hosp_share)
-#st.dataframe(i_hospitalized_P)
-#st.dataframe(J_p)
 r_hospitalized_VNS, r_icu_VNS, r_ventilated_VNS = get_dispositions(RH_vNS, rates_vNS, regional_hosp_share)
 d_hospitalized_VNS, d_icu_VNS, d_ventilated_VNS = get_dispositions(D_vNS, rates_vNS, regional_hosp_share)
 dispositions_VNS0 = (
             i_hospitalized_VNS + r_hospitalized_VNS+ d_hospitalized_VNS,
             i_icu_VNS+r_icu_VNS+d_icu_VNS,
             i_ventilated_VNS+r_ventilated_VNS +d_ventilated_VNS)
-#st.dataframe(i_hospitalized_P + r_hospitalized_P+ d_hospitalized_P)
-#st.dataframe(dispositions_P0)
 hospitalized_VNS0, icu_VNS0, ventilated_VNS0 = (
             i_hospitalized_VNS,
             i_icu_VNS,
             i_ventilated_VNS)
 
-# Individual hospitals selection
-# if hosp_options == 'Kaleida':
-    # col_name1 = {"hosp_kh": "Hospitalized - Kaleida", "icu_kh": "ICU - Kaleida", "vent_kh": "Ventilated - Kaleida"}
-    # fold_name1 = ["Hospitalized - Kaleida", "ICU - Kaleida", "Ventilated - Kaleida"]
-    # # Added expanded beds
-    # col_name2 = {"hosp_kh": "Hospitalized - Kaleida", "icu_kh": "ICU - Kaleida", "vent_kh": "Ventilated - Kaleida", "total_beds":"Total Beds", "icu_beds": "Total ICU Beds"}
-    # fold_name2 = ["Hospitalized - Kaleida", "ICU - Kaleida", "Ventilated - Kaleida", "Total Beds", "Total ICU Beds"]
-    # icu_val = 245
-    # total_beds_val = 1224
-    # vent_val = 206
-    # expanded_beds_val = 1319
-    # expanded_icu_val = 183
-    # expanded_vent_val = 309
-    # expanded_beds2_val = 1758
-    # expanded_icu2_val = 244
-    # expanded_vent2_val = 412
-# if hosp_options == 'ECMC':
-    # col_name1 = {"hosp_ecmc": "Hospitalized - ECMC", "icu_ecmc": "ICU - ECMC", "vent_ecmc": "Ventilated - ECMC"}
-    # fold_name1 = ["Hospitalized - ECMC", "ICU - ECMC", "Ventilated - ECMC"]
-    # col_name2 = {"hosp_ecmc": "Hospitalized - ECMC", "icu_ecmc": "ICU - ECMC", "vent_ecmc": "Ventilated - ECMC", "total_beds":"Total Beds", "icu_beds": "Total ICU Beds"}
-    # fold_name2 = ["Hospitalized - ECMC", "ICU - ECMC", "Ventilated - ECMC", "Total Beds", "Total ICU Beds"]
-    # icu_val = 46
-    # total_beds_val = 518
-    # vent_val = 0
-    # expanded_beds_val = 860
-    # expanded_icu_val = 54
-    # expanded_vent_val = 0
-    # expanded_beds2_val = 1146
-    # expanded_icu2_val = 72
-    # expanded_vent2_val = 0
-# if hosp_options == 'CHS':
-    # col_name1 = {"hosp_chs": "Hospitalized - CHS", "icu_chs": "ICU - CHS", "vent_chs": "Ventilated - CHS"}
-    # fold_name1 = ["Hospitalized - CHS", "ICU - CHS", "Ventilated - CHS"]
-    # col_name2 = {"hosp_chs": "Hospitalized - CHS", "icu_chs": "ICU - CHS", "vent_chs": "Ventilated - CHS", "total_beds":"Total Beds", "icu_beds": "Total ICU Beds"}
-    # fold_name2 = ["Hospitalized - CHS", "ICU - CHS", "Ventilated - CHS", "Total Beds", "Total ICU Beds"]
-    # icu_val = 163
-    # total_beds_val = 887
-    # vent_val = 0
-    # expanded_beds_val = 1193
-    # expanded_icu_val = 111
-    # expanded_vent_val = 0
-    # expanded_beds2_val = 1590 
-    # expanded_icu2_val = 148
-    # expanded_vent2_val = 0
-# if hosp_options == 'RPCI':
-    # col_name1 = {"hosp_rpci": "Hospitalized - Roswell", "icu_rpci": "ICU - Roswell", "vent_rpci": "Ventilated - Roswell"}
-    # fold_name1 = ["Hospitalized - Roswell", "ICU - Roswell", "Ventilated - Roswell"]
-    # col_name2 = {"hosp_rpci": "Hospitalized - Roswell", "icu_rpci": "ICU - Roswell", "vent_rpci": "Ventilated - Roswell", "total_beds":"Total Beds", "icu_beds": "Total ICU Beds"}
-    # fold_name2 = ["Hospitalized - Roswell", "ICU - Roswell", "Ventilated - Roswell", "Total Beds", "Total ICU Beds"]
-    # icu_val = 14
-    # total_beds_val = 133
-    # vent_val = 0
-    # expanded_beds_val = 200
-    # expanded_icu_val = 24
-    # expanded_vent_val = 0
-    # expanded_beds2_val = 266
-    # expanded_icu2_val = 28
-    # expanded_vent2_val = 0
-    
+
+
+##################################################################
+## SEIR model with phase adjusted R_0 and Disease Related Fatality,
+## Asymptomatic, Hospitalization, Presymptomatic, and masks
+# Vaccination Curve + New strain 2/3/20
+E0=667
+V0=0
+A0=195
+I0=393
+D0=322
+R0=111725
+J0=22
+P0=357
+x=0.5
+S0=1286318.1612
+q=0.583
+l=0.717
+sigma=(1-0.7) #30% of those vaccinated are still getting infected
+#phi = 0.002 #how many susceptible people are fully vaccinated each day
+#fracNS = 0.50
+gamma_hosp=1/hosp_lag
+AAA=beta4*(1/gamma2)*S
+beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
+
+R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
+beta_j=0.51
+R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
+
+###### 
+
+S_vNS, V_v,NSE_vNS,P_vNS,A_vNS, I_vNS,J_vNS, R_vNS, D_vNS, RH_vNS=sim_svepaijrdNS_decay_ode(S0, V0,E0, P0,A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
+                                                      decay1, decay2, decay3, decay4, decay5, decay6, start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta,
+                                                      fatal_hosp, asymptomatic, hosp_rate, q,  l, x, 
+                                                      p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, delta_p, sigma, phi, new_strain, fracNS)
+
+icu_curve= J_vNS*icu_rate
+vent_curve=J_vNS*vent_rate
+
+hosp_rate_vNS=1.0
+RateLos = namedtuple("RateLos", ("rate", "length_of_stay"))
+hospitalized_vNS=RateLos(hosp_rate_vNS, hosp_los)
+icu_rate_vNS= icu_rate
+vent_rate_vNS= vent_rate
+icu=RateLos(icu_rate_vNS, icu_los)
+ventilated=RateLos(vent_rate_vNS, vent_los)
+
+
+rates_vNS = tuple(each.rate for each in (hospitalized_vNS, icu, ventilated))
+lengths_of_stay = tuple(each.length_of_stay for each in (hospitalized_vNS, icu, ventilated))
+
+
+i_hospitalized_VNS, i_icu_VNS, i_ventilated_VNS= get_dispositions(J_vNS, rates_vNS, regional_hosp_share)
+r_hospitalized_VNS, r_icu_VNS, r_ventilated_VNS = get_dispositions(RH_vNS, rates_vNS, regional_hosp_share)
+d_hospitalized_VNS, d_icu_VNS, d_ventilated_VNS = get_dispositions(D_vNS, rates_vNS, regional_hosp_share)
+dispositions_VNS1 = (
+            i_hospitalized_VNS + r_hospitalized_VNS+ d_hospitalized_VNS,
+            i_icu_VNS+r_icu_VNS+d_icu_VNS,
+            i_ventilated_VNS+r_ventilated_VNS +d_ventilated_VNS)
+hospitalized_VNS1, icu_VNS1, ventilated_VNS1 = (
+            i_hospitalized_VNS,
+            i_icu_VNS,
+            i_ventilated_VNS)
+
+
+
+##################################################################
+## SEIR model with phase adjusted R_0 and Disease Related Fatality,
+## Asymptomatic, Hospitalization, Presymptomatic, and masks
+# Vaccination Curve + New strain 
+# Modification - Add population and transmission to effectiveness of vaccine. 2/15/21
+E0=667
+V0=0
+A0=195
+I0=393
+D0=322
+R0=111725
+J0=22
+P0=357
+x=0.5
+S0=1286318.1612
+q=0.583
+l=0.717
+sigma=(1-0.5) #50% of those vaccinated are still getting infected
+#phi = 0.002 #how many susceptible people are fully vaccinated each day
+#fracNS = 0.50
+gamma_hosp=1/hosp_lag
+AAA=beta4*(1/gamma2)*S
+beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
+
+R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
+beta_j=0.51
+R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
+
+###### 
+
+S_vNS, V_v,NSE_vNS,P_vNS,A_vNS, I_vNS,J_vNS, R_vNS, D_vNS, RH_vNS=sim_svepaijrdNS_decay_ode(S0, V0,E0, P0,A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
+                                                      decay1, decay2, decay3, decay4, decay5, decay6, start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta,
+                                                      fatal_hosp, asymptomatic, hosp_rate, q,  l, x, 
+                                                      p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, delta_p, sigma, phi, new_strain, fracNS)
+
+icu_curve= J_vNS*icu_rate
+vent_curve=J_vNS*vent_rate
+
+hosp_rate_vNS=1.0
+RateLos = namedtuple("RateLos", ("rate", "length_of_stay"))
+hospitalized_vNS=RateLos(hosp_rate_vNS, hosp_los)
+icu_rate_vNS= icu_rate
+vent_rate_vNS= vent_rate
+icu=RateLos(icu_rate_vNS, icu_los)
+ventilated=RateLos(vent_rate_vNS, vent_los)
+
+
+rates_vNS = tuple(each.rate for each in (hospitalized_vNS, icu, ventilated))
+lengths_of_stay = tuple(each.length_of_stay for each in (hospitalized_vNS, icu, ventilated))
+
+
+i_hospitalized_VNS, i_icu_VNS, i_ventilated_VNS= get_dispositions(J_vNS, rates_vNS, regional_hosp_share)
+r_hospitalized_VNS, r_icu_VNS, r_ventilated_VNS = get_dispositions(RH_vNS, rates_vNS, regional_hosp_share)
+d_hospitalized_VNS, d_icu_VNS, d_ventilated_VNS = get_dispositions(D_vNS, rates_vNS, regional_hosp_share)
+dispositions_VNS2 = (
+            i_hospitalized_VNS + r_hospitalized_VNS+ d_hospitalized_VNS,
+            i_icu_VNS+r_icu_VNS+d_icu_VNS,
+            i_ventilated_VNS+r_ventilated_VNS +d_ventilated_VNS)
+hospitalized_VNS2, icu_VNS2, ventilated_VNS2 = (
+            i_hospitalized_VNS,
+            i_icu_VNS,
+            i_ventilated_VNS)
+
+
+            
 
 # Projection days
 plot_projection_days = n_days - 10
@@ -1954,19 +2145,25 @@ census_table_P3 = build_census_df(projection_admits_P3)
 # Base model
 # New Cases
 projection_admits_V0 = build_admissions_df_n(dispositions_V0)
-#st.dataframe(dispositions_P0)
-#st.dataframe(projection_admits_P0)
+projection_admits_V1 = build_admissions_df_n(dispositions_V1)
+projection_admits_V2 = build_admissions_df_n(dispositions_V2)
 ## Census Table
 census_table_V0 = build_census_df(projection_admits_V0)
+census_table_V1 = build_census_df(projection_admits_V1)
+census_table_V2 = build_census_df(projection_admits_V2)
 
  #SVEPAIJRD Model +New Strain
 # Base model
 # New Cases
 projection_admits_VNS0 = build_admissions_df_n(dispositions_VNS0)
+projection_admits_VNS1 = build_admissions_df_n(dispositions_VNS1)
+projection_admits_VNS2 = build_admissions_df_n(dispositions_VNS2)
 #st.dataframe(dispositions_P0)
 #st.dataframe(projection_admits_P0)
 ## Census Table
 census_table_VNS0 = build_census_df(projection_admits_VNS0)
+census_table_VNS1 = build_census_df(projection_admits_VNS1)
+census_table_VNS2 = build_census_df(projection_admits_VNS2)
 #st.dataframe(census_table_P0)
 
 # Erie Graph of Cases: SEIR
@@ -2362,8 +2559,14 @@ seir_P1 = ip_census_chart(census_table_P1[9:len(census_table_P1)], plot_projecti
 seir_P2 = ip_census_chart(census_table_P2[9:len(census_table_P2)], plot_projection_days, as_date=as_date)
 seir_P3 = ip_census_chart(census_table_P3, plot_projection_days, as_date=as_date)
 
+# Vaccine Curve
 seir_V0 = ip_census_chart(census_table_V0[9:len(census_table_V0)], plot_projection_days, as_date=as_date)
+seir_V1 = ip_census_chart(census_table_V1[9:len(census_table_V0)], plot_projection_days, as_date=as_date)
+seir_V2 = ip_census_chart(census_table_V2[9:len(census_table_V0)], plot_projection_days, as_date=as_date)
+# Vaccine w/ Strain
 seir_VNS0 = ip_census_chart(census_table_VNS0[9:len(census_table_VNS0)], plot_projection_days, as_date=as_date)
+seir_VNS1 = ip_census_chart(census_table_VNS1[9:len(census_table_VNS0)], plot_projection_days, as_date=as_date)
+seir_VNS2 = ip_census_chart(census_table_VNS2[9:len(census_table_VNS0)], plot_projection_days, as_date=as_date)
 
 # Chart of Model Comparison for SEIR and Adjusted with Erie County Data
 #st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs Model (SEAIJRD)")
@@ -2392,22 +2595,26 @@ st.altair_chart(
     + alt.layer(vertical1)
     , use_container_width=True)
 
+
 # Main Graph - VACCINATIONS + strain
 # Active as of 2/3/21
-st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs Model (SVEPAIJRD)")
+st.subheader("Comparison of COVID-19 hospital admissions for Erie County: Model Comparison - Vaccine (SVEPAIJRD)")
 st.altair_chart(
     #alt.layer(seir_ip_c.mark_line())
     #+ alt.layer(seir_d_ip_c.mark_line())
     #+ alt.layer(seir_d_ip_ecases.mark_line())
     #+ 
-    alt.layer(seir_VNS0.mark_line())
+    alt.layer(seir_P0.mark_line())
+    +seir_V0
+    #+alt.layer(seir_VNS0.mark_line())
     #+ alt.layer(seir_d_ip_highsocial.mark_line())
     + alt.layer(erie_lines_ip)
     + alt.layer(vertical1)
     , use_container_width=True)
 
-# Main Graph - VACCINATIONS + strain
+# Main Graph - VACCINATIONS
 # Active as of 2/3/21
+st.subheader("Comparison of COVID-19 hospital admissions for Erie County: Model Comparison - Efficacy of Vaccine (SVEPAIJRD)")
 st.altair_chart(
     #alt.layer(seir_ip_c.mark_line())
     #+ alt.layer(seir_d_ip_c.mark_line())
@@ -2415,9 +2622,29 @@ st.altair_chart(
     #+ 
     #alt.layer(seir_P0.mark_line())
     #+ 
-    alt.layer(seir_VNS0.mark_line())
-    + seir_V0
+    #alt.layer(seir_VNS0.mark_line())
+    #+ 
+    seir_V0
+    + seir_V1
+    + seir_V2
     #+ alt.layer(seir_d_ip_highsocial.mark_line())
+    + alt.layer(erie_lines_ip)
+    + alt.layer(vertical1)
+    , use_container_width=True)
+
+
+# Main Graph - VACCINATIONS + strain
+# Active as of 2/15/21
+st.subheader("Comparison of COVID-19 hospital admissions for Erie County: Model Comparison - Efficacy of Vaccine with New COVID Variant (SVEPAIJRD)")
+st.altair_chart(
+    #alt.layer(seir_ip_c.mark_line())
+    #+ alt.layer(seir_d_ip_c.mark_line())
+    #+ alt.layer(seir_d_ip_ecases.mark_line())
+    #+ 
+    #alt.layer(seir_P0.mark_line())
+    alt.layer(seir_VNS0.mark_line())
+    +alt.layer(seir_VNS1.mark_line())
+    +alt.layer(seir_VNS2.mark_line())
     + alt.layer(erie_lines_ip)
     + alt.layer(vertical1)
     , use_container_width=True)

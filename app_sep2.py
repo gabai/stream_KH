@@ -565,7 +565,7 @@ def phinew2(t, phi):
     elif int1_delta<t<=int4_delta:
         phi_decay = 0
     elif int4_delta<t<=int5_delta:
-        phi_decay = 0.002
+        phi_decay = 0.003
     elif int5_delta<t<=n_days:
         phi_decay = phi
     return phi_decay
@@ -828,7 +828,7 @@ decay5 = st.sidebar.number_input(
     "Social distancing 5 - Percent", 0, 100, value=20, step=5, format="%i")/100.0
 
 intervention5 = st.sidebar.date_input(
-    "Date of change in Social Distancing 6", datetime(2021,2,1))
+    "Date of change in Social Distancing 6", datetime(2021,3,1))
 int5_delta = (intervention5 - start_date).days
 decay6 = st.sidebar.number_input(
     "Social distancing 6 - Percent", 0, 100, value=20, step=5, format="%i")/100.0
@@ -1611,7 +1611,7 @@ hospitalized_P2, icu_P2, ventilated_P2 = (
             i_ventilated_P)
 
 
-
+# V_Curve
 ##################################################################
 ## SEIR model with phase adjusted R_0 and Disease Related Fatality,
 ## Asymptomatic, Hospitalization, Presymptomatic, and masks
@@ -1676,7 +1676,7 @@ hospitalized_P3, icu_P3, ventilated_P3 = (
 ##################################################################
 ## SEIR model with phase adjusted R_0 and Disease Related Fatality,
 ## Asymptomatic, Hospitalization, Presymptomatic, and masks
-# Vaccination Curve 2/3/20
+# Vaccination Curve - 1 - 2/3/20
 E0=667
 V0=0
 A0=195
@@ -1689,9 +1689,11 @@ x=0.5
 S0=1286318.1612
 q=0.583
 l=0.717
-sigma=(1-0.9) #10% of those vaccinated are still getting infected
-#phi = 0.002 #how many susceptible people are fully vaccinated each day
-#fracNS = 0.0
+sigma=(1-0.8) #10% of those vaccinated are still getting infected
+phi = 0.003 #how many susceptible people are fully vaccinated each day
+fracNS = 0.0
+p_m6=0.3
+decay6=0.2
 gamma_hosp=1/hosp_lag
 AAA=beta4*(1/gamma2)*S
 beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
@@ -1740,7 +1742,7 @@ hospitalized_V0, icu_V0, ventilated_V0 = (
 ## SEIR model with phase adjusted R_0 and Disease Related Fatality,
 ## Asymptomatic, Hospitalization, Presymptomatic, and masks
 # Vaccination Curve 2/3/20
-# Extra curve 1 - 70% - 2/15/21
+# Extra curve 1 - 2/15/21
 E0=667
 V0=0
 A0=195
@@ -1753,9 +1755,11 @@ x=0.5
 S0=1286318.1612
 q=0.583
 l=0.717
-sigma=(1-0.9) #30% of those vaccinated are still getting infected
-phi = 0.0045 #how many susceptible people are fully vaccinated each day
-#fracNS = 0.0 # Fraction of the population with new strain.
+sigma=(1-0.8) #30% of those vaccinated are still getting infected
+phi = 0.003 #how many susceptible people are fully vaccinated each day
+fracNS = 0.0 # Fraction of the population with new strain.
+p_m6=0.15
+decay6=0.1
 gamma_hosp=1/hosp_lag
 AAA=beta4*(1/gamma2)*S
 beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
@@ -1804,7 +1808,7 @@ hospitalized_V1, icu_V1, ventilated_V1 = (
 ## SEIR model with phase adjusted R_0 and Disease Related Fatality,
 ## Asymptomatic, Hospitalization, Presymptomatic, and masks
 # Vaccination Curve 2/3/20
-# Extra curve 2 - 50% - 2/15/21
+# Extra curve 2 - 2/15/21
 E0=667
 V0=0
 A0=195
@@ -1817,9 +1821,11 @@ x=0.5
 S0=1286318.1612
 q=0.583
 l=0.717
-sigma=(1-0.9) #10% of those vaccinated are still getting infected
-phi = 0.006 #how many susceptible people are fully vaccinated each day
-#fracNS = 0.0
+sigma=(1-0.8) #10% of those vaccinated are still getting infected
+phi = 0.003 #how many susceptible people are fully vaccinated each day
+fracNS = 0.0
+p_m6=0.01
+decay6=0.01
 gamma_hosp=1/hosp_lag
 AAA=beta4*(1/gamma2)*S
 beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
@@ -1870,7 +1876,7 @@ hospitalized_V2, icu_V2, ventilated_V2 = (
 
 
 
-
+# S_Curve
 ##################################################################
 ## SEIR model with phase adjusted R_0 and Disease Related Fatality,
 ## Asymptomatic, Hospitalization, Presymptomatic, and masks
@@ -1887,9 +1893,11 @@ x=0.5
 S0=1286318.1612
 q=0.583
 l=0.717
-sigma=(1-0.9) #10% of those vaccinated are still getting infected
-#phi = 0.002 #how many susceptible people are fully vaccinated each day
-#fracNS = 0.50
+sigma=(1-0.8) #10% of those vaccinated are still getting infected
+phi = 0.003 #how many susceptible people are fully vaccinated each day
+fracNS = 0.50
+p_m6=0.3
+decay6=0.2
 gamma_hosp=1/hosp_lag
 AAA=beta4*(1/gamma2)*S
 beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
@@ -1951,9 +1959,11 @@ x=0.5
 S0=1286318.1612
 q=0.583
 l=0.717
-sigma=(1-0.7) #30% of those vaccinated are still getting infected
-#phi = 0.002 #how many susceptible people are fully vaccinated each day
-#fracNS = 0.50
+sigma=(1-0.8) #30% of those vaccinated are still getting infected
+phi = 0.003 #how many susceptible people are fully vaccinated each day
+fracNS = 0.5
+p_m6=0.15
+decay6=0.1
 gamma_hosp=1/hosp_lag
 AAA=beta4*(1/gamma2)*S
 beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
@@ -2016,9 +2026,11 @@ x=0.5
 S0=1286318.1612
 q=0.583
 l=0.717
-sigma=(1-0.5) #50% of those vaccinated are still getting infected
-#phi = 0.002 #how many susceptible people are fully vaccinated each day
-#fracNS = 0.50
+sigma=(1-0.8) #50% of those vaccinated are still getting infected
+phi = 0.003 #how many susceptible people are fully vaccinated each day
+fracNS = 0.50
+p_m6=0.0
+decay6=0.0
 gamma_hosp=1/hosp_lag
 AAA=beta4*(1/gamma2)*S
 beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
@@ -2602,7 +2614,7 @@ st.altair_chart(
     + alt.layer(vertical1)
     , use_container_width=True)
 
-
+# V_Graph
 # Main Graph - VACCINATIONS + strain
 # Active as of 2/3/21
 st.subheader("Comparison of COVID-19 hospital admissions for Erie County: Model Comparison - Vaccine (SVEPAIJRD)")
@@ -2612,7 +2624,8 @@ st.altair_chart(
     #+ alt.layer(seir_d_ip_ecases.mark_line())
     #+ 
     alt.layer(seir_P0.mark_line())
-    +seir_V0
+    +
+    seir_V0
     #+alt.layer(seir_VNS0.mark_line())
     #+ alt.layer(seir_d_ip_highsocial.mark_line())
     + alt.layer(erie_lines_ip)
@@ -2621,7 +2634,7 @@ st.altair_chart(
 
 # Main Graph - VACCINATIONS
 # Active as of 2/3/21
-st.subheader("Comparison of COVID-19 hospital admissions for Erie County: Model Comparison - Effect of Vaccination Rate (SVEPAIJRD)")
+st.subheader("Comparison of COVID-19 hospital admissions for Erie County: Model Comparison - Vaccine Only")
 st.altair_chart(
     #alt.layer(seir_ip_c.mark_line())
     #+ alt.layer(seir_d_ip_c.mark_line())
@@ -2630,16 +2643,60 @@ st.altair_chart(
     #alt.layer(seir_P0.mark_line())
     #+ 
     #alt.layer(seir_VNS0.mark_line())
-    #+ 
+    #+
     seir_V0
-    + seir_V1
-    + seir_V2
-    #+ alt.layer(seir_d_ip_highsocial.mark_line())
+    #+ 
+    #alt.layer(seir_VNS1.mark_line())
+    #+ seir_V1
+    #+ seir_V2
     + alt.layer(erie_lines_ip)
     + alt.layer(vertical1)
     , use_container_width=True)
 
 
+# Main Graph - VACCINATIONS
+# Active as of 2/3/21
+st.subheader("Comparison of COVID-19 hospital admissions for Erie County: Model Comparison - Vaccine and Vaccine with half FM/SD")
+st.altair_chart(
+    #alt.layer(seir_ip_c.mark_line())
+    #+ alt.layer(seir_d_ip_c.mark_line())
+    #+ alt.layer(seir_d_ip_ecases.mark_line())
+    #+ 
+    #alt.layer(seir_P0.mark_line())
+    #+ 
+    #alt.layer(seir_VNS0.mark_line())
+    #+
+    seir_V0
+    #+ 
+    #alt.layer(seir_VNS1.mark_line())
+    + seir_V1
+    + seir_V2
+    + alt.layer(erie_lines_ip)
+    + alt.layer(vertical1)
+    , use_container_width=True)
+
+# Main Graph - VACCINATIONS
+# Active as of 2/3/21
+st.subheader("Comparison of COVID-19 hospital admissions for Erie County: Model Comparison - Vaccine with Variant and half FM/SD")
+st.altair_chart(
+    #alt.layer(seir_ip_c.mark_line())
+    #+ alt.layer(seir_d_ip_c.mark_line())
+    #+ alt.layer(seir_d_ip_ecases.mark_line())
+    #+ 
+    #alt.layer(seir_P0.mark_line())
+    #+ 
+    #alt.layer(seir_VNS0.mark_line())
+    #+
+    seir_V0
+    #+ 
+    +alt.layer(seir_VNS1.mark_line())
+    + seir_V1
+    + seir_V2
+    + alt.layer(erie_lines_ip)
+    + alt.layer(vertical1)
+    , use_container_width=True)
+
+# S_Graph
 # Main Graph - VACCINATIONS + strain
 # Active as of 2/15/21
 st.subheader("Comparison of COVID-19 hospital admissions for Erie County: Model Comparison - Efficacy of Vaccine with New COVID Variant (SVEPAIJRD)")
@@ -2649,6 +2706,7 @@ st.altair_chart(
     #+ alt.layer(seir_d_ip_ecases.mark_line())
     #+ 
     #alt.layer(seir_P0.mark_line())
+    #+
     alt.layer(seir_VNS0.mark_line())
     +alt.layer(seir_VNS1.mark_line())
     +alt.layer(seir_VNS2.mark_line())
@@ -2657,365 +2715,3 @@ st.altair_chart(
     , use_container_width=True)
     
     
-# # Comparison Graph w/ Multiple Lines
-# st.subheader("Comparison of Facemask Use for Erie County: Data and Disease Model (SEPAIJRD)")
-# st.altair_chart(
-    # alt.layer(seir_P0.mark_line())
-    # + alt.layer(seir_P1.mark_line())
-    # + alt.layer(seir_P2.mark_line())
-    # #+ alt.layer(seir_P3.mark_line())
-    # + alt.layer(erie_lines_ip)
-    # + alt.layer(vertical1)
-    # , use_container_width=True)
-
-# st.altair_chart(
-    # alt.layer(seir_P0.mark_line())
-    # + alt.layer(seir_P1.mark_line())
-    # #+ alt.layer(seir_P3.mark_line())
-    # + alt.layer(erie_lines_ip)
-    # + alt.layer(vertical1)
-    # , use_container_width=True)
-
-#st.header("""Hospital Specific Projected Admissions and Census""")
-# By Hospital Admissions Chart - SEIR model with Phase Adjusted R_0 and Case Fatality
-# st.subheader("Projected number of **daily** COVID-19 admissions by Hospital: SEIR model with Phase Adjusted R_0 and Case Fatality")
-# st.markdown("Distribution of regional cases based on total bed percentage (CCU/ICU/MedSurg).")
-
-# st.altair_chart(
-    # hospital_admissions_chart(
-        # projection_admits_A_ecases, plot_projection_days, as_date=as_date), 
-    # use_container_width=True)
-
-##########################################
-##########################################
-# Census by hospital
-def hosp_admitted_patients_chart(
-    census: pd.DataFrame, 
-    as_date:bool = False) -> alt.Chart:
-    """docstring"""
-    census = census.rename(columns=dict(col_name2))
-
-    tooltip_dict = {False: "day", True: "date:T"}
-    if as_date:
-        census = add_date_column(census)
-        x_kwargs = {"shorthand": "date:T", "title": "Date"}
-    else:
-        x_kwargs = {"shorthand": "day", "title": "Days from initial infection"}
-
-    return (
-        alt
-        .Chart(census)
-        .transform_fold(fold=fold_name2)
-        .mark_line(point=False)
-        .encode(
-            x=alt.X(**x_kwargs),
-            y=alt.Y("value:Q", title="Census"),
-            color="key:N",
-            tooltip=[
-                tooltip_dict[as_date],
-                alt.Tooltip("value:Q", format=".0f"),
-                "key:N",
-            ],
-        )
-        .interactive()
-    )
-
-
-# Projected Hospital census SEIR Model with adjusted R_0 and Case Mortality    
-# st.subheader("Projected **census** of COVID-19 patients by Hospital, accounting for arrivals and discharges: SEIR Model with Adjusted R_0 and Case Fatality")
-# st.altair_chart(
-    # hosp_admitted_patients_chart(
-        # census_table_A_ecases, 
-        # as_date=as_date), 
-    # use_container_width=True)
-
-
-# Erie Graph of Beds
-def bed_lines(
-    projection_admits: pd.DataFrame) -> alt.Chart:
-    """docstring"""
-    
-    projection_admits = projection_admits.rename(columns={"total_county_icu": "ICU Beds", 
-                                                            "total_county_beds":"Inpatient Beds", 
-                                                            "expanded_icu_county":"Expanded ICU 50%",
-                                                            "expanded_beds_county":"Expanded Inpatient 50%",
-                                                            "expanded_icu_county2":"Expanded ICU 100%",
-                                                            "expanded_beds_county2":"Expanded Inpatient 100%"
-                                                            })
-    
-    return(
-        alt
-        .Chart(projection_admits)
-        .transform_fold(fold=["ICU Beds", 
-                                "Inpatient Beds", 
-                                "Expanded ICU 50%",
-                                "Expanded Inpatient 50%",
-                                "Expanded ICU 100%",
-                                "Expanded Inpatient 100%"
-                                ])
-        .mark_line(point=False)
-        .encode(
-            x=alt.X("day", title="Date"),
-            y=alt.Y("value:Q", title="Erie County Bed Census"),
-            color="key:N",
-            tooltip=[alt.Tooltip("value:Q", format=".0f"),"key:N"]
-        )
-        .interactive()
-    )
-
-
-##########################################################
-##########################################################
-###########            PPE            ####################
-##########################################################
-##########################################################
-#st.header("Projected PPE Needs for Erie County")
-def ppe_chart(
-    census: pd.DataFrame,
-    as_date:bool = False) -> alt.Chart:
-    """docstring"""
-    census = census.rename(columns={'ppe_mean_mild': 'Mean PPE needs - mild cases', 'ppe_mean_severe': 'Mean PPE needs - severe cases'})
-    tooltip_dict = {False: "day", True: "date:T"}
-    if as_date:
-        census = add_date_column(census)
-        x_kwargs = {"shorthand": "date:T", "title": "Date"}
-    else:
-        x_kwargs = {"shorthand": "day", "title": "Days from initial infection"}
-
-    return (
-        alt
-        .Chart(census)
-        .transform_fold(fold=['Mean PPE needs - mild cases', 'Mean PPE needs - severe cases'])
-        .mark_line(point=False)
-        .encode(
-            x=alt.X(**x_kwargs),
-            y=alt.Y("value:Q", title="Projected PPE needs per day"),
-            color="key:N",
-            tooltip=[
-                tooltip_dict[as_date],
-                alt.Tooltip("value:Q", format=".0f", title="PPE Needs"),
-                "key:N",
-            ],
-        )
-        .interactive()
-    )
-
-# , scale=alt.Scale(domain=[0, 450000])
-    
-# SEIR Model with adjusted R_0 with Case Fatality - PPE predictions
-#st.subheader("Projected personal protective equipment needs for mild and severe cases of COVID-19: SEIR Model with Adjutes R_0 and Case Fatality")
-
-#ppe_graph = ppe_chart(census_table_A_ecases, as_date=as_date)
-
-#st.altair_chart(alt.layer(ppe_graph.mark_line()) + alt.layer(vertical1), use_container_width=True)
-
-# Recovered/Infected/Fatality table
-#st.subheader("Infected,recovered,and fatal individuals in the **region** across time")
-
-# def additional_projections_chart(i: np.ndarray, r: np.ndarray, d: np.ndarray) -> alt.Chart:
-    # dat = pd.DataFrame({"Infected": i, "Recovered": r, "Fatal":d})
-
-    # return (
-        # alt
-        # .Chart(dat.reset_index())
-        # .transform_fold(fold=["Infected"])
-        # .mark_line(point=False)
-        # .encode(
-            # x=alt.X("index", title="Days from initial infection"),
-            # y=alt.Y("value:Q", title="Case Volume"),
-            # tooltip=["key:N", "value:Q"], 
-            # color="key:N"
-        # )
-        # .interactive()
-    # )
-
-# recov_infec = additional_projections_chart(i_D, r_D, d_D)
-
-
-
-
-# def death_chart(i: np.ndarray, r: np.ndarray, d: np.ndarray) -> alt.Chart:
-    # dat = pd.DataFrame({"Infected": i, "Recovered": r, "Fatal":d})
-
-    # return (
-        # alt
-        # .Chart(dat.reset_index())
-        # .transform_fold(fold=["Fatal"])
-        # .mark_bar()
-        # .encode(
-            # x=alt.X("index", title="Days from initial infection"),
-            # y=alt.Y("value:Q", title="Case Volume"),
-            # tooltip=["key:N", "value:Q"], 
-            # color=alt.value('red')
-        # )
-        # .interactive()
-    # )
-
-#deaths = death_chart(i_D, r_D, d_D)
-
-#st.altair_chart(deaths + recov_infec, use_container_width=True)
-
-
-
-# total_fatalities=max(d_D)
-# infection_total_t=max(d_D)+max(r_D)
-# st.markdown(
-    # """There is a projected number of **{total_fatalities:.0f}** fatalities due to COVID-19.""".format(
-        # total_fatalities=total_fatalities 
-    # ))
-
-# st.markdown("""There is a projected number of **{infection_total_t:.0f}** infections due to COVID-19.""".format(
-        # infection_total_t=infection_total_t
-    # )
-            # )
-
-# AAA=beta4*(1/gamma2)*S
-# R2=AAA*(1-decay2)
-# R3=AAA*(1-decay3)
-# R4=AAA*(1-decay4)
-
-# st.markdown("""The initial $R_0$ is **{AAA:.1f}** with a $$\\beta$$ of **{beta4:.2f}**, the $R_e$ after 2 weeks is **{R2:.1f}** and the $R_e$ after 3 weeks to end of social distancing is **{R3:.1f}**.
-# After reducing social distancing the $R_e$ is **{R4:.1f}**
-            # This is based on a doubling rate of **{doubling_time:.0f}**
-            # and the calculation of the [basic reproduction number](https://www.sciencedirect.com/science/article/pii/S2468042719300491).""".format(
-        # AAA=AAA,
-        # beta4=beta4*S,
-        # R2=R2,
-        # R3=R3,
-        # R4=R4,
-        # doubling_time=doubling_time
-    # )
-            # )
-
-
-# st.subheader("Extension of the SEIR model to include asymptomatic and direct hospitalization components")
-# if st.checkbox("Show more about the assumptions and specifications of the SEAIJRD model"):
-    # st.subheader(
-    # "[Deterministic SEIR model with asymptomatic, hospitalizations, and fatality components](https://www.tandfonline.com/doi/full/10.1080/23737867.2018.1509026)")
-    # st.markdown(
-    # """The model consists of individuals who are either _Susceptible_ ($S$), _Exposed_ ($E$),
-# _Asymptomatic_ ($A$),_Infected_ ($I$),
- # _Hospitalized_ ($J$), _Recovered_ ($R$), or _Fatal_ ($D$).
-# The epidemic proceeds via a growth and decline process."""
-# )
-    # st.markdown("""The system of differential equations are given by the following 7 equations.""")
-
-    # st.latex(r'''\frac{dS}{dt}=-\rho_t \beta S[qI+lJ+A]/N''')
-    # st.latex(r'''\frac{dE}{dt}=\rho_t \beta S[qI+lJ+A]/N - \alpha E''')
-    # st.latex(r'''\frac{dA}{dt}= (1-z)\alpha E - \gamma_1 A''')
-    # st.latex(r'''\frac{dI}{dt}= z\alpha E - \gamma_1 I-h I''')
-    # st.latex(r'''\frac{dJ}{dt}= h I - \gamma_2 J''')
-    # st.latex(r'''\frac{dR}{dt}=\gamma_1(A+I) + (1-f)\gamma_2 J''')
-    # st.latex(r'''\frac{dD}{dt}=f \gamma_2 J''')
-
-    # st.markdown(
-    # """where $\gamma_1$ is $1/mean\ infectious\ rate$,$\gamma_2$ is $1/mean\ hospital\ day\ rate$, $$\\alpha$$ is $1/mean\ incubation\ period$, $$\\rho$$ is the rate of social distancing at time $t$,
-# $$\\beta$$ is the rate of transmission, $f$ is the hospital fatality rate, $h$ is the hospitalization rate, $z$ is the symptomatic rate, $q$ is the isolation rate for the symptomati, $l$ is the isolation rate for hospitalized, and $z$ is the symptomatic rate (where $(1-z)$ is the asymptomatic rate). More information, including parameter specifications and reasons for model choice can be found
-# [here]("https://github.com/gabai/stream_KH/wiki).  $R_0$ was calculated using the [next generation matrix method](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2871801/).""")
-    # st.latex(r'''R_0=\beta [ \frac{(1-z)}{\gamma_1 }+ \frac{zq}{\gamma_1 + \alpha} + \frac{z \alpha l}{( \gamma_1 + \alpha )\gamma_2}]''')
-
-    # st.markdown("""Note that a number of assumptions are made with deterministic compartmental models. First, we are assuming a large, closed population with no births or deaths.
-# Second, within the time period, immunity to the disease is acquired. Third, the susceptible and infected subpopulations are dispersed homogeneously in geographic space.
-# In addition to the model assumptions noted here, the model is limited by uncertainty related to parameter choice.
-# Parameters are measured independently from the model, which is hard to do in the midst of an outbreak.
-# Early reports from other geographic locations have allowed us to estimate this model.
-# However, parameters can be different depending on population characteristics and can vary over periods of the outbreak.
-# Therefore, interpreting the results can be difficult.""")
-
-
-# st.subheader("Asymptomatic, Symptomatic,Hospitalized,and Fatal individuals in the **region** across time")
-
-# def additional_projections_chart(a:np.ndarray, i:np.ndarray, j:np.ndarray,d:np.ndarray)  -> alt.Chart:
-    # dat = pd.DataFrame({"Asymptomatic":a,"Infected":i, "Hospitalized":j,"Fatal":d})
-
-    # return (
-        # alt
-        # .Chart(dat.reset_index())
-        # .transform_fold(fold=["Asymptomatic","Symptomatic", "Hospitalized","Fatal"])
-        # .mark_line(point=False)
-        # .encode(
-            # x=alt.X("index", title="Days from initial infection"),
-            # y=alt.Y("value:Q", title="Case Volume"),
-            # tooltip=["key:N", "value:Q"], 
-            # color="key:N"
-        # )
-        # .interactive()
-    # )
-
-# st.altair_chart(additional_projections_chart(A_n, I_n, J_n, D_n), use_container_width=True)
-
-#st.subheader("Presymptomatic, Asymptomatic, Symptomatic,Hospitalized,and Fatal individuals in the **region** across time")
-
-# def additional_projections_chart(p:np.ndarray,a:np.ndarray, i:np.ndarray, j:np.ndarray,d:np.ndarray)  -> alt.Chart:
-    # dat = pd.DataFrame({"Presymptomatic":p,"Asymptomatic":a,"Symptomatic":i, "Hospitalized":j,"Fatal":d})
-
-    # return (
-        # alt
-        # .Chart(dat.reset_index())
-        # .transform_fold(fold=["Presymptomatic","Asymptomatic","Symptomatic", "Hospitalized","Fatal"])
-        # .mark_line(point=False)
-        # .encode(
-            # x=alt.X("index", title="Days from initial infection"),
-            # y=alt.Y("value:Q", title="Case Volume"),
-            # tooltip=["key:N", "value:Q"], 
-            # color="key:N"
-        # )
-        # .interactive()
-    # )
-
-#st.altair_chart(additional_projections_chart(P_p,A_p, I_p, J_p, D_p), use_container_width=True)
-
-############################### prevalence and incidence ###########################
-# https://www.tandfonline.com/doi/full/10.1057/hs.2015.2
-####################################################################################
-# st.subheader("Prevalence and Incidence Across Time")
-
-# st.markdown("""Incidence is measured as the number of new cases daily, (from compartments A, I) prevalence is measured
-# as the population infected with the disease (A,I,J) daily.""")
-
-### incidence
-# dispositions_inc= (A_n+I_n+J_n+R_n+D_n)
-# dispositions_inc=pd.DataFrame(dispositions_inc, columns=['newcases']) 
-# dispositions_inc2 = dispositions_inc.iloc[:-1, :] - dispositions_inc.shift(1)
-# dispositions_inc2["day"] = range(dispositions_inc2.shape[0])
-# dispositions_inc2["TotalCases"]=S_n
-# dispositions_inc2.at[0,'newcases']=0
-# dispositions_inc2["incidencerate"]=dispositions_inc2['newcases']/dispositions_inc2['TotalCases']
-
-# # total number of new cases daily/total number of people disease free at the start of the day
-
-# ### prevalence
-
-# dispositions_prev=(A_n+I_n+J_n)
-# dispositions_prev=pd.DataFrame(dispositions_prev, columns=['cumucases']) 
-# dispositions_prev["day"] = range(dispositions_prev.shape[0])    
-# dispositions_prev["TotalCases"]=1400000.0
-# dispositions_prev["pointprevalencerate"]=dispositions_prev['cumucases']/dispositions_prev['TotalCases']
-# #total number of infected people during that day/ total number in population
-
-# def additional_projections_chart2(i, p)  -> alt.Chart:
-    # dat = pd.DataFrame({"Incidence Rate":i,"Prevalence Rate":p})
-
-    # return (
-        # alt
-        # .Chart(dat.reset_index())
-        # .transform_fold(fold=["Incidence Rate", "Prevalence Rate"])
-        # .mark_line(point=False)
-        # .encode(
-            # x=alt.X("index", title="Days from initial infection"),
-            # y=alt.Y("value:Q", title="Case Volume"),
-            # tooltip=["key:N", "value:Q"], 
-            # color="key:N"
-        # )
-        # .interactive()
-    # )
-
-#st.altair_chart(additional_projections_chart2(dispositions_inc2["incidencerate"], dispositions_prev["pointprevalencerate"]), use_container_width=True)
-
-
-
-#st.dataframe(erie_df)
-#st.dataframe(projection_admits_P0)
-      
-
-

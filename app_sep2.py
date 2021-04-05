@@ -828,7 +828,7 @@ decay5 = st.sidebar.number_input(
     "Social distancing 5 - Percent", 0, 100, value=20, step=5, format="%i")/100.0
 
 intervention5 = st.sidebar.date_input(
-    "Date of change in Social Distancing 6", datetime(2021,3,1))
+    "Date of change in Social Distancing 6", datetime(2021,3,10))
 int5_delta = (intervention5 - start_date).days
 decay6 = st.sidebar.number_input(
     "Social distancing 6 - Percent", 0, 100, value=20, step=5, format="%i")/100.0

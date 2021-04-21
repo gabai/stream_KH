@@ -839,7 +839,7 @@ decay6 = st.sidebar.number_input(
     "Social distancing 6 - Percent", 0, 100, value=20, step=5, format="%i")/100.0
 
 intervention6 = st.sidebar.date_input(
-    "Date of change in Social Distancing 7", datetime(2021,4,10))
+    "Date of change in Social Distancing 7", datetime(2021,6,1))
 int6_delta = (intervention6 - start_date).days
 decay7 = st.sidebar.number_input(
     "Social distancing 7 - Percent", 0, 100, value=20, step=5, format="%i")/100.0
@@ -1826,7 +1826,7 @@ q=0.583
 l=0.717
 sigma=(1-0.8) #30% of those vaccinated are still getting infected
 phi = 0.003 #how many susceptible people are fully vaccinated each day
-fracNS = 0.5
+fracNS = 0.6
 p_m6=0.15
 decay6=0.10
 p_m7=0.15
@@ -2146,7 +2146,7 @@ def ip_chart(
 
 
 ###################### Vertical Lines Graph ###################
-vertical = pd.DataFrame({'day': [int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta]})
+vertical = pd.DataFrame({'day': [int1_delta, int2_delta, int3_delta, int4_delta, int5_delta]})
 
 def vertical_chart(
     projection_admits: pd.DataFrame, 
@@ -2558,7 +2558,7 @@ st.altair_chart(
     #+
     seir_V0
     #+ 
-    +alt.layer(seir_VNS1.mark_line())
+    #+alt.layer(seir_VNS1.mark_line())
     + seir_V1
     + seir_V2
     + alt.layer(erie_lines_ip)
@@ -2576,8 +2576,8 @@ st.altair_chart(
     #+ 
     #alt.layer(seir_P0.mark_line())
     #+
-    alt.layer(seir_VNS0.mark_line())
-    +
+    #alt.layer(seir_VNS0.mark_line())
+    #+
     alt.layer(seir_VNS1.mark_line())
     #+alt.layer(seir_VNS2.mark_line())
     + alt.layer(erie_lines_ip)

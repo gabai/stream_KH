@@ -463,23 +463,25 @@ def seijcrd(
     # )
 
 
-# def betanew(t,beta):
-    # if start_day<= t <= int1_delta:
-        # beta_decay=beta*(1-decay1)
-    # elif int1_delta<=t<int2_delta:
-        # beta_decay=beta*(1-decay2)
-    # elif int2_delta<=t<int3_delta:
-        # beta_decay=beta*(1-decay3)    
-    # elif int3_delta<=t<=step1_delta:
-        # beta_decay=beta*(1-decay4)
-    # elif step1_delta<=t<=step2_delta:
-        # beta_decay=beta*(1-decay5)
-    # else:
-        # beta_decay=beta*(1-decay6)    
-    # return beta_decay
+def betanew(t,beta):
+    if start_day<= t <= int1_delta:
+        beta_decay=beta*(1-decay1)
+    elif int1_delta<=t<int2_delta:
+        beta_decay=beta*(1-decay2)
+    elif int2_delta<=t<int3_delta:
+        beta_decay=beta*(1-decay3)    
+    elif int3_delta<=t<=int4_delta:
+        beta_decay=beta*(1-decay4)
+    elif int4_delta<=t<=int5_delta:
+        beta_decay=beta*(1-decay5)
+    elif int5_delta<=t<=int6_delta:
+        beta_decay=beta*(1-decay6)
+    elif int6_delta<=t<=int7_delta:
+        beta_decay=beta*(1-decay7)
+    return beta_decay
 
 #The SIR model differential equations with ODE solver.
-def derivdecay(y, t, N, beta, gamma1, gamma2, alpha, p, hosp, q, l, n_days, decay1, decay2, decay3, decay4, decay5,
+def derivdecay(y, t, N, beta, gamma1, gamma2, alpha, p, hosp, q, l, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7,
                 start_day, int1_delta, int2_delta, int3_delta, int4_delta, fatal_hosp):
     S, E, A, I,J, R,D,counter = y
     dSdt = - betanew(t, beta) * S * (q*I + l*J + A)/N 
@@ -500,7 +502,7 @@ def sim_seaijrd_decay_ode(
     y0= s,e,a,i,j,r,d, rh
     
     t=np.arange(0, n_days, step=1)
-    ret = odeint(derivdecay, y0, t, args=(n, beta, gamma1, gamma2, alpha, p, hosp,q,l, n_days, decay1, decay2, decay3, decay4, decay5,
+    ret = odeint(derivdecay, y0, t, args=(n, beta, gamma1, gamma2, alpha, p, hosp,q,l, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7,
     start_day, int1_delta, int2_delta, int3_delta, int4_delta, fatal_hosp))
     S_n, E_n,A_n, I_n,J_n, R_n, D_n ,RH_n= ret.T
     
@@ -552,6 +554,8 @@ def betanew3(t, beta, x, p_m1, pm_2, p_m3, p_m4, p_m5, p_m6, p_m7, new_strain, f
         beta_decay=beta*(1-decay5)*(1-(x*p_m5))**2
     elif int5_delta<t<=int6_delta:
         beta_decay=((1-fracNS)*beta*(1-decay6)*(1-(x*p_m6))**2)+(fracNS*(1+new_strain)*beta*(1-decay6)*(1-(x*p_m6))**2)
+#    elif int6_delta<t<=n_days:
+#        beta_decay=((1-fracNS)*beta*(1-decay7)*(1-(x*p_m7))**2)+(fracNS*(1+new_strain)*beta*(1-decay7)*(1-(x*p_m7))**2)
     else:
         beta_decay=((1-fracNS)*beta*(1-decay7)*(1-(x*p_m7))**2)+(fracNS*(1+new_strain)*beta*(1-decay7)*(1-(x*p_m7))**2)
     return beta_decay
@@ -839,7 +843,7 @@ decay6 = st.sidebar.number_input(
     "Social distancing 6 - Percent", 0, 100, value=20, step=5, format="%i")/100.0
 
 intervention6 = st.sidebar.date_input(
-    "Date of change in Social Distancing 7", datetime(2021,6,1))
+    "Date of change in Social Distancing 7", datetime(2021,4,10))
 int6_delta = (intervention6 - start_date).days
 decay7 = st.sidebar.number_input(
     "Social distancing 7 - Percent", 0, 100, value=20, step=5, format="%i")/100.0
@@ -1760,7 +1764,7 @@ q=0.583
 l=0.717
 sigma=(1-0.8) #10% of those vaccinated are still getting infected
 phi = 0.003 #how many susceptible people are fully vaccinated each day
-fracNS = 0.50
+fracNS = 0.60
 p_m6=0.15
 decay6=0.10
 gamma_hosp=1/hosp_lag
@@ -1826,7 +1830,7 @@ q=0.583
 l=0.717
 sigma=(1-0.8) #30% of those vaccinated are still getting infected
 phi = 0.003 #how many susceptible people are fully vaccinated each day
-fracNS = 0.6
+fracNS = 0.60
 p_m6=0.15
 decay6=0.10
 p_m7=0.15
@@ -1895,11 +1899,11 @@ q=0.583
 l=0.717
 sigma=(1-0.8) #50% of those vaccinated are still getting infected
 phi = 0.003 #how many susceptible people are fully vaccinated each day
-fracNS = 0.50
+fracNS = 0.60
 p_m6=0.15
 decay6=0.1
-p_m7=0.15
-decay7=0.1
+p_m7=0.3
+decay7=0.2
 gamma_hosp=1/hosp_lag
 AAA=beta4*(1/gamma2)*S
 beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
@@ -2146,7 +2150,7 @@ def ip_chart(
 
 
 ###################### Vertical Lines Graph ###################
-vertical = pd.DataFrame({'day': [int1_delta, int2_delta, int3_delta, int4_delta, int5_delta]})
+vertical = pd.DataFrame({'day': [int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta]})
 
 def vertical_chart(
     projection_admits: pd.DataFrame, 
@@ -2471,99 +2475,100 @@ seir_VNS2 = ip_census_chart(census_table_VNS2[9:len(census_table_VNS0)], plot_pr
 
 # Main Graph - GA
 # Active as of 10/5/20
-st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs Model (SEPAIJRD)")
-st.altair_chart(
-    #alt.layer(seir_ip_c.mark_line())
-    #+ alt.layer(seir_d_ip_c.mark_line())
-    #+ alt.layer(seir_d_ip_ecases.mark_line())
-    #+ 
-    alt.layer(seir_P0.mark_line())
-    #+ alt.layer(seir_d_ip_highsocial.mark_line())
-    + alt.layer(erie_lines_ip)
-    + alt.layer(vertical1)
-    , use_container_width=True)
+# st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs Model (SEPAIJRD)")
+# st.altair_chart(
+    # #alt.layer(seir_ip_c.mark_line())
+    # #+ alt.layer(seir_d_ip_c.mark_line())
+    # #+ alt.layer(seir_d_ip_ecases.mark_line())
+    # #+ 
+    # alt.layer(seir_P0.mark_line())
+    # #+ alt.layer(seir_d_ip_highsocial.mark_line())
+    # + alt.layer(erie_lines_ip)
+    # + alt.layer(vertical1)
+    # , use_container_width=True)
 
 # V_Graph
 # Main Graph - VACCINATIONS + strain
 # Active as of 2/3/21
-st.subheader("Comparison of COVID-19 hospital admissions for Erie County: Model Comparison - Vaccine (SVEPAIJRD)")
-st.altair_chart(
-    #alt.layer(seir_ip_c.mark_line())
-    #+ alt.layer(seir_d_ip_c.mark_line())
-    #+ alt.layer(seir_d_ip_ecases.mark_line())
-    #+ 
-    alt.layer(seir_P0.mark_line())
-    +
-    seir_V0
-    #+alt.layer(seir_VNS0.mark_line())
-    #+ alt.layer(seir_d_ip_highsocial.mark_line())
-    + alt.layer(erie_lines_ip)
-    + alt.layer(vertical1)
-    , use_container_width=True)
+# st.subheader("Comparison of COVID-19 hospital admissions for Erie County: Model Comparison - Vaccine (SVEPAIJRD)")
+# st.altair_chart(
+    # #alt.layer(seir_ip_c.mark_line())
+    # #+ alt.layer(seir_d_ip_c.mark_line())
+    # #+ alt.layer(seir_d_ip_ecases.mark_line())
+    # #+ 
+    # alt.layer(seir_P0.mark_line())
+    # +
+    # seir_V0
+    # #+alt.layer(seir_VNS0.mark_line())
+    # #+ alt.layer(seir_d_ip_highsocial.mark_line())
+    # + alt.layer(erie_lines_ip)
+    # + alt.layer(vertical1)
+    # , use_container_width=True)
 
 # Main Graph - VACCINATIONS
 # Active as of 2/3/21
-st.subheader("Comparison of COVID-19 hospital admissions for Erie County: Model Comparison - Vaccine Only")
-st.altair_chart(
-    #alt.layer(seir_ip_c.mark_line())
-    #+ alt.layer(seir_d_ip_c.mark_line())
-    #+ alt.layer(seir_d_ip_ecases.mark_line())
-    #+ 
-    #alt.layer(seir_P0.mark_line())
-    #+ 
-    #alt.layer(seir_VNS0.mark_line())
-    #+
-    seir_V0
-    #+ 
-    #alt.layer(seir_VNS1.mark_line())
-    #+ seir_V1
-    #+ seir_V2
-    + alt.layer(erie_lines_ip)
-    + alt.layer(vertical1)
-    , use_container_width=True)
+# st.subheader("Comparison of COVID-19 hospital admissions for Erie County: Model Comparison - Vaccine Only")
+# st.altair_chart(
+    # #alt.layer(seir_ip_c.mark_line())
+    # #+ alt.layer(seir_d_ip_c.mark_line())
+    # #+ alt.layer(seir_d_ip_ecases.mark_line())
+    # #+ 
+    # #alt.layer(seir_P0.mark_line())
+    # #+ 
+    # #alt.layer(seir_VNS0.mark_line())
+    # #+
+    # seir_V0
+    # #+ 
+    # #alt.layer(seir_VNS1.mark_line())
+    # #+ seir_V1
+    # #+ seir_V2
+    # + alt.layer(erie_lines_ip)
+    # + alt.layer(vertical1)
+    # , use_container_width=True)
 
 
 # Main Graph - VACCINATIONS
 # Active as of 2/3/21
-st.subheader("Comparison of COVID-19 hospital admissions for Erie County: Model Comparison - Vaccine and Vaccine with half FM/SD")
-st.altair_chart(
-    #alt.layer(seir_ip_c.mark_line())
-    #+ alt.layer(seir_d_ip_c.mark_line())
-    #+ alt.layer(seir_d_ip_ecases.mark_line())
-    #+ 
-    #alt.layer(seir_P0.mark_line())
-    #+ 
-    #alt.layer(seir_VNS0.mark_line())
-    #+
-    seir_V0
-    #+ 
-    #alt.layer(seir_VNS1.mark_line())
-    + seir_V1
-    + seir_V2
-    + alt.layer(erie_lines_ip)
-    + alt.layer(vertical1)
-    , use_container_width=True)
+# st.subheader("Comparison of COVID-19 hospital admissions for Erie County: Model Comparison - Vaccine and Vaccine with half FM/SD")
+# st.altair_chart(
+    # #alt.layer(seir_ip_c.mark_line())
+    # #+ alt.layer(seir_d_ip_c.mark_line())
+    # #+ alt.layer(seir_d_ip_ecases.mark_line())
+    # #+ 
+    # #alt.layer(seir_P0.mark_line())
+    # #+ 
+    # #alt.layer(seir_VNS0.mark_line())
+    # #+
+    # #seir_V0
+    # #+ 
+    # #alt.layer(seir_VNS1.mark_line())
+    # #+ seir_V1
+    # #+
+    # seir_V2
+    # + alt.layer(erie_lines_ip)
+    # + alt.layer(vertical1)
+    # , use_container_width=True)
 
 # Main Graph - VACCINATIONS
 # Active as of 2/3/21
-st.subheader("Comparison of COVID-19 hospital admissions for Erie County: Model Comparison - Vaccine with Variant and half FM/SD")
-st.altair_chart(
-    #alt.layer(seir_ip_c.mark_line())
-    #+ alt.layer(seir_d_ip_c.mark_line())
-    #+ alt.layer(seir_d_ip_ecases.mark_line())
-    #+ 
-    #alt.layer(seir_P0.mark_line())
-    #+ 
-    #alt.layer(seir_VNS0.mark_line())
-    #+
-    seir_V0
-    #+ 
-    #+alt.layer(seir_VNS1.mark_line())
-    + seir_V1
-    + seir_V2
-    + alt.layer(erie_lines_ip)
-    + alt.layer(vertical1)
-    , use_container_width=True)
+# st.subheader("Comparison of COVID-19 hospital admissions for Erie County: Model Comparison - Vaccine with Variant and half FM/SD")
+# st.altair_chart(
+    # #alt.layer(seir_ip_c.mark_line())
+    # #+ alt.layer(seir_d_ip_c.mark_line())
+    # #+ alt.layer(seir_d_ip_ecases.mark_line())
+    # #+ 
+    # #alt.layer(seir_P0.mark_line())
+    # #+ 
+    # #alt.layer(seir_VNS0.mark_line())
+    # #+
+    # seir_V0
+    # #+ 
+    # #+alt.layer(seir_VNS1.mark_line())
+    # + seir_V1
+    # + seir_V2
+    # + alt.layer(erie_lines_ip)
+    # + alt.layer(vertical1)
+    # , use_container_width=True)
 
 # S_Graph
 # Main Graph - VACCINATIONS + strain
@@ -2578,8 +2583,9 @@ st.altair_chart(
     #+
     #alt.layer(seir_VNS0.mark_line())
     #+
-    alt.layer(seir_VNS1.mark_line())
-    #+alt.layer(seir_VNS2.mark_line())
+    #alt.layer(seir_VNS1.mark_line())
+    #+
+    alt.layer(seir_VNS2.mark_line())
     + alt.layer(erie_lines_ip)
     + alt.layer(vertical1)
     , use_container_width=True)

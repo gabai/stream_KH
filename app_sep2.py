@@ -840,7 +840,7 @@ intervention5 = st.sidebar.date_input(
     "Date of change in Social Distancing 6", datetime(2021,3,10))
 int5_delta = (intervention5 - start_date).days
 decay6 = st.sidebar.number_input(
-    "Social distancing 6 - Percent", 0, 100, value=20, step=5, format="%i")/100.0
+    "Social distancing 6 - Percent", 0, 100, value=10, step=5, format="%i")/100.0
 
 intervention6 = st.sidebar.date_input(
     "Date of change in Social Distancing 7", datetime(2021,4,10))
@@ -898,7 +898,7 @@ p_m4 = (st.sidebar.number_input(
 p_m5 = (st.sidebar.number_input(
 "Mask-wearing 5", 0.0, 100.0, value=30.0 ,step=5.0, format="%f")/100.0)
 p_m6 = (st.sidebar.number_input(
-"Mask-wearing 6", 0.0, 100.0, value=30.0 ,step=5.0, format="%f")/100.0)
+"Mask-wearing 6", 0.0, 100.0, value=15.0 ,step=5.0, format="%f")/100.0)
 p_m7 = (st.sidebar.number_input(
 "Mask-wearing 7", 0.0, 100.0, value=30.0 ,step=5.0, format="%f")/100.0)
 
@@ -909,7 +909,7 @@ phi = (st.sidebar.number_input(
 "Vaccination Rate (%)", 0.0, 100.0, value=0.3 ,step=0.5, format="%f")/100.0)
 
 fracNS = (st.sidebar.number_input(
-"Percent of Population with new strain (%)", 0.0, 100.0, value=50.0 ,step=5.0, format="%f")/100.0)
+"Percent of Population with new strain (%)", 0.0, 100.0, value=60.0 ,step=5.0, format="%f")/100.0)
 
 # NYS 1/27/21: 8.1 doses per 100,000 population
 # NYS 1/27/21: 7% of population w/ at least 1 shot
@@ -1559,10 +1559,10 @@ S0=1286318.1612
 q=0.583
 l=0.717
 sigma=(1-0.8) #10% of those vaccinated are still getting infected
-phi = 0.003 #how many susceptible people are fully vaccinated each day
-fracNS = 0.0
-p_m6=0.3
-decay6=0.2
+# phi = 0.003 #how many susceptible people are fully vaccinated each day
+# fracNS = 0.0
+# p_m6=0.3
+# decay6=0.2
 gamma_hosp=1/hosp_lag
 AAA=beta4*(1/gamma2)*S
 beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
@@ -1625,10 +1625,10 @@ S0=1286318.1612
 q=0.583
 l=0.717
 sigma=(1-0.8) #30% of those vaccinated are still getting infected
-phi = 0.003 #how many susceptible people are fully vaccinated each day
-fracNS = 0.0 # Fraction of the population with new strain.
-p_m6=0.15
-decay6=0.1
+# phi = 0.003 #how many susceptible people are fully vaccinated each day
+# fracNS = 0.0 # Fraction of the population with new strain.
+# p_m6=0.15
+# decay6=0.1
 gamma_hosp=1/hosp_lag
 AAA=beta4*(1/gamma2)*S
 beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
@@ -1691,10 +1691,10 @@ S0=1286318.1612
 q=0.583
 l=0.717
 sigma=(1-0.8) #10% of those vaccinated are still getting infected
-phi = 0.003 #how many susceptible people are fully vaccinated each day
-fracNS = 0.0
-p_m6=0.01
-decay6=0.01
+# phi = 0.003 #how many susceptible people are fully vaccinated each day
+# fracNS = 0.0
+# p_m6=0.01
+# decay6=0.01
 gamma_hosp=1/hosp_lag
 AAA=beta4*(1/gamma2)*S
 beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
@@ -1763,10 +1763,10 @@ S0=1286318.1612
 q=0.583
 l=0.717
 sigma=(1-0.8) #10% of those vaccinated are still getting infected
-phi = 0.003 #how many susceptible people are fully vaccinated each day
-fracNS = 0.60
-p_m6=0.15
-decay6=0.10
+#phi = 0.003 #how many susceptible people are fully vaccinated each day
+#fracNS = 0.60
+#p_m6=0.15
+#decay6=0.10
 gamma_hosp=1/hosp_lag
 AAA=beta4*(1/gamma2)*S
 beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
@@ -1829,12 +1829,12 @@ S0=1286318.1612
 q=0.583
 l=0.717
 sigma=(1-0.8) #30% of those vaccinated are still getting infected
-phi = 0.003 #how many susceptible people are fully vaccinated each day
-fracNS = 0.60
-p_m6=0.15
-decay6=0.10
-p_m7=0.15
-decay7=0.10
+#phi = 0.003 #how many susceptible people are fully vaccinated each day
+#fracNS = 0.60
+#p_m6=0.15
+#decay6=0.10
+#p_m7=0.15
+#decay7=0.10
 gamma_hosp=1/hosp_lag
 AAA=beta4*(1/gamma2)*S
 beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
@@ -1879,7 +1879,6 @@ hospitalized_VNS1, icu_VNS1, ventilated_VNS1 = (
             i_ventilated_VNS)
 
 
-
 ##################################################################
 ## SEIR model with phase adjusted R_0 and Disease Related Fatality,
 ## Asymptomatic, Hospitalization, Presymptomatic, and masks
@@ -1897,13 +1896,13 @@ x=0.5
 S0=1286318.1612
 q=0.583
 l=0.717
-sigma=(1-0.8) #50% of those vaccinated are still getting infected
-phi = 0.003 #how many susceptible people are fully vaccinated each day
-fracNS = 0.60
-p_m6=0.15
-decay6=0.1
-p_m7=0.3
-decay7=0.2
+#sigma=(1-0.8) #50% of those vaccinated are still getting infected
+#phi = 0.003 #how many susceptible people are fully vaccinated each day
+#fracNS = 0.60
+#p_m6=0.15
+#decay6=0.1
+#p_m7=0.3
+#decay7=0.2
 gamma_hosp=1/hosp_lag
 AAA=beta4*(1/gamma2)*S
 beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))

@@ -1778,7 +1778,7 @@ S0=1286318.1612
 q=0.583
 l=0.717
 sigma=(1-0.8) #10% of those vaccinated are still getting infected
-#phi = 0.003 #how many susceptible people are fully vaccinated each day
+phi = 0.003 #how many susceptible people are fully vaccinated each day
 #fracNS = 0.60
 #p_m6=0.15
 #decay6=0.10
@@ -1843,8 +1843,8 @@ x=0.5
 S0=1286318.1612
 q=0.583
 l=0.717
-sigma=(1-0.8) #30% of those vaccinated are still getting infected
-#phi = 0.003 #how many susceptible people are fully vaccinated each day
+#sigma=(1-0.8) #30% of those vaccinated are still getting infected
+phi = 0.0015 #how many susceptible people are fully vaccinated each day
 #fracNS = 0.60
 #p_m6=0.15
 #decay6=0.10
@@ -1912,7 +1912,7 @@ S0=1286318.1612
 q=0.583
 l=0.717
 #sigma=(1-0.8) #50% of those vaccinated are still getting infected
-#phi = 0.003 #how many susceptible people are fully vaccinated each day
+phi = 0.000 #how many susceptible people are fully vaccinated each day
 #fracNS = 0.60
 #p_m6=0.15
 #decay6=0.1
@@ -2595,10 +2595,10 @@ st.altair_chart(
     #+ 
     #alt.layer(seir_P0.mark_line())
     #+
-    #alt.layer(seir_VNS0.mark_line())
-    #+
-    #alt.layer(seir_VNS1.mark_line())
-    #+
+    alt.layer(seir_VNS0.mark_line())
+    +
+    alt.layer(seir_VNS1.mark_line())
+    +
     alt.layer(seir_VNS2.mark_line())
     + alt.layer(erie_lines_ip)
     + alt.layer(vertical1)

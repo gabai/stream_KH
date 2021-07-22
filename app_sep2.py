@@ -943,7 +943,7 @@ new_strain7 = (st.sidebar.number_input(
     
     
 intervention7 = st.sidebar.date_input(
-    "Date of change 8", datetime(2021,8,1))
+    "Date of change 8", datetime(2021,7,10))
 int7_delta = (intervention7 - start_date).days
 decay8 = st.sidebar.number_input(
     "Social distancing 8 - Percent", 0, 100, value=5, step=5, format="%i")/100.0
@@ -969,7 +969,7 @@ phi9 = (st.sidebar.number_input(
 fracNS9 = (st.sidebar.number_input(
 "Percent of Population with new strain 9 (%)", 0.0, 100.0, value=95.0, step=5.0, format="%f")/100.0)
 new_strain9 = (st.sidebar.number_input(
-"New Strain Increased Transmission w.r.t. Old Strain 9 (%)", 0.0, 1000.0, value=80.0 ,step=5.0, format="%f")/100.0)
+"New Strain Increased Transmission w.r.t. Old Strain 9 (%)", 0.0, 1000.0, value=60.0 ,step=5.0, format="%f")/100.0)
 
 
 

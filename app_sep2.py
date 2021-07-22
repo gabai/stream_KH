@@ -248,7 +248,7 @@ def gen_seir(
             # beta_decay=beta*(1-decay2)
         # elif int2_delta<=day<=int3_delta:
             # beta_decay=beta*(1-decay3)
-        # elif int3_delta<=day<=end_delta:
+        # elif int3_delta<=day<=n_days:
             # beta_decay=beta*(1-decay4)
         # s, e, i, r = seir(s, e, i, r, beta_decay, gamma, alpha, n)
         # s_v.append(s)
@@ -463,27 +463,27 @@ def seijcrd(
     # )
 
 
-def betanew(t,beta):
-    if start_day<= t <= int1_delta:
-        beta_decay=beta*(1-decay1)
-    elif int1_delta<=t<int2_delta:
-        beta_decay=beta*(1-decay2)
-    elif int2_delta<=t<int3_delta:
-        beta_decay=beta*(1-decay3)    
-    elif int3_delta<=t<=int4_delta:
-        beta_decay=beta*(1-decay4)
-    elif int4_delta<=t<=int5_delta:
-        beta_decay=beta*(1-decay5)
-    elif int5_delta<=t<=int6_delta:
-        beta_decay=beta*(1-decay6)
-    elif int6_delta<=t<=int7_delta:
-        beta_decay=beta*(1-decay7)
-    elif int7_delta<=t<=int8_delta:
-        beta_decay=beta*(1-decay8)
-    return beta_decay
+# def betanew(t,beta):
+    # if start_day<= t <= int1_delta:
+        # beta_decay=beta*(1-decay1)
+    # elif int1_delta<=t<int2_delta:
+        # beta_decay=beta*(1-decay2)
+    # elif int2_delta<=t<int3_delta:
+        # beta_decay=beta*(1-decay3)    
+    # elif int3_delta<=t<=int4_delta:
+        # beta_decay=beta*(1-decay4)
+    # elif int4_delta<=t<=int5_delta:
+        # beta_decay=beta*(1-decay5)
+    # elif int5_delta<=t<=int6_delta:
+        # beta_decay=beta*(1-decay6)
+    # elif int6_delta<=t<=int7_delta:
+        # beta_decay=beta*(1-decay7)
+    # elif int7_delta<=t<=int8_delta:
+        # beta_decay=beta*(1-decay8)
+    # return beta_decay
 
 #The SIR model differential equations with ODE solver.
-def derivdecay(y, t, N, beta, gamma1, gamma2, alpha, p, hosp, q, l, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8,
+def derivdecay(y, t, N, beta, gamma1, gamma2, alpha, p, hosp, q, l, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9,
                 start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, fatal_hosp):
     S, E, A, I,J, R,D,counter = y
     dSdt = - betanew(t, beta) * S * (q*I + l*J + A)/N 
@@ -497,18 +497,18 @@ def derivdecay(y, t, N, beta, gamma1, gamma2, alpha, p, hosp, q, l, n_days, deca
     return dSdt, dEdt,dAdt, dIdt, dJdt, dRdt, dDdt, counter
 
 def sim_seaijrd_decay_ode(
-    s, e,a,i, j,r, d, beta, gamma1, gamma2, alpha, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8,
+    s, e,a,i, j,r, d, beta, gamma1, gamma2, alpha, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9,
     start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, fatal_hosp, p, hosp, q, l):
     n = s + e + a + i + j+ r + d
     rh=0
     y0= s,e,a,i,j,r,d, rh
     
     t=np.arange(0, n_days, step=1)
-    ret = odeint(derivdecay, y0, t, args=(n, beta, gamma1, gamma2, alpha, p, hosp,q,l, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8,
+    ret = odeint(derivdecay, y0, t, args=(n, beta, gamma1, gamma2, alpha, p, hosp,q,l, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9,
     start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, fatal_hosp))
     S_n, E_n,A_n, I_n,J_n, R_n, D_n ,RH_n= ret.T
     
-    return (S_n, E_n,A_n, I_n,J_n, R_n, D_n, RH_n)
+    return (S_n, E_n, A_n, I_n,J_n, R_n, D_n, RH_n)
 
 
 ####The SIR model differential equations with ODE solver. Presymptomatic and masks
@@ -522,7 +522,7 @@ def sim_seaijrd_decay_ode(
         # beta_decay=beta*(1-decay3)*(1-(x*p_m3))**2
     # return beta_decay
 
-def betanew2(t, beta, x, p_m1, pm_2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8):
+def betanew2(t, beta, x, p_m1, pm_2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9):
     beta_decay = 0.0
     if start_day<=t<=int1_delta:
         beta_decay=beta*(1-decay1)*(1-(x*p_m1))**2
@@ -538,14 +538,38 @@ def betanew2(t, beta, x, p_m1, pm_2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8):
         beta_decay=beta*(1-decay6)*(1-(x*p_m6))**2
     elif int6_delta<t<=int7_delta:
         beta_decay=beta*(1-decay7)*(1-(x*p_m7))**2
-    else:
+    elif int7_delta<t<=int8_delta:
         beta_decay=beta*(1-decay8)*(1-(x*p_m8))**2
+    elif int8_delta<t<n_days:
+        beta_decay=beta*(1-decay9)*(1-(x*p_m9))**2
     return beta_decay
 
 
 ### changing up new_strain
-### changing up new_strain
-def betanew3(t, beta, x, p_m1, pm_2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, new_strain, fracNS):
+# def betanew3(t, beta, x, p_m1, pm_2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, new_strain, fracNS):
+    # beta_decay = 0.0
+    # if start_day<=t<=int1_delta:
+        # beta_decay=beta*(1-decay1)*(1-(x*p_m1))**2
+    # elif int1_delta<t<=int2_delta:
+        # beta_decay=beta*(1-decay2)*(1-(x*p_m2))**2
+    # elif int2_delta<t<=int3_delta:
+        # beta_decay=beta*(1-decay3)*(1-(x*p_m3))**2
+    # elif int3_delta<t<=int4_delta:
+        # beta_decay=beta*(1-decay4)*(1-(x*p_m4))**2
+    # elif int4_delta<t<=int5_delta:
+        # beta_decay=beta*(1-decay5)*(1-(x*p_m5))**2
+    # elif int5_delta<t<=int6_delta:
+        # beta_decay=((1-fracNS)*beta*(1-decay6)*(1-(x*p_m6))**2)+(fracNS*(1+new_strain)*beta*(1-decay6)*(1-(x*p_m6))**2)
+    # elif int6_delta<t<=int7_delta, int8_delta:
+        # beta_decay=((1-fracNS)*beta*(1-decay7)*(1-(x*p_m7))**2)+(fracNS*(1+new_strain)*beta*(1-decay7)*(1-(x*p_m7))**2)
+    # else:
+        # beta_decay=((1-fracNS)*beta*(1-decay8, decay9,)*(1-(x*p_m8, p_m9,))**2)+(fracNS*(1+new_strain)*beta*(1-decay8, decay9,)*(1-(x*p_m8, p_m9,))**2)
+    # return beta_decay
+    
+    
+# Modified 7/21/21
+# Adding period specific changes to tranmission or percentage of population
+def betanew3(t, beta, x, p_m1, pm_2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, new_strain6, new_strain7, new_strain8, new_strain9, fracNS6, fracNS7, fracNS8, fracNS9):
     beta_decay = 0.0
     if start_day<=t<=int1_delta:
         beta_decay=beta*(1-decay1)*(1-(x*p_m1))**2
@@ -558,31 +582,55 @@ def betanew3(t, beta, x, p_m1, pm_2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, new_str
     elif int4_delta<t<=int5_delta:
         beta_decay=beta*(1-decay5)*(1-(x*p_m5))**2
     elif int5_delta<t<=int6_delta:
-        beta_decay=((1-fracNS)*beta*(1-decay6)*(1-(x*p_m6))**2)+(fracNS*(1+new_strain)*beta*(1-decay6)*(1-(x*p_m6))**2)
+        beta_decay=((1-fracNS6)*beta*(1-decay6)*(1-(x*p_m6))**2)+(fracNS6*(1+new_strain6)*beta*(1-decay6)*(1-(x*p_m6))**2)
     elif int6_delta<t<=int7_delta:
-        beta_decay=((1-fracNS)*beta*(1-decay7)*(1-(x*p_m7))**2)+(fracNS*(1+new_strain)*beta*(1-decay7)*(1-(x*p_m7))**2)
-    else:
-        beta_decay=((1-fracNS)*beta*(1-decay8)*(1-(x*p_m8))**2)+(fracNS*(1+new_strain)*beta*(1-decay8)*(1-(x*p_m8))**2)
+        beta_decay=((1-fracNS7)*beta*(1-decay7)*(1-(x*p_m7))**2)+(fracNS7*(1+new_strain7)*beta*(1-decay7)*(1-(x*p_m7))**2)
+    elif int7_delta<t<=int8_delta:
+        beta_decay=((1-fracNS8)*beta*(1-decay8)*(1-(x*p_m8))**2)+(fracNS8*(1+new_strain8)*beta*(1-decay8)*(1-(x*p_m8))**2)
+    elif int8_delta<t<n_days:
+        beta_decay=((1-fracNS9)*beta*(1-decay9)*(1-(x*p_m9))**2)+(fracNS9*(1+new_strain9)*beta*(1-decay9)*(1-(x*p_m9))**2)
     return beta_decay
+
 
 
 ####### what if we want to do this for vaccination!
 
-def phinew2(t, phi):
+# def phinew2(t, phi):
+    # phi_decay = 0.0
+    # if start_day<=t<=int1_delta:
+        # phi_decay = 0
+    # elif int1_delta<t<=int4_delta:
+        # phi_decay = 0
+    # elif int4_delta<t<=int5_delta:
+        # phi_decay = 0.003
+    # elif int5_delta<t<=int6_delta:
+        # phi_decay = 0.003
+    # elif int6_delta<t<=int7_delta:
+        # phi_decay = 0.003
+    # else:
+        # phi_decay = phi
+    # return phi_decay
+
+
+# Modified 7/21/21
+def phinew2(t, phi5, phi6, phi7, phi8, phi9):
     phi_decay = 0.0
     if start_day<=t<=int1_delta:
         phi_decay = 0
     elif int1_delta<t<=int4_delta:
         phi_decay = 0
     elif int4_delta<t<=int5_delta:
-        phi_decay = 0.003
+        phi_decay = phi5
     elif int5_delta<t<=int6_delta:
-        phi_decay = 0.003
+        phi_decay = phi6
     elif int6_delta<t<=int7_delta:
-        phi_decay = 0.003
-    else:
-        phi_decay = phi
+        phi_decay = phi7
+    elif int7_delta<t<=int8_delta:
+        phi_decay = phi8
+    elif int8_delta<t<n_days:
+        phi_decay = phi9
     return phi_decay
+
 
 # def betanewstrain(t, beta, x, p_m1, pm_2, p_m3, p_m4, p_m5):
     # beta_decay = 0.0
@@ -598,13 +646,14 @@ def phinew2(t, phi):
         # beta_decay=beta*(1-decay5)*(1-(x*p_m5))**2
     # return beta_decay
 
-def derivdecayP(y, t, beta, gamma1, gamma2, alpha, sym, hosp, q, l, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8,
-                start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta,
-                fatal_hosp, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, delta_p):
+
+def derivdecayP(y, t, beta, gamma1, gamma2, alpha, sym, hosp, q, l, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9,
+                start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta,
+                fatal_hosp, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, delta_p):
     S, E, P,A, I,J, R,D,counter = y
     N=S+E+P+A+I+J+R+D
-    dSdt = - betanew2(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8) * S * (q*I + l*J +P+ A)/N 
-    dEdt = betanew2(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8) * S * (q*I + l*J +P+ A)/N   - alpha * E
+    dSdt = - betanew2(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9,) * S * (q*I + l*J +P+ A)/N 
+    dEdt = betanew2(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9,) * S * (q*I + l*J +P+ A)/N   - alpha * E
     dPdt = alpha * E - delta_p * P
     dAdt = delta_p* P *(1-sym)-gamma1*A
     dIdt = sym* delta_p* P - gamma1 * I- hosp*I
@@ -614,17 +663,18 @@ def derivdecayP(y, t, beta, gamma1, gamma2, alpha, sym, hosp, q, l, n_days, deca
     counter = (1-fatal_hosp)*gamma2 * J
     return dSdt, dEdt,dPdt,dAdt, dIdt, dJdt, dRdt, dDdt, counter
 
+
 ## vaccination rate is standard across time
-def derivdecayV(y, t, beta, gamma1, gamma2, alpha, sym, hosp, q, l, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8,
-                start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta,
-                fatal_hosp, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, delta_p, sigma, phi):
+def derivdecayV(y, t, beta, gamma1, gamma2, alpha, sym, hosp, q, l, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9,
+                start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta,
+                fatal_hosp, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, delta_p, sigma, phi):
     # here sigma=scaling rate of how effective the vaccine is
     # phi=rate suscepitble individuals are vaccinated at each time step
     S, V,E, P,A, I,J, R,D,counter = y
     N=S+E+P+A+I+J+R+D+V
-    dSdt = - betanew2(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8) * S * (q*I + l*J +P+ A)/N - (phi*S)
-    dVdt = (phi*S)-(sigma * betanew2(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8) * V * (q*I + l*J +P+ A)/N )
-    dEdt = (betanew2(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8) * S * (q*I + l*J +P+ A)/N )+(sigma * betanew2(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8) * V * (q*I + l*J +P+ A)/N )  - alpha * E
+    dSdt = - betanew2(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9,) * S * (q*I + l*J +P+ A)/N - (phi*S)
+    dVdt = (phi*S)-(sigma * betanew2(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9,) * V * (q*I + l*J +P+ A)/N )
+    dEdt = (betanew2(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9,) * S * (q*I + l*J +P+ A)/N )+(sigma * betanew2(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9,) * V * (q*I + l*J +P+ A)/N )  - alpha * E
     dPdt = alpha * E - delta_p * P
     dAdt = delta_p* P *(1-sym)-gamma1*A
     dIdt = sym* delta_p* P - gamma1 * I- hosp*I
@@ -633,17 +683,18 @@ def derivdecayV(y, t, beta, gamma1, gamma2, alpha, sym, hosp, q, l, n_days, deca
     dDdt = fatal_hosp * gamma2 * J
     counter = (1-fatal_hosp)*gamma2 * J
     return dSdt, dVdt,dEdt,dPdt,dAdt, dIdt, dJdt, dRdt, dDdt, counter
+
 ### this adds in the fact that vaccination was not in the first part of this!
-def derivdecayVtime(y, t, beta, gamma1, gamma2, alpha, sym, hosp, q, l, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8,
-                start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta,
-                fatal_hosp, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, delta_p, sigma, phi):
+def derivdecayVtime(y, t, beta, gamma1, gamma2, alpha, sym, hosp, q, l, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9,
+                start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta,
+                fatal_hosp, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, delta_p, sigma, phi):
     # here sigma=scaling rate of how effective the vaccine is
     # phi=rate suscepitble individuals are vaccinated at each time step
     S, V,E, P,A, I,J, R,D,counter = y
     N=S+E+P+A+I+J+R+D+V
-    dSdt = - betanew2(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8) * S * (q*I + l*J +P+ A)/N - (phinew2(t,phi)*S)
-    dVdt = (phinew2(t,phi)*S)-(sigma * betanew2(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8) * V * (q*I + l*J +P+ A)/N )
-    dEdt = (betanew2(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8) * S * (q*I + l*J +P+ A)/N )+(sigma * betanew2(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8) * V * (q*I + l*J +P+ A)/N )  - alpha * E
+    dSdt = - betanew2(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9,) * S * (q*I + l*J +P+ A)/N - (phinew2(t,phi5, phi6, phi7, phi8, phi9)*S)
+    dVdt = (phinew2(t,phi5, phi6, phi7, phi8, phi9)*S)-(sigma * betanew2(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9,) * V * (q*I + l*J +P+ A)/N )
+    dEdt = (betanew2(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9) * S * (q*I + l*J +P+ A)/N )+(sigma * betanew2(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9) * V * (q*I + l*J +P+ A)/N )  - alpha * E
     dPdt = alpha * E - delta_p * P
     dAdt = delta_p* P *(1-sym)-gamma1*A
     dIdt = sym* delta_p* P - gamma1 * I- hosp*I
@@ -654,16 +705,16 @@ def derivdecayVtime(y, t, beta, gamma1, gamma2, alpha, sym, hosp, q, l, n_days, 
     return dSdt, dVdt,dEdt,dPdt,dAdt, dIdt, dJdt, dRdt, dDdt, counter
     
 ###add in New Strain
-def derivdecayVNS(y, t, beta, gamma1, gamma2, alpha, sym, hosp, q, l, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8,
-                start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta,
-                fatal_hosp, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, delta_p, sigma, phi, new_strain, fracNS):
+def derivdecayVNS(y, t, beta, gamma1, gamma2, alpha, sym, hosp, q, l, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9,
+                start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta,
+                fatal_hosp, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, delta_p, sigma, phi5, phi6, phi7, phi8, phi9, new_strain6, new_strain7, new_strain8, new_strain9, fracNS6, fracNS7, fracNS8, fracNS9):
     # here sigma=scaling rate of how effective the vaccine is
     # phi=rate suscepitble individuals are vaccinated at each time step
     S, V,E, P,A, I,J, R,D,counter = y
     N=S+E+P+A+I+J+R+D+V
-    dSdt = - betanew3(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, new_strain, fracNS) * S * (q*I + l*J +P+ A)/N - (phinew2(t,phi)*S)
-    dVdt = (phinew2(t,phi)*S)-(sigma * betanew3(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, new_strain, fracNS) * V * (q*I + l*J +P+ A)/N )
-    dEdt = (betanew3(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, new_strain, fracNS) * S * (q*I + l*J +P+ A)/N )+(sigma * betanew3(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, new_strain, fracNS) * V * (q*I + l*J +P+ A)/N )  - alpha * E
+    dSdt = - betanew3(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, new_strain6, new_strain7, new_strain8, new_strain9, fracNS6, fracNS7, fracNS8, fracNS9) * S * (q*I + l*J +P+ A)/N - (phinew2(t,phi5, phi6, phi7, phi8, phi9)*S)
+    dVdt = (phinew2(t,phi5, phi6, phi7, phi8, phi9)*S)-(sigma * betanew3(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, new_strain6, new_strain7, new_strain8, new_strain9, fracNS6, fracNS7, fracNS8, fracNS9) * V * (q*I + l*J +P+ A)/N )
+    dEdt = (betanew3(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, new_strain6, new_strain7, new_strain8, new_strain9, fracNS6, fracNS7, fracNS8, fracNS9) * S * (q*I + l*J +P+ A)/N )+(sigma * betanew3(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, new_strain6, new_strain7, new_strain8, new_strain9, fracNS6, fracNS7, fracNS8, fracNS9) * V * (q*I + l*J +P+ A)/N )  - alpha * E
     dPdt = alpha * E - delta_p * P
     dAdt = delta_p* P *(1-sym)-gamma1*A
     dIdt = sym* delta_p* P - gamma1 * I- hosp*I
@@ -675,61 +726,60 @@ def derivdecayVNS(y, t, beta, gamma1, gamma2, alpha, sym, hosp, q, l, n_days, de
 
 
 def sim_sepaijrd_decay_ode(
-    s, e,p,a,i, j,r, d, beta, gamma1, gamma2, alpha, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8,
-    start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta,
+    s, e,p,a,i, j,r, d, beta, gamma1, gamma2, alpha, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9,
+    start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta,
     fatal_hosp, sym, hosp, q,
     l,x, 
-    p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, delta_p):
+    p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, delta_p):
     n = s + e + p+a + i + j+ r + d
     rh=0
     y0= s,e,p,a,i,j,r,d, rh
     
     t=np.arange(0, n_days, step=1)
     ret = odeint(derivdecayP, y0, t, args=(beta, gamma1, gamma2, alpha, sym, hosp, q , l, n_days, 
-    decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8,
-    start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, fatal_hosp, x, 
-    p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, delta_p))
-    S_n, E_n,P_n,A_n, I_n,J_n, R_n, D_n ,RH_n= ret.T
+    decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9,
+    start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta, fatal_hosp, x, 
+    p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, delta_p))
+    S_n, E_n,P_n, A_n, I_n,J_n, R_n, D_n ,RH_n= ret.T
     
-    return (S_n, E_n,P_n,A_n, I_n,J_n, R_n, D_n, RH_n)
+    return (S_n, E_n,P_n, A_n, I_n,J_n, R_n, D_n, RH_n)
 
 def sim_svepaijrd_decay_ode(
-    s,v, e,p,a,i, j,r, d, beta, gamma1, gamma2, alpha, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8,
-    start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta,
+    s,v, e,p,a,i, j,r, d, beta, gamma1, gamma2, alpha, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9,
+    start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta,
     fatal_hosp, sym, hosp, q,
     l,x, 
-    p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, delta_p, sigma, phi):
+    p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, delta_p, sigma, phi):
     n = s + v+ e + p+a + i + j+ r + d
     rh=0
     y0= s,v,e,p,a,i,j,r,d, rh
     
     t=np.arange(0, n_days, step=1)
     ret = odeint(derivdecayVtime, y0, t, args=(beta, gamma1, gamma2, alpha, sym, hosp,q , l, n_days, 
-    decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8,
-    start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, fatal_hosp, x, 
-    p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, delta_p, sigma, phi))
-    S_n, V_n, E_n,P_n,A_n, I_n,J_n, R_n, D_n ,RH_n= ret.T
+    decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9,
+    start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta, fatal_hosp, x, 
+    p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, delta_p, sigma, phi))
+    S_n, V_n, E_n,P_n, A_n, I_n,J_n, R_n, D_n ,RH_n= ret.T
     
     return (S_n, V_n,E_n,P_n,A_n, I_n,J_n, R_n, D_n, RH_n)
 
 def sim_svepaijrdNS_decay_ode(
-    s,v, e,p,a,i, j,r, d, beta, gamma1, gamma2, alpha, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8,
-    start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta,
+    s,v, e,p,a,i, j,r, d, beta, gamma1, gamma2, alpha, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9,
+    start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta,
     fatal_hosp, sym, hosp, q,
     l,x, 
-    p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, delta_p, sigma, phi,new_strain, fracNS):
+    p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, delta_p, sigma, phi5, phi6, phi7, phi8, phi9, new_strain6, new_strain7, new_strain8, new_strain9, fracNS6, fracNS7, fracNS8, fracNS9):
     n = s + v+ e + p+a + i + j+ r + d
     rh=0
     y0= s,v,e,p,a,i,j,r,d, rh
      
     t=np.arange(0, n_days, step=1)
     ret = odeint(derivdecayVNS, y0, t, args=(beta, gamma1, gamma2, alpha, sym, hosp,q , l, n_days, 
-    decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8,
-    start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, fatal_hosp, x, 
-    p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, delta_p, sigma, phi, new_strain, fracNS))
+    decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9,
+    start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta, fatal_hosp, x, 
+    p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, delta_p, sigma, phi5, phi6, phi7, phi8, phi9, new_strain6, new_strain7, new_strain8, new_strain9, fracNS6, fracNS7, fracNS8, fracNS9))
     S_n, V_n, E_n,P_n,A_n, I_n,J_n, R_n, D_n ,RH_n= ret.T
-    
-    return (S_n, V_n,E_n,P_n,A_n, I_n,J_n, R_n, D_n, RH_n)
+    return (S_n, V_n, E_n, P_n, A_n, I_n, J_n, R_n, D_n, RH_n)
 
     
 # End Models # 
@@ -806,60 +856,123 @@ S = erie
 current_hosp = st.sidebar.number_input(
     "Total Hospitalized Cases", value=known_cases, step=1.0, format="%f")
     
-doubling_time = st.sidebar.number_input(
-    "Doubling Time (days)", value=3.0, step=1.0, format="%f")
+#doubling_time = st.sidebar.number_input(
+#    "Doubling Time (days)", value=3.0, step=1.0, format="%f")
+doubling_time = 3
 
 start_date = st.sidebar.date_input(
-    "Suspected first contact", datetime(2020,10,25))
+    "Starting Date 1", datetime(2020,10,25))
 start_day = 1
 
-relative_contact_rate = st.sidebar.number_input(
-    "Social distancing (% reduction in social contact) Unadjusted Model", 0, 100, value=0, step=5, format="%i")/100.0
+#relative_contact_rate = st.sidebar.number_input(
+#    "Social distancing (% reduction in social contact) Unadjusted Model", 0, 100, value=0, step=5, format="%i")/100.0
+relative_contact_rate = 0
 
 decay1 = st.sidebar.number_input(
     "Social distancing 1 - Percent", 0, 100, value=5, step=5, format="%i")/100.0
+p_m1 = (st.sidebar.number_input(
+"Mask-wearing 1", 0.0, 100.0, value=7.0 ,step=5.0, format="%f")/100.0)
+
 
 intervention1 = st.sidebar.date_input(
-    "Date of change Social Distancing 2", datetime(2020,11,20))
+    "Date of change 2", datetime(2020,11,20))
 int1_delta = (intervention1 - start_date).days
 decay2 = st.sidebar.number_input(
     "Social distancing 2 - Percent", 0, 100, value=20, step=5, format="%i")/100.0
+p_m2 = (st.sidebar.number_input(
+"Mask-wearing 2", 0.0, 100.0, value=20.0 ,step=5.0, format="%f")/100.0)
+
 
 intervention2 = st.sidebar.date_input(
-    "Date of change in Social Distancing 3", datetime(2020,11,26))
+    "Date of change 3", datetime(2020,11,26))
 int2_delta = (intervention2 - start_date).days
 decay3 = st.sidebar.number_input(
     "Social distancing 3 - Percent", 0, 100, value=20, step=5, format="%i")/100.0
+p_m3 = (st.sidebar.number_input(
+"Mask-wearing 3", 0.0, 100.0, value=30.0 ,step=5.0, format="%f")/100.0)
+
 
 intervention3 = st.sidebar.date_input(
-    "Date of change in Social Distancing 4", datetime(2020,12,24))
+    "Date of change 4", datetime(2020,12,24))
 int3_delta = (intervention3 - start_date).days
 decay4 = st.sidebar.number_input(
     "Social distancing 4 - Percent", 0, 100, value=20, step=5, format="%i")/100.0
+p_m4 = (st.sidebar.number_input(
+"Mask-wearing 4", 0.0, 100.0, value=30.0 ,step=5.0, format="%f")/100.0)
+
 
 intervention4 = st.sidebar.date_input(
-    "Date of change in Social Distancing 5", datetime(2021,1,6))
+    "Date of change 5", datetime(2021,1,6))
 int4_delta = (intervention4 - start_date).days
 decay5 = st.sidebar.number_input(
     "Social distancing 5 - Percent", 0, 100, value=20, step=5, format="%i")/100.0
+p_m5 = (st.sidebar.number_input(
+"Mask-wearing 5", 0.0, 100.0, value=30.0 ,step=5.0, format="%f")/100.0)
+phi5 =  (st.sidebar.number_input(
+"Vaccination Rate 5 (%)", 0.0, 100.0, value=0.3 ,step=0.5, format="%f")/100.0)
+
 
 intervention5 = st.sidebar.date_input(
-    "Date of change in Social Distancing 6", datetime(2021,3,10))
+    "Date of change 6", datetime(2021,3,10))
 int5_delta = (intervention5 - start_date).days
 decay6 = st.sidebar.number_input(
     "Social distancing 6 - Percent", 0, 100, value=10, step=5, format="%i")/100.0
+p_m6 = (st.sidebar.number_input(
+"Mask-wearing 6", 0.0, 100.0, value=15.0 ,step=5.0, format="%f")/100.0)
+phi6 = (st.sidebar.number_input(
+"Vaccination Rate 6 (%)", 0.0, 100.0, value=0.3 ,step=0.5, format="%f")/100.0)
+fracNS6 = (st.sidebar.number_input(
+"Percent of Population with new strain 6 (%)", 0.0, 100.0, value=60.0 ,step=5.0, format="%f")/100.0)
+new_strain6 = (st.sidebar.number_input(
+"New Strain Increased Transmission w.r.t. Old Strain 6 (%)", 0.0, 1000.0, value=40.0 ,step=5.0, format="%f")/100.0)
+
 
 intervention6 = st.sidebar.date_input(
-    "Date of change in Social Distancing 7", datetime(2021,4,10))
+    "Date of change 7", datetime(2021,4,10))
 int6_delta = (intervention6 - start_date).days
 decay7 = st.sidebar.number_input(
     "Social distancing 7 - Percent", 0, 100, value=20, step=5, format="%i")/100.0
+p_m7 = (st.sidebar.number_input(
+"Mask-wearing 7", 0.0, 100.0, value=30.0 ,step=5.0, format="%f")/100.0)
+phi7 = (st.sidebar.number_input(
+"Vaccination Rate 7 (%)", 0.0, 100.0, value=0.3 ,step=0.5, format="%f")/100.0)
+fracNS7 = (st.sidebar.number_input(
+"Percent of Population with new strain 7 (%)", 0.0, 100.0, value=60.0 ,step=5.0, format="%f")/100.0)
+new_strain7 = (st.sidebar.number_input(
+"New Strain Increased Transmission w.r.t. Old Strain 7 (%)", 0.0, 1000.0, value=40.0 ,step=5.0, format="%f")/100.0)
+    
     
 intervention7 = st.sidebar.date_input(
-    "Date of change in Social Distancing 8", datetime(2021,6,15))
+    "Date of change 8", datetime(2021,8,1))
 int7_delta = (intervention7 - start_date).days
 decay8 = st.sidebar.number_input(
     "Social distancing 8 - Percent", 0, 100, value=5, step=5, format="%i")/100.0
+p_m8 = (st.sidebar.number_input(
+"Mask-wearing 8", 0.0, 100.0, value=5.0 ,step=5.0, format="%f")/100.0)
+phi8 = (st.sidebar.number_input(
+"Vaccination Rate 8 (%)", 0.0, 100.0, value=0.3 ,step=0.5, format="%f")/100.0)
+fracNS8 = (st.sidebar.number_input(
+"Percent of Population with new strain 8 (%)", 0.0, 100.0, value=80.0, step=5.0, format="%f")/100.0)
+new_strain8 = (st.sidebar.number_input(
+"New Strain Increased Transmission w.r.t. Old Strain 8 (%)", 0.0, 1000.0, value=60.0 ,step=5.0, format="%f")/100.0)
+
+
+intervention8 = st.sidebar.date_input(
+    "Date of change 9", datetime(2021,10,1))
+int8_delta = (intervention8 - start_date).days
+decay9 = st.sidebar.number_input(
+    "Social distancing 9 - Percent", 0, 100, value=5, step=5, format="%i")/100.0
+p_m9 = (st.sidebar.number_input(
+"Mask-wearing 9", 0.0, 100.0, value=5.0 ,step=5.0, format="%f")/100.0)
+phi9 = (st.sidebar.number_input(
+"Vaccination Rate 9 (%)", 0.0, 100.0, value=0.3 ,step=0.5, format="%f")/100.0)
+fracNS9 = (st.sidebar.number_input(
+"Percent of Population with new strain 9 (%)", 0.0, 100.0, value=95.0, step=5.0, format="%f")/100.0)
+new_strain9 = (st.sidebar.number_input(
+"New Strain Increased Transmission w.r.t. Old Strain 9 (%)", 0.0, 1000.0, value=80.0 ,step=5.0, format="%f")/100.0)
+
+
+
 
 hosp_rate = (
     st.sidebar.number_input("Hospitalization %", 0.0, 100.0, value=1.5, step=0.50, format="%f")/ 100.0)
@@ -900,22 +1013,7 @@ asymptomatic = 1-(st.sidebar.number_input(
 q = 1-(st.sidebar.number_input(
 "Symptomatic Isolation Rate (contact tracing/quarantine when symptomatic)", 0.0, 100.0, value=34.8 ,step=0.1, format="%f")/100.0)
 
-p_m1 = (st.sidebar.number_input(
-"Mask-wearing 1", 0.0, 100.0, value=10.0 ,step=5.0, format="%f")/100.0)
-p_m2 = (st.sidebar.number_input(
-"Mask-wearing 2", 0.0, 100.0, value=20.0 ,step=5.0, format="%f")/100.0)
-p_m3 = (st.sidebar.number_input(
-"Mask-wearing 3", 0.0, 100.0, value=30.0 ,step=5.0, format="%f")/100.0)
-p_m4 = (st.sidebar.number_input(
-"Mask-wearing 4", 0.0, 100.0, value=30.0 ,step=5.0, format="%f")/100.0)
-p_m5 = (st.sidebar.number_input(
-"Mask-wearing 5", 0.0, 100.0, value=30.0 ,step=5.0, format="%f")/100.0)
-p_m6 = (st.sidebar.number_input(
-"Mask-wearing 6", 0.0, 100.0, value=15.0 ,step=5.0, format="%f")/100.0)
-p_m7 = (st.sidebar.number_input(
-"Mask-wearing 7", 0.0, 100.0, value=30.0 ,step=5.0, format="%f")/100.0)
-p_m8 = (st.sidebar.number_input(
-"Mask-wearing 8", 0.0, 100.0, value=5.0 ,step=5.0, format="%f")/100.0)
+
 
 new_strain = (st.sidebar.number_input(
 "New Strain Increased Transmission w.r.t. Old Strain (%)", 0.0, 1000.0, value=40.0 ,step=5.0, format="%f")/100.0)
@@ -1014,7 +1112,7 @@ erie_icu_line = alt.Chart(erie_df).mark_line(color='orange', point=True).encode(
 
 
 # Slider and Date
-n_days = st.slider("Number of days to project", 30, 500, 350, 1, "%i")
+n_days = st.slider("Number of days to project", 30, 500, 450, 1, "%i")
 as_date = st.checkbox(label="Present result as dates", value=True)
 
 
@@ -1336,9 +1434,9 @@ beta_j=0.51
 R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
 
 S_p, E_p,P_p,A_p, I_p,J_p, R_p, D_p, RH_p=sim_sepaijrd_decay_ode(S0, E0, P0,A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
-                                                      decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta,
+                                                      decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta,
                                                       fatal_hosp, asymptomatic, hosp_rate, q,  l, x, 
-                                                      p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, delta_p)
+                                                      p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, delta_p)
 
 icu_curve= J_p*icu_rate
 vent_curve=J_p*vent_rate
@@ -1399,9 +1497,9 @@ R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(a
 beta_j=0.51
 R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
 S_p, E_p,P_p,A_p, I_p,J_p, R_p, D_p, RH_p=sim_sepaijrd_decay_ode(S0, E0, P0,A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
-                                                      decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta,
+                                                      decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta,
                                                       fatal_hosp, asymptomatic, hosp_rate, q,  l, x, 
-                                                      p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, delta_p)
+                                                      p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, delta_p)
 
 icu_curve= J_p*icu_rate
 vent_curve=J_p*vent_rate
@@ -1460,9 +1558,9 @@ R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(a
 beta_j=0.51
 R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
 S_p, E_p,P_p,A_p, I_p,J_p, R_p, D_p, RH_p=sim_sepaijrd_decay_ode(S0, E0, P0,A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
-                                                      decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta,
+                                                      decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta,
                                                       fatal_hosp, asymptomatic, hosp_rate, q,  l, x, 
-                                                      p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, delta_p)
+                                                      p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, delta_p)
 
 icu_curve= J_p*icu_rate
 vent_curve=J_p*vent_rate
@@ -1522,9 +1620,9 @@ beta_j=0.51
 R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
 
 S_p, E_p,P_p,A_p, I_p,J_p, R_p, D_p, RH_p=sim_sepaijrd_decay_ode(S0, E0, P0,A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
-                                                      decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta,
+                                                      decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta,
                                                       fatal_hosp, asymptomatic, hosp_rate, q,  l, x, 
-                                                      p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, delta_p)
+                                                      p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, delta_p)
 
 icu_curve= J_p*icu_rate
 vent_curve=J_p*vent_rate
@@ -1589,9 +1687,9 @@ R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(a
 ###### 
 
 S_v, V_v,E_v,P_v,A_v, I_v,J_v, R_v, D_v, RH_v=sim_svepaijrd_decay_ode(S0, V0,E0, P0,A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
-                                                      decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta,
+                                                      decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta,
                                                       fatal_hosp, asymptomatic, hosp_rate, q,  l, x, 
-                                                      p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, delta_p, sigma, phi)
+                                                      p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, delta_p, sigma, phi)
 
 icu_curve= J_v*icu_rate
 vent_curve=J_v*vent_rate
@@ -1655,9 +1753,9 @@ R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(a
 ###### 
 
 S_v, V_v,E_v,P_v,A_v, I_v,J_v, R_v, D_v, RH_v=sim_svepaijrd_decay_ode(S0, V0,E0, P0,A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
-                                                      decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta,
+                                                      decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta,
                                                       fatal_hosp, asymptomatic, hosp_rate, q,  l, x, 
-                                                      p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, delta_p, sigma, phi)
+                                                      p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, delta_p, sigma, phi)
 
 icu_curve= J_v*icu_rate
 vent_curve=J_v*vent_rate
@@ -1721,9 +1819,9 @@ R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(a
 ###### 
 
 S_v, V_v,E_v,P_v,A_v, I_v,J_v, R_v, D_v, RH_v=sim_svepaijrd_decay_ode(S0, V0,E0, P0,A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
-                                                      decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta,
+                                                      decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta,
                                                       fatal_hosp, asymptomatic, hosp_rate, q,  l, x, 
-                                                      p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, delta_p, sigma, phi)
+                                                      p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, delta_p, sigma, phi)
 
 icu_curve= J_v*icu_rate
 vent_curve=J_v*vent_rate
@@ -1793,9 +1891,9 @@ R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(a
 ###### 
 
 S_vNS, V_v,NSE_vNS,P_vNS,A_vNS, I_vNS,J_vNS, R_vNS, D_vNS, RH_vNS=sim_svepaijrdNS_decay_ode(S0, V0,E0, P0,A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
-                                                      decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta,
+                                                      decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta,
                                                       fatal_hosp, asymptomatic, hosp_rate, q,  l, x, 
-                                                      p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, delta_p, sigma, phi, new_strain, fracNS)
+                                                      p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, delta_p, sigma, phi5, phi6, phi7, phi8, phi9, new_strain6, new_strain7, new_strain8, new_strain9, fracNS6, fracNS7, fracNS8, fracNS9)
 
 icu_curve= J_vNS*icu_rate
 vent_curve=J_vNS*vent_rate
@@ -1861,9 +1959,9 @@ R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(a
 ###### 
 
 S_vNS, V_v,NSE_vNS,P_vNS,A_vNS, I_vNS,J_vNS, R_vNS, D_vNS, RH_vNS=sim_svepaijrdNS_decay_ode(S0, V0,E0, P0,A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
-                                                      decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta,
+                                                      decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta,
                                                       fatal_hosp, asymptomatic, hosp_rate, q,  l, x, 
-                                                      p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, delta_p, sigma, phi, new_strain, fracNS)
+                                                      p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, delta_p, sigma, phi5, phi6, phi7, phi8, phi9, new_strain6, new_strain7, new_strain8, new_strain9, fracNS6, fracNS7, fracNS8, fracNS9)
 
 icu_curve= J_vNS*icu_rate
 vent_curve=J_vNS*vent_rate
@@ -1929,9 +2027,9 @@ R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(a
 ###### 
 
 S_vNS, V_v,NSE_vNS,P_vNS,A_vNS, I_vNS,J_vNS, R_vNS, D_vNS, RH_vNS=sim_svepaijrdNS_decay_ode(S0, V0,E0, P0,A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
-                                                      decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta,
+                                                      decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta,
                                                       fatal_hosp, asymptomatic, hosp_rate, q,  l, x, 
-                                                      p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, delta_p, sigma, phi, new_strain, fracNS)
+                                                      p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, delta_p, sigma, phi5, phi6, phi7, phi8, phi9, new_strain6, new_strain7, new_strain8, new_strain9, fracNS6, fracNS7, fracNS8, fracNS9)
 
 icu_curve= J_vNS*icu_rate
 vent_curve=J_vNS*vent_rate
@@ -1962,7 +2060,7 @@ hospitalized_VNS2, icu_VNS2, ventilated_VNS2 = (
             i_ventilated_VNS)
 
 
-            
+
 
 # Projection days
 plot_projection_days = n_days - 10
@@ -2164,7 +2262,7 @@ def ip_chart(
 
 
 ###################### Vertical Lines Graph ###################
-vertical = pd.DataFrame({'day': [int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta]})
+vertical = pd.DataFrame({'day': [int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta]})
 
 def vertical_chart(
     projection_admits: pd.DataFrame, 
@@ -2596,12 +2694,87 @@ st.altair_chart(
     #alt.layer(seir_P0.mark_line())
     #+
     alt.layer(seir_VNS0.mark_line())
-    +
-    alt.layer(seir_VNS1.mark_line())
-    +
-    alt.layer(seir_VNS2.mark_line())
+    #+
+    #alt.layer(seir_VNS1.mark_line())
+    #+
+    #alt.layer(seir_VNS2.mark_line())
     + alt.layer(erie_lines_ip)
     + alt.layer(vertical1)
     , use_container_width=True)
     
     
+    
+#############################################################################
+# Changes 7/21/21
+
+
+    
+    
+############################### prevalence and incidence ###########################
+# https://www.tandfonline.com/doi/full/10.1057/hs.2015.2
+####################################################################################
+st.subheader("Prevalence and Incidence Across Time")
+
+st.markdown("""Incidence is measured as the number of new cases daily, (from compartments A, I) prevalence is measured
+as the population infected with the disease (A,I,J) daily.""")
+
+#st.dataframe(census_table_P0)
+
+#S_vNS, V_v,NSE_vNS,P_vNS,A_vNS, I_vNS,J_vNS, R_vNS, D_vNS, RH_vNS
+
+## incidence
+#frame = [A_vNS, I_vNS, J_vNS, R_vNS, D_vNS]
+#dispositions_inc = np.array(frame)
+#dispositions_inc = pd.DataFrame(data=dispositions_inc).T
+#st.write(dispositions_inc)
+#st.dataframe(dispositions_inc)
+#dispositions_inc = pd.DataFrame(dispositions_inc, columns=['newcases']) 
+# dispositions_inc2 = dispositions_inc.iloc[:-1, :] - dispositions_inc.shift(1)
+# dispositions_inc2["day"] = range(dispositions_inc2.shape[0])
+# dispositions_inc2["TotalCases"]=S_vNS
+# dispositions_inc2.at[0,'newcases']=0
+# dispositions_inc2["incidencerate"]=dispositions_inc2['newcases']/dispositions_inc2['TotalCases']
+
+### incidence
+dispositions_inc= (A_vNS + I_vNS + J_vNS + R_vNS + D_vNS)
+#st.write(dispositions_inc)
+dispositions_inc=pd.DataFrame(dispositions_inc, columns=['newcases']) 
+dispositions_inc2 = dispositions_inc.iloc[:-1, :] - dispositions_inc.shift(1)
+dispositions_inc2["day"] = range(dispositions_inc2.shape[0])
+dispositions_inc2["TotalCases"]=S_vNS
+dispositions_inc2.at[0,'newcases']=195
+dispositions_inc2["incidencerate"]=dispositions_inc2['newcases']/dispositions_inc2['TotalCases']
+
+st.dataframe(dispositions_inc2)
+
+## total number of new cases daily/total number of people disease free at the start of the day
+
+## prevalence
+
+dispositions_prev=(A_vNS + I_vNS + J_vNS)
+dispositions_prev=pd.DataFrame(dispositions_prev, columns=['cumucases']) 
+dispositions_prev["day"] = range(dispositions_prev.shape[0])    
+dispositions_prev["TotalCases"]=1400000.0
+dispositions_prev["pointprevalencerate"]=dispositions_prev['cumucases']/dispositions_prev['TotalCases']
+#total number of infected people during that day/ total number in population
+
+st.dataframe(dispositions_prev)
+
+def additional_projections_chart2(i, p)  -> alt.Chart:
+    dat = pd.DataFrame({"Incidence Rate":i,"Prevalence Rate":p})
+
+    return (
+        alt
+        .Chart(dat.reset_index())
+        .transform_fold(fold=["Incidence Rate", "Prevalence Rate"])
+        .mark_line(point=False)
+        .encode(
+            x=alt.X("index", title="Days from initial infection"),
+            y=alt.Y("value:Q", title="Case Volume"),
+            tooltip=["key:N", "value:Q"], 
+            color="key:N"
+        )
+        .interactive()
+    )
+
+st.altair_chart(additional_projections_chart2(dispositions_inc2["incidencerate"], dispositions_prev["pointprevalencerate"]), use_container_width=True)

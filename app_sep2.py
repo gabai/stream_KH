@@ -56,7 +56,7 @@ def sir(
 
     scale = n / (s_n + i_n + r_n)
     return s_n * scale, i_n * scale, r_n * scale
-    
+
 def gen_sir(
     s: float, i: float, r: float, beta: float, gamma: float, n_days: int
     ) -> Generator[Tuple[float, float, float], None, None]:
@@ -85,7 +85,7 @@ def sim_sir(
         np.array(i_v),
         np.array(r_v),
     )
-    
+
 def sim_sir_df(
     p) -> pd.DataFrame:
     """Simulate the SIR model forward in time.
@@ -109,12 +109,12 @@ def build_admissions_df(
     days = np.array(range(0, n_days + 1))
     data_dict = dict(
         zip(
-            ["day", "hosp", "icu", "vent"], 
+            ["day", "hosp", "icu", "vent"],
             [days] + [disposition for disposition in dispositions],
         )
     )
     projection = pd.DataFrame.from_dict(data_dict)
-    
+
     # New cases
     projection_admits = projection.iloc[:-1, :] - projection.shift(1)
     projection_admits["day"] = range(projection_admits.shape[0])
@@ -126,12 +126,12 @@ def build_admissions_df_n(
     days = np.array(range(0, n_days))
     data_dict = dict(
         zip(
-            ["day", "hosp", "icu", "vent"], 
+            ["day", "hosp", "icu", "vent"],
             [days] + [disposition for disposition in dispositions],
         )
     )
     projection = pd.DataFrame.from_dict(data_dict)
-    
+
     # New cases
     projection_admits = projection.iloc[:-1, :] - projection.shift(1)
     projection_admits["day"] = range(projection_admits.shape[0])
@@ -144,12 +144,12 @@ def build_prev_df_n(
     days = np.array(range(0, n_days))
     data_dict = dict(
         zip(
-            ["day", "hosp", "icu", "vent"], 
+            ["day", "hosp", "icu", "vent"],
             [days] + [disposition for disposition in dispositions],
         )
     )
     projection = pd.DataFrame.from_dict(data_dict)
-    
+
     # New cases
     projection_admits = projection.iloc[:-1, :] - projection.shift(1)
     projection_admits["day"] = range(projection_admits.shape[0])
@@ -175,10 +175,10 @@ def build_census_df(
     census_df = pd.DataFrame(census_dict)
     census_df["day"] = census_df.index
     census_df = census_df[["day", "hosp", "icu", "vent"]]
-    
+
     census_df = census_df.head(n_days-10)
     census_df.loc[0,'hosp'] = 45
-    
+
     return census_df
 
 def seir(
@@ -231,7 +231,7 @@ def gen_seir(
     for _ in range(n_days + 1):
         yield s, e, i, r
         s, e, i, r = seir(s, e, i, r, beta, gamma, alpha, n)
-# phase-adjusted https://www.nature.com/articles/s41421-020-0148-0     
+# phase-adjusted https://www.nature.com/articles/s41421-020-0148-0
 
 # def sim_seir_decay(
     # s: float, e:float, i: float, r: float, beta: float, gamma: float, alpha: float, n_days: int,
@@ -437,7 +437,7 @@ def seijcrd(
         # elif 22<=day<=28:
             # beta = (alpha+(2 ** (1 / 2.65) - 1))*((2 ** (1 / 2.65) - 1)+ (1/infectious_period)) / (alpha*S)
             # beta_decay=beta*(1-decay2)
-        # elif 29<=day<=step1_delta: 
+        # elif 29<=day<=step1_delta:
             # beta = (alpha+(2 ** (1 / 5.32) - 1))*((2 ** (1 / 5.32) - 1)+ (1/infectious_period)) / (alpha*S)
             # beta_decay=beta*(1-decay3)
         # else:
@@ -469,7 +469,7 @@ def seijcrd(
     # elif int1_delta<=t<int2_delta:
         # beta_decay=beta*(1-decay2)
     # elif int2_delta<=t<int3_delta:
-        # beta_decay=beta*(1-decay3)    
+        # beta_decay=beta*(1-decay3)
     # elif int3_delta<=t<=int4_delta:
         # beta_decay=beta*(1-decay4)
     # elif int4_delta<=t<=int5_delta:
@@ -486,7 +486,7 @@ def seijcrd(
 def derivdecay(y, t, N, beta, gamma1, gamma2, alpha, p, hosp, q, l, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9,
                 start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, fatal_hosp):
     S, E, A, I,J, R,D,counter = y
-    dSdt = - betanew(t, beta) * S * (q*I + l*J + A)/N 
+    dSdt = - betanew(t, beta) * S * (q*I + l*J + A)/N
     dEdt = betanew(t, beta) * S * (q*I + l*J + A)/N   - alpha * E
     dAdt = alpha * E*(1-p)-gamma1*A
     dIdt = p* alpha* E - gamma1 * I- hosp*I
@@ -502,12 +502,12 @@ def sim_seaijrd_decay_ode(
     n = s + e + a + i + j+ r + d
     rh=0
     y0= s,e,a,i,j,r,d, rh
-    
+
     t=np.arange(0, n_days, step=1)
     ret = odeint(derivdecay, y0, t, args=(n, beta, gamma1, gamma2, alpha, p, hosp,q,l, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9,
     start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, fatal_hosp))
     S_n, E_n,A_n, I_n,J_n, R_n, D_n ,RH_n= ret.T
-    
+
     return (S_n, E_n, A_n, I_n,J_n, R_n, D_n, RH_n)
 
 
@@ -565,8 +565,8 @@ def betanew2(t, beta, x, p_m1, pm_2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9):
     # else:
         # beta_decay=((1-fracNS)*beta*(1-decay8, decay9,)*(1-(x*p_m8, p_m9,))**2)+(fracNS*(1+new_strain)*beta*(1-decay8, decay9,)*(1-(x*p_m8, p_m9,))**2)
     # return beta_decay
-    
-    
+
+
 # Modified 7/21/21
 # Adding period specific changes to tranmission or percentage of population
 def betanew3(t, beta, x, p_m1, pm_2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, new_strain6, new_strain7, new_strain8, new_strain9, fracNS6, fracNS7, fracNS8, fracNS9):
@@ -652,7 +652,7 @@ def derivdecayP(y, t, beta, gamma1, gamma2, alpha, sym, hosp, q, l, n_days, deca
                 fatal_hosp, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, delta_p):
     S, E, P,A, I,J, R,D,counter = y
     N=S+E+P+A+I+J+R+D
-    dSdt = - betanew2(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9,) * S * (q*I + l*J +P+ A)/N 
+    dSdt = - betanew2(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9,) * S * (q*I + l*J +P+ A)/N
     dEdt = betanew2(t, beta, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9,) * S * (q*I + l*J +P+ A)/N   - alpha * E
     dPdt = alpha * E - delta_p * P
     dAdt = delta_p* P *(1-sym)-gamma1*A
@@ -703,7 +703,7 @@ def derivdecayVtime(y, t, beta, gamma1, gamma2, alpha, sym, hosp, q, l, n_days, 
     dDdt = fatal_hosp * gamma2 * J
     counter = (1-fatal_hosp)*gamma2 * J
     return dSdt, dVdt,dEdt,dPdt,dAdt, dIdt, dJdt, dRdt, dDdt, counter
-    
+
 ###add in New Strain
 def derivdecayVNS(y, t, beta, gamma1, gamma2, alpha, sym, hosp, q, l, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9,
                 start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta,
@@ -729,60 +729,60 @@ def sim_sepaijrd_decay_ode(
     s, e,p,a,i, j,r, d, beta, gamma1, gamma2, alpha, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9,
     start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta,
     fatal_hosp, sym, hosp, q,
-    l,x, 
+    l,x,
     p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, delta_p):
     n = s + e + p+a + i + j+ r + d
     rh=0
     y0= s,e,p,a,i,j,r,d, rh
-    
+
     t=np.arange(0, n_days, step=1)
-    ret = odeint(derivdecayP, y0, t, args=(beta, gamma1, gamma2, alpha, sym, hosp, q , l, n_days, 
+    ret = odeint(derivdecayP, y0, t, args=(beta, gamma1, gamma2, alpha, sym, hosp, q , l, n_days,
     decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9,
-    start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta, fatal_hosp, x, 
+    start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta, fatal_hosp, x,
     p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, delta_p))
     S_n, E_n,P_n, A_n, I_n,J_n, R_n, D_n ,RH_n= ret.T
-    
+
     return (S_n, E_n,P_n, A_n, I_n,J_n, R_n, D_n, RH_n)
 
 def sim_svepaijrd_decay_ode(
     s,v, e,p,a,i, j,r, d, beta, gamma1, gamma2, alpha, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9,
     start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta,
     fatal_hosp, sym, hosp, q,
-    l,x, 
+    l,x,
     p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, delta_p, sigma, phi):
     n = s + v+ e + p+a + i + j+ r + d
     rh=0
     y0= s,v,e,p,a,i,j,r,d, rh
-    
+
     t=np.arange(0, n_days, step=1)
-    ret = odeint(derivdecayVtime, y0, t, args=(beta, gamma1, gamma2, alpha, sym, hosp,q , l, n_days, 
+    ret = odeint(derivdecayVtime, y0, t, args=(beta, gamma1, gamma2, alpha, sym, hosp,q , l, n_days,
     decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9,
-    start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta, fatal_hosp, x, 
+    start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta, fatal_hosp, x,
     p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, delta_p, sigma, phi))
     S_n, V_n, E_n,P_n, A_n, I_n,J_n, R_n, D_n ,RH_n= ret.T
-    
+
     return (S_n, V_n,E_n,P_n,A_n, I_n,J_n, R_n, D_n, RH_n)
 
 def sim_svepaijrdNS_decay_ode(
     s,v, e,p,a,i, j,r, d, beta, gamma1, gamma2, alpha, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9,
     start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta,
     fatal_hosp, sym, hosp, q,
-    l,x, 
+    l,x,
     p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, delta_p, sigma, phi5, phi6, phi7, phi8, phi9, new_strain6, new_strain7, new_strain8, new_strain9, fracNS6, fracNS7, fracNS8, fracNS9):
     n = s + v+ e + p+a + i + j+ r + d
     rh=0
     y0= s,v,e,p,a,i,j,r,d, rh
-     
+
     t=np.arange(0, n_days, step=1)
-    ret = odeint(derivdecayVNS, y0, t, args=(beta, gamma1, gamma2, alpha, sym, hosp,q , l, n_days, 
+    ret = odeint(derivdecayVNS, y0, t, args=(beta, gamma1, gamma2, alpha, sym, hosp,q , l, n_days,
     decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9,
-    start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta, fatal_hosp, x, 
+    start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta, fatal_hosp, x,
     p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, delta_p, sigma, phi5, phi6, phi7, phi8, phi9, new_strain6, new_strain7, new_strain8, new_strain9, fracNS6, fracNS7, fracNS8, fracNS9))
     S_n, V_n, E_n,P_n,A_n, I_n,J_n, R_n, D_n ,RH_n= ret.T
     return (S_n, V_n, E_n, P_n, A_n, I_n, J_n, R_n, D_n, RH_n)
 
-    
-# End Models # 
+
+# End Models #
 
 # Add dates #
 def add_date_column(
@@ -855,7 +855,7 @@ S = erie
 # Widgets
 current_hosp = st.sidebar.number_input(
     "Total Hospitalized Cases", value=known_cases, step=1.0, format="%f")
-    
+
 #doubling_time = st.sidebar.number_input(
 #    "Doubling Time (days)", value=3.0, step=1.0, format="%f")
 doubling_time = 3
@@ -940,8 +940,8 @@ fracNS7 = (st.sidebar.number_input(
 "Percent of Population with new strain 7 (%)", 0.0, 100.0, value=60.0 ,step=5.0, format="%f")/100.0)
 new_strain7 = (st.sidebar.number_input(
 "New Strain Increased Transmission w.r.t. Old Strain 7 (%)", 0.0, 1000.0, value=40.0 ,step=5.0, format="%f")/100.0)
-    
-    
+
+
 intervention7 = st.sidebar.date_input(
     "Date of change 8", datetime(2021,7,10))
 int7_delta = (intervention7 - start_date).days
@@ -950,26 +950,26 @@ decay8 = st.sidebar.number_input(
 p_m8 = (st.sidebar.number_input(
 "Mask-wearing 8", 0.0, 100.0, value=5.0 ,step=5.0, format="%f")/100.0)
 phi8 = (st.sidebar.number_input(
-"Vaccination Rate 8 (%)", 0.0, 100.0, value=0.3 ,step=0.5, format="%f")/100.0)
+"Vaccination Rate 8 (%)", 0.0, 100.0, value=0.1 ,step=0.5, format="%f")/100.0)
 fracNS8 = (st.sidebar.number_input(
-"Percent of Population with new strain 8 (%)", 0.0, 100.0, value=80.0, step=5.0, format="%f")/100.0)
+"Percent of Population with new strain 8 (%)", 0.0, 100.0, value=100.0, step=5.0, format="%f")/100.0)
 new_strain8 = (st.sidebar.number_input(
-"New Strain Increased Transmission w.r.t. Old Strain 8 (%)", 0.0, 1000.0, value=60.0 ,step=5.0, format="%f")/100.0)
+"New Strain Increased Transmission w.r.t. Old Strain 8 (%)", 0.0, 1000.0, value=80.0 ,step=5.0, format="%f")/100.0)
 
 
 intervention8 = st.sidebar.date_input(
-    "Date of change 9", datetime(2021,10,1))
+    "Date of change 9", datetime(2021,9,1))
 int8_delta = (intervention8 - start_date).days
 decay9 = st.sidebar.number_input(
-    "Social distancing 9 - Percent", 0, 100, value=5, step=5, format="%i")/100.0
+    "Social distancing 9 - Percent", 0, 100, value=20, step=5, format="%i")/100.0
 p_m9 = (st.sidebar.number_input(
-"Mask-wearing 9", 0.0, 100.0, value=5.0 ,step=5.0, format="%f")/100.0)
+"Mask-wearing 9", 0.0, 100.0, value=30.0 ,step=5.0, format="%f")/100.0)
 phi9 = (st.sidebar.number_input(
 "Vaccination Rate 9 (%)", 0.0, 100.0, value=0.3 ,step=0.5, format="%f")/100.0)
 fracNS9 = (st.sidebar.number_input(
-"Percent of Population with new strain 9 (%)", 0.0, 100.0, value=95.0, step=5.0, format="%f")/100.0)
+"Percent of Population with new strain 9 (%)", 0.0, 100.0, value=100.0, step=5.0, format="%f")/100.0)
 new_strain9 = (st.sidebar.number_input(
-"New Strain Increased Transmission w.r.t. Old Strain 9 (%)", 0.0, 1000.0, value=60.0 ,step=5.0, format="%f")/100.0)
+"New Strain Increased Transmission w.r.t. Old Strain 9 (%)", 0.0, 1000.0, value=80.0 ,step=5.0, format="%f")/100.0)
 
 
 
@@ -1003,7 +1003,7 @@ fatal_hosp = st.sidebar.number_input(
 
 # crit_lag = st.sidebar.number_input(
 #       "Days person takes to go to critical care", 0, 20, value=4 ,step=1, format="%f")
-    
+
 hosp_lag = st.sidebar.number_input(
     "Days person remains in hospital or dies", 0, 20, value=4 ,step=1, format="%f")
 
@@ -1082,7 +1082,7 @@ beta3 = (
 
 ## converting beta to intrinsic growth rate calculation
 # https://www.sciencedirect.com/science/article/pii/S2468042719300491
-beta4 = ((alpha+intrinsic_growth_rate)*(intrinsic_growth_rate + (1/infectious_period))) / (alpha*S) 
+beta4 = ((alpha+intrinsic_growth_rate)*(intrinsic_growth_rate + (1/infectious_period))) / (alpha*S)
 
 
 # for SEIJRD
@@ -1107,8 +1107,8 @@ erie_icu_line = alt.Chart(erie_df).mark_line(color='orange', point=True).encode(
 
 # New admissions in 24 hrs
 #erie_admit24_line = alt.Chart(erie_df).mark_line(color='red').encode(x='Date:T',y='New_admits:Q',tooltip=[alt.Tooltip("value:Q", format=".0f"),"key:N"]).interactive()
-    
-  
+
+
 
 
 # Slider and Date
@@ -1123,19 +1123,19 @@ as_date = st.checkbox(label="Present result as dates", value=True)
 def erie_chart(
     projection_admits: pd.DataFrame) -> alt.Chart:
     """docstring"""
-    
-    projection_admits = projection_admits.rename(columns={"Admissions": "Census Inpatient", 
-                                                            "ICU":"Census Intensive", 
+
+    projection_admits = projection_admits.rename(columns={"Admissions": "Census Inpatient",
+                                                            "ICU":"Census Intensive",
                                                             "Ventilated":"Census Ventilated",
                                                             "New_admits":"New Admissions",
                                                             "New_discharge":"New Discharges",
                                                             })
-    
+
     return(
         alt
         .Chart(projection_admits)
-        .transform_fold(fold=["Census Inpatient", 
-                                "Census Intensive", 
+        .transform_fold(fold=["Census Inpatient",
+                                "Census Intensive",
                                 "Census Ventilated",
                                 "New Admissions",
                                 "New Discharges"
@@ -1157,9 +1157,9 @@ if as_date:
     day_date = 'Date:T'
     def erie_inpatient(projection_admits: pd.DataFrame) -> alt.Chart:
         """docstring"""
-    
+
         projection_admits = projection_admits.rename(columns={"Admissions": "Erie County Inpatient"})
-    
+
         return(
             alt
             .Chart(projection_admits)
@@ -1179,9 +1179,9 @@ else:
     def erie_inpatient(
         projection_admits: pd.DataFrame) -> alt.Chart:
         """docstring"""
-    
+
         projection_admits = projection_admits.rename(columns={"Admissions": "Erie County Inpatient"})
-    
+
         return(
             alt
             .Chart(projection_admits)
@@ -1203,9 +1203,9 @@ if as_date:
     day_date = 'Date:T'
     def erie_icu(projection_admits: pd.DataFrame) -> alt.Chart:
         """docstring"""
-        
+
         projection_admits = projection_admits.rename(columns={"ICU": "Erie County ICU"})
-        
+
         return(
             alt
             .Chart(projection_admits)
@@ -1223,9 +1223,9 @@ else:
     day_date = 'day'
     def erie_icu(projection_admits: pd.DataFrame) -> alt.Chart:
         """docstring"""
-        
+
         projection_admits = projection_admits.rename(columns={"ICU": "Erie County ICU"})
-        
+
         return(
             alt
             .Chart(projection_admits)
@@ -1239,16 +1239,16 @@ else:
             )
             .interactive()
         )
-    
+
 # Erie Graph of Cases # Lines of cases # Ventilator Census
 if as_date:
     #erie_df = add_date_column(erie_df)
     day_date = 'Date:T'
     def erie_vent(projection_admits: pd.DataFrame) -> alt.Chart:
         """docstring"""
-        
+
         projection_admits = projection_admits.rename(columns={"Ventilated": "Erie County Ventilated"})
-        
+
         return(
             alt
             .Chart(projection_admits)
@@ -1266,9 +1266,9 @@ else:
     day_date = 'day'
     def erie_vent(projection_admits: pd.DataFrame) -> alt.Chart:
         """docstring"""
-        
+
         projection_admits = projection_admits.rename(columns={"Ventilated": "Erie County Ventilated"})
-        
+
         return(
             alt
             .Chart(projection_admits)
@@ -1294,9 +1294,9 @@ if as_date:
     day_date = 'Date:T'
     def erie_admit(projection_admits: pd.DataFrame) -> alt.Chart:
         """docstring"""
-    
+
         projection_admits = projection_admits.rename(columns={"Admits_24h": "Admissions 24 hr"})
-    
+
         return(
             alt
             .Chart(projection_admits)
@@ -1316,9 +1316,9 @@ else:
     def erie_admit(
         projection_admits: pd.DataFrame) -> alt.Chart:
         """docstring"""
-    
+
         projection_admits = projection_admits.rename(columns={"Admits_24h": "Admissions 24 hr"})
-    
+
         return(
             alt
             .Chart(projection_admits)
@@ -1407,7 +1407,7 @@ hospitalized_e, icu_e, ventilated_e = (
             i_ventilated_e)
 
 
-            
+
 ##################################################################
 ## SEIR model with phase adjusted R_0 and Disease Related Fatality,
 ## Asymptomatic, Hospitalization, Presymptomatic, and masks
@@ -1435,7 +1435,7 @@ R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(a
 
 S_p, E_p,P_p,A_p, I_p,J_p, R_p, D_p, RH_p=sim_sepaijrd_decay_ode(S0, E0, P0,A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
                                                       decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta,
-                                                      fatal_hosp, asymptomatic, hosp_rate, q,  l, x, 
+                                                      fatal_hosp, asymptomatic, hosp_rate, q,  l, x,
                                                       p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, delta_p)
 
 icu_curve= J_p*icu_rate
@@ -1498,7 +1498,7 @@ beta_j=0.51
 R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
 S_p, E_p,P_p,A_p, I_p,J_p, R_p, D_p, RH_p=sim_sepaijrd_decay_ode(S0, E0, P0,A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
                                                       decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta,
-                                                      fatal_hosp, asymptomatic, hosp_rate, q,  l, x, 
+                                                      fatal_hosp, asymptomatic, hosp_rate, q,  l, x,
                                                       p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, delta_p)
 
 icu_curve= J_p*icu_rate
@@ -1548,7 +1548,7 @@ S0=1286318.1612
 beta_j=0.6
 q=0.583
 l=0.717
-#p_m5 = p_m5*(1-new_strain) 
+#p_m5 = p_m5*(1-new_strain)
 #decay5 = decay5*(1-new_strain)
 gamma_hosp=1/hosp_lag
 AAA=beta4*(1/gamma2)*S
@@ -1559,7 +1559,7 @@ beta_j=0.51
 R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
 S_p, E_p,P_p,A_p, I_p,J_p, R_p, D_p, RH_p=sim_sepaijrd_decay_ode(S0, E0, P0,A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
                                                       decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta,
-                                                      fatal_hosp, asymptomatic, hosp_rate, q,  l, x, 
+                                                      fatal_hosp, asymptomatic, hosp_rate, q,  l, x,
                                                       p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, delta_p)
 
 icu_curve= J_p*icu_rate
@@ -1621,7 +1621,7 @@ R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(a
 
 S_p, E_p,P_p,A_p, I_p,J_p, R_p, D_p, RH_p=sim_sepaijrd_decay_ode(S0, E0, P0,A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
                                                       decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta,
-                                                      fatal_hosp, asymptomatic, hosp_rate, q,  l, x, 
+                                                      fatal_hosp, asymptomatic, hosp_rate, q,  l, x,
                                                       p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, delta_p)
 
 icu_curve= J_p*icu_rate
@@ -1684,11 +1684,11 @@ R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(a
 beta_j=0.51
 R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
 
-###### 
+######
 
 S_v, V_v,E_v,P_v,A_v, I_v,J_v, R_v, D_v, RH_v=sim_svepaijrd_decay_ode(S0, V0,E0, P0,A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
                                                       decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta,
-                                                      fatal_hosp, asymptomatic, hosp_rate, q,  l, x, 
+                                                      fatal_hosp, asymptomatic, hosp_rate, q,  l, x,
                                                       p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, delta_p, sigma, phi)
 
 icu_curve= J_v*icu_rate
@@ -1724,7 +1724,7 @@ hospitalized_V0, icu_V0, ventilated_V0 = (
 ## SEIR model with phase adjusted R_0 and Disease Related Fatality,
 ## Asymptomatic, Hospitalization, Presymptomatic, and masks
 # Vaccination Curve 2/3/20
-# Extra curve 1 - 2/15/21
+# Extra curve 1 -
 E0=667
 V0=0
 A0=195
@@ -1750,11 +1750,11 @@ R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(a
 beta_j=0.51
 R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
 
-###### 
+######
 
 S_v, V_v,E_v,P_v,A_v, I_v,J_v, R_v, D_v, RH_v=sim_svepaijrd_decay_ode(S0, V0,E0, P0,A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
                                                       decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta,
-                                                      fatal_hosp, asymptomatic, hosp_rate, q,  l, x, 
+                                                      fatal_hosp, asymptomatic, hosp_rate, q,  l, x,
                                                       p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, delta_p, sigma, phi)
 
 icu_curve= J_v*icu_rate
@@ -1784,8 +1784,8 @@ hospitalized_V1, icu_V1, ventilated_V1 = (
             i_hospitalized_V,
             i_icu_V,
             i_ventilated_V)
-            
-            
+
+
 ##################################################################
 ## SEIR model with phase adjusted R_0 and Disease Related Fatality,
 ## Asymptomatic, Hospitalization, Presymptomatic, and masks
@@ -1816,11 +1816,11 @@ R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(a
 beta_j=0.51
 R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
 
-###### 
+######
 
 S_v, V_v,E_v,P_v,A_v, I_v,J_v, R_v, D_v, RH_v=sim_svepaijrd_decay_ode(S0, V0,E0, P0,A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
                                                       decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta,
-                                                      fatal_hosp, asymptomatic, hosp_rate, q,  l, x, 
+                                                      fatal_hosp, asymptomatic, hosp_rate, q,  l, x,
                                                       p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, delta_p, sigma, phi)
 
 icu_curve= J_v*icu_rate
@@ -1863,6 +1863,7 @@ hospitalized_V2, icu_V2, ventilated_V2 = (
 ## SEIR model with phase adjusted R_0 and Disease Related Fatality,
 ## Asymptomatic, Hospitalization, Presymptomatic, and masks
 # Vaccination Curve + New strain 2/3/20
+# Last modified - Gabe - 8/5/21
 E0=667
 V0=0
 A0=195
@@ -1876,7 +1877,7 @@ S0=1286318.1612
 q=0.583
 l=0.717
 sigma=(1-0.8) #10% of those vaccinated are still getting infected
-phi = 0.003 #how many susceptible people are fully vaccinated each day
+#phi = 0.003 #how many susceptible people are fully vaccinated each day
 #fracNS = 0.60
 #p_m6=0.15
 #decay6=0.10
@@ -1888,11 +1889,11 @@ R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(a
 beta_j=0.51
 R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
 
-###### 
+######
 
 S_vNS, V_v,NSE_vNS,P_vNS,A_vNS, I_vNS,J_vNS, R_vNS, D_vNS, RH_vNS=sim_svepaijrdNS_decay_ode(S0, V0,E0, P0,A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
                                                       decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta,
-                                                      fatal_hosp, asymptomatic, hosp_rate, q,  l, x, 
+                                                      fatal_hosp, asymptomatic, hosp_rate, q,  l, x,
                                                       p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, delta_p, sigma, phi5, phi6, phi7, phi8, phi9, new_strain6, new_strain7, new_strain8, new_strain9, fracNS6, fracNS7, fracNS8, fracNS9)
 
 icu_curve= J_vNS*icu_rate
@@ -1925,10 +1926,34 @@ hospitalized_VNS0, icu_VNS0, ventilated_VNS0 = (
 
 
 
+# Create incidence/prevalence table for main model as other models had different parameters and this uses same A_vNS etc variables.
+# 8/22/21 - Gabe
+
+### Incidence
+dispositions_inc= (A_vNS + I_vNS + J_vNS + R_vNS + D_vNS)
+#st.write(dispositions_inc)
+dispositions_inc=pd.DataFrame(dispositions_inc, columns=['newcases'])
+dispositions_inc2 = dispositions_inc.iloc[:-1, :] - dispositions_inc.shift(1)
+dispositions_inc2["day"] = range(dispositions_inc2.shape[0])
+dispositions_inc2["TotalCases"]=S_vNS
+dispositions_inc2.at[0,'newcases']=195
+dispositions_inc2["incidencerate"]=dispositions_inc2['newcases']/dispositions_inc2['TotalCases']
+## total number of new cases daily/total number of people disease free at the start of the day
+
+## Prevalence
+dispositions_prev=(A_vNS + I_vNS + J_vNS)
+dispositions_prev=pd.DataFrame(dispositions_prev, columns=['cumucases'])
+dispositions_prev["day"] = range(dispositions_prev.shape[0])
+dispositions_prev["Population"]=1400000.0
+dispositions_prev["pointprevalencerate"]=dispositions_prev['cumucases']/dispositions_prev['Population']
+#total number of infected people during that day/ total number in population
+
+
 ##################################################################
 ## SEIR model with phase adjusted R_0 and Disease Related Fatality,
 ## Asymptomatic, Hospitalization, Presymptomatic, and masks
 # Vaccination Curve + New strain 2/3/20
+# Last Modified - Gabe - 8/5/21 - Added extra curve with/without delta variant
 E0=667
 V0=0
 A0=195
@@ -1942,12 +1967,19 @@ S0=1286318.1612
 q=0.583
 l=0.717
 #sigma=(1-0.8) #30% of those vaccinated are still getting infected
-phi = 0.0015 #how many susceptible people are fully vaccinated each day
+#phi = 0.0015 #how many susceptible people are fully vaccinated each day
 #fracNS = 0.60
 #p_m6=0.15
 #decay6=0.10
 #p_m7=0.15
 #decay7=0.10
+#fracNS8 =
+#new_strain8 =
+#p_m9 = 0.05
+#decay9 = 0.05
+#fracNS9 = 1
+#new_strain9 = 0.8
+#phi9 = 0.03
 gamma_hosp=1/hosp_lag
 AAA=beta4*(1/gamma2)*S
 beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
@@ -1956,11 +1988,11 @@ R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(a
 beta_j=0.51
 R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
 
-###### 
+######
 
 S_vNS, V_v,NSE_vNS,P_vNS,A_vNS, I_vNS,J_vNS, R_vNS, D_vNS, RH_vNS=sim_svepaijrdNS_decay_ode(S0, V0,E0, P0,A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
                                                       decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta,
-                                                      fatal_hosp, asymptomatic, hosp_rate, q,  l, x, 
+                                                      fatal_hosp, asymptomatic, hosp_rate, q,  l, x,
                                                       p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, delta_p, sigma, phi5, phi6, phi7, phi8, phi9, new_strain6, new_strain7, new_strain8, new_strain9, fracNS6, fracNS7, fracNS8, fracNS9)
 
 icu_curve= J_vNS*icu_rate
@@ -1995,7 +2027,7 @@ hospitalized_VNS1, icu_VNS1, ventilated_VNS1 = (
 ##################################################################
 ## SEIR model with phase adjusted R_0 and Disease Related Fatality,
 ## Asymptomatic, Hospitalization, Presymptomatic, and masks
-# Vaccination Curve + New strain 
+# Vaccination Curve + New strain
 # Modification - Add population and transmission to effectiveness of vaccine. 2/15/21
 E0=667
 V0=0
@@ -2010,12 +2042,16 @@ S0=1286318.1612
 q=0.583
 l=0.717
 #sigma=(1-0.8) #50% of those vaccinated are still getting infected
-phi = 0.000 #how many susceptible people are fully vaccinated each day
+#phi = 0.000 #how many susceptible people are fully vaccinated each day
 #fracNS = 0.60
 #p_m6=0.15
 #decay6=0.1
 #p_m7=0.3
 #decay7=0.2
+#fracNS8 = 1
+#fracNS9 = 1
+#new_strain8 = 0.5
+#new_strain9 = 0.5
 gamma_hosp=1/hosp_lag
 AAA=beta4*(1/gamma2)*S
 beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
@@ -2024,11 +2060,11 @@ R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(a
 beta_j=0.51
 R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp)))
 
-###### 
+######
 
 S_vNS, V_v,NSE_vNS,P_vNS,A_vNS, I_vNS,J_vNS, R_vNS, D_vNS, RH_vNS=sim_svepaijrdNS_decay_ode(S0, V0,E0, P0,A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
                                                       decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta,
-                                                      fatal_hosp, asymptomatic, hosp_rate, q,  l, x, 
+                                                      fatal_hosp, asymptomatic, hosp_rate, q,  l, x,
                                                       p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, delta_p, sigma, phi5, phi6, phi7, phi8, phi9, new_strain6, new_strain7, new_strain8, new_strain9, fracNS6, fracNS7, fracNS8, fracNS9)
 
 icu_curve= J_vNS*icu_rate
@@ -2110,14 +2146,14 @@ plot_projection_days = n_days - 10
 #census_table_D_ecases = build_census_df(projection_admits_D_ecases)
 
 #############
-# SEAIJRD Model 
+# SEAIJRD Model
 # New Cases
 #projection_admits_A_ecases = build_admissions_df_n(dispositions_A_ecases)
 ## Census Table
 #census_table_A_ecases = build_census_df(projection_admits_A_ecases)
 
 #############
-# SEPAIJRD Model 
+# SEPAIJRD Model
 # Base model
 # New Cases
 projection_admits_P0 = build_admissions_df_n(dispositions_P0)
@@ -2145,7 +2181,7 @@ projection_admits_P3 = build_admissions_df_n(dispositions_P3)
 census_table_P3 = build_census_df(projection_admits_P3)
 
 
- #SVEPAIJRD Model 
+ #SVEPAIJRD Model
 # Base model
 # New Cases
 projection_admits_V0 = build_admissions_df_n(dispositions_V0)
@@ -2174,20 +2210,20 @@ census_table_VNS2 = build_census_df(projection_admits_VNS2)
 # Admissions Graphs
 # Erie Graph of Cases
 def regional_admissions_chart(
-    projection_admits: pd.DataFrame, 
+    projection_admits: pd.DataFrame,
     plot_projection_days: int,
     as_date:bool = False) -> alt.Chart:
     """docstring"""
-    
+
     projection_admits = projection_admits.rename(columns={"hosp": "Hospitalized", "icu": "ICU", "vent": "Ventilated"})
-    
+
     tooltip_dict = {False: "day", True: "date:T"}
     if as_date:
         projection_admits = add_date_column(projection_admits)
         x_kwargs = {"shorthand": "date:T", "title": "Date"}
     else:
         x_kwargs = {"shorthand": "day", "title": "Days from initial infection"}
-    
+
     return (
         alt
         .Chart(projection_admits.head(plot_projection_days))
@@ -2225,20 +2261,20 @@ def regional_admissions_chart(
     # fold_comp = ["Ventilated"]
 
 def ip_chart(
-    projection_admits: pd.DataFrame, 
+    projection_admits: pd.DataFrame,
     plot_projection_days: int,
     as_date:bool = False) -> alt.Chart:
     """docstring"""
-    
+
     projection_admits = projection_admits.rename(columns=columns_comp|capaity_col)
-    
+
     tooltip_dict = {False: "day", True: "date:T"}
     if as_date:
         projection_admits = add_date_column(projection_admits)
         x_kwargs = {"shorthand": "date:T", "title": "Date"}
     else:
         x_kwargs = {"shorthand": "day", "title": "Days from initial infection"}
-    
+
     return (
         alt
         .Chart(projection_admits.head(plot_projection_days))
@@ -2265,17 +2301,17 @@ def ip_chart(
 vertical = pd.DataFrame({'day': [int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta]})
 
 def vertical_chart(
-    projection_admits: pd.DataFrame, 
+    projection_admits: pd.DataFrame,
     as_date:bool = False) -> alt.Chart:
     """docstring"""
-    
+
     tooltip_dict = {False: "day", True: "date:T"}
     if as_date:
         projection_admits = add_date_column(projection_admits)
         x_kwargs = {"shorthand": "date:T", "title": "Date"}
     else:
         x_kwargs = {"shorthand": "day", "title": "Days from initial infection"}
-    
+
     return (
         alt
         .Chart(projection_admits)
@@ -2296,47 +2332,47 @@ vertical1 = vertical_chart(vertical, as_date=as_date)
 ##############################
 #st.header("""Projected Admissions Models for Erie County""")
 #st.subheader("Projected number of **daily** COVID-19 admissions for Erie County: SEIR -Phase Adjusted R_0 with Case Fatality and Asymptomatic Component")
-#admits_graph_seir = regional_admissions_chart(projection_admits_e, 
-#        plot_projection_days, 
+#admits_graph_seir = regional_admissions_chart(projection_admits_e,
+#        plot_projection_days,
 #        as_date=as_date)
-#admits_graph = regional_admissions_chart(projection_admits_D, 
-#        plot_projection_days, 
+#admits_graph = regional_admissions_chart(projection_admits_D,
+#        plot_projection_days,
 #        as_date=as_date)
 ### High Social Distancing
-#admits_graph_highsocial = regional_admissions_chart(projection_admits_D_socialcases, 
-#        plot_projection_days, 
+#admits_graph_highsocial = regional_admissions_chart(projection_admits_D_socialcases,
+#        plot_projection_days,
 #        as_date=as_date)
 ### Dynamic Doubling Time
-#admits_graph_ecases = regional_admissions_chart(projection_admits_D_ecases, 
-#        plot_projection_days, 
+#admits_graph_ecases = regional_admissions_chart(projection_admits_D_ecases,
+#        plot_projection_days,
 #        as_date=as_date)
 ### SEAIJRD
-#admits_graph_A= regional_admissions_chart(projection_admits_A_ecases, 
-#        plot_projection_days, 
+#admits_graph_A= regional_admissions_chart(projection_admits_A_ecases,
+#        plot_projection_days,
 #        as_date=as_date)
 ### SEPAIJRD
-admits_graph_P= regional_admissions_chart(projection_admits_P0, 
-        plot_projection_days, 
+admits_graph_P= regional_admissions_chart(projection_admits_P0,
+        plot_projection_days,
         as_date=as_date)
-        
+
 # st.altair_chart(
     # #admits_graph_seir
-    # #+ 
-    # #admits_graph 
-    # #+ 
+    # #+
+    # #admits_graph
+    # #+
     # vertical1
     # #+ admits_graph_ecases
     # + admits_graph_A
     # #+ admits_graph_highsocial
     # #+ erie_admit24_line
     # , use_container_width=True)
-    
+
 # st.subheader("Projected number of **daily** COVID-19 admissions for Erie County: SEIR - Phase Adjusted R_0 with Case Fatality with Asymptomatic, Pre-Symptomatic, and Mask-use")
 # st.altair_chart(
     # #admits_graph_seir
-    # #+ 
-    # #admits_graph 
-    # #+ 
+    # #+
+    # #admits_graph
+    # #+
     # vertical1
     # #+ admits_graph_ecases
     # + admits_graph_P
@@ -2367,28 +2403,28 @@ and $$\\beta$$ is the rate of transmission. More information, including paramete
 
 ##### with vaccinations
     ### SEPAIJRD
-admits_graph_V= regional_admissions_chart(projection_admits_V0, 
-        plot_projection_days, 
+admits_graph_V= regional_admissions_chart(projection_admits_V0,
+        plot_projection_days,
         as_date=as_date)
-        
+
 # st.altair_chart(
     # #admits_graph_seir
-    # #+ 
-    # #admits_graph 
-    # #+ 
+    # #+
+    # #admits_graph
+    # #+
     # vertical1
     # #+ admits_graph_ecases
     # + admits_graph_A
     # #+ admits_graph_highsocial
     # #+ erie_admit24_line
     # , use_container_width=True)
-    
+
 # st.subheader("Projected number of **daily** COVID-19 admissions for Erie County: SEIR - Phase Adjusted R_0 with Case Fatality with Asymptomatic, Pre-Symptomatic, Vaccinations, and Mask-use")
 # st.altair_chart(
     # #admits_graph_seir
-    # #+ 
-    # #admits_graph 
-    # #+ 
+    # #+
+    # #admits_graph
+    # #+
     # vertical1
     # #+ admits_graph_ecases
     # + admits_graph_V
@@ -2399,28 +2435,28 @@ admits_graph_V= regional_admissions_chart(projection_admits_V0,
 
 ##### with vaccinations +New Strain
     ### SEPAIJRD
-admits_graph_VNS= regional_admissions_chart(projection_admits_VNS0, 
-        plot_projection_days, 
+admits_graph_VNS= regional_admissions_chart(projection_admits_VNS0,
+        plot_projection_days,
         as_date=as_date)
-        
+
 # st.altair_chart(
     # #admits_graph_seir
-    # #+ 
-    # #admits_graph 
-    # #+ 
+    # #+
+    # #admits_graph
+    # #+
     # vertical1
     # #+ admits_graph_ecases
     # + admits_graph_A
     # #+ admits_graph_highsocial
     # #+ erie_admit24_line
     # , use_container_width=True)
-    
+
 st.subheader("Projected number of **daily** COVID-19 admissions for Erie County: SEIR - Phase Adjusted R_0 with Case Fatality with Asymptomatic, Pre-Symptomatic, Vaccinations, New Strain transmissibility, and Mask-use")
 st.altair_chart(
     #admits_graph_seir
-    #+ 
-    #admits_graph 
-    #+ 
+    #+
+    #admits_graph
+    #+
     vertical1
     #+ admits_graph_ecases
     + admits_graph_VNS
@@ -2445,19 +2481,19 @@ st.altair_chart(
         # , use_container_width=True)
 
 def hospital_admissions_chart(
-    projection_admits: pd.DataFrame, 
+    projection_admits: pd.DataFrame,
     plot_projection_days: int,
     as_date:bool = False) -> alt.Chart:
     """docstring"""
     projection_admits = projection_admits.rename(columns=col_name1)
-    
+
     tooltip_dict = {False: "day", True: "date:T"}
     if as_date:
         projection_admits = add_date_column(projection_admits)
         x_kwargs = {"shorthand": "date:T", "title": "Date"}
     else:
         x_kwargs = {"shorthand": "day", "title": "Days from initial infection"}
-    
+
     return (
         alt
         .Chart(projection_admits.head(plot_projection_days))
@@ -2475,7 +2511,7 @@ def hospital_admissions_chart(
         )
         .interactive()
     )
-    
+
 
 ################################################
 ################################################
@@ -2523,7 +2559,7 @@ def ip_census_chart(
             y=alt.Y("value:Q", title="Hospital Census"),
             #y=alt.Y("value:Q", title="Hospital Census", scale=alt.Scale(domain=[0, 1600])),
             #color="key:N",
-            
+
             color=alt.value('orange'),
             tooltip=[
                 tooltip_dict[as_date],
@@ -2540,7 +2576,7 @@ def ip_census_chart(
 
     #, scale=alt.Scale(domain=[0, 40000])
     # scale=alt.Scale(domain=[-5, 9000])
-    
+
 
 
 #sir_ip_c = ip_census_chart(census_table, plot_projection_days, as_date=as_date)
@@ -2578,7 +2614,7 @@ seir_VNS2 = ip_census_chart(census_table_VNS2[9:len(census_table_VNS0)], plot_pr
     #alt.layer(seir_ip_c.mark_line())
     #+ alt.layer(seir_d_ip_c.mark_line())
     #+ alt.layer(seir_d_ip_ecases.mark_line())
-    #+ 
+    #+
     #alt.layer(seir_A_ip_ecases.mark_line())
     #+ alt.layer(seir_d_ip_highsocial.mark_line())
     #+ alt.layer(graph_selection)
@@ -2592,7 +2628,7 @@ seir_VNS2 = ip_census_chart(census_table_VNS2[9:len(census_table_VNS0)], plot_pr
     # #alt.layer(seir_ip_c.mark_line())
     # #+ alt.layer(seir_d_ip_c.mark_line())
     # #+ alt.layer(seir_d_ip_ecases.mark_line())
-    # #+ 
+    # #+
     # alt.layer(seir_P0.mark_line())
     # #+ alt.layer(seir_d_ip_highsocial.mark_line())
     # + alt.layer(erie_lines_ip)
@@ -2607,7 +2643,7 @@ seir_VNS2 = ip_census_chart(census_table_VNS2[9:len(census_table_VNS0)], plot_pr
     # #alt.layer(seir_ip_c.mark_line())
     # #+ alt.layer(seir_d_ip_c.mark_line())
     # #+ alt.layer(seir_d_ip_ecases.mark_line())
-    # #+ 
+    # #+
     # alt.layer(seir_P0.mark_line())
     # +
     # seir_V0
@@ -2624,13 +2660,13 @@ seir_VNS2 = ip_census_chart(census_table_VNS2[9:len(census_table_VNS0)], plot_pr
     # #alt.layer(seir_ip_c.mark_line())
     # #+ alt.layer(seir_d_ip_c.mark_line())
     # #+ alt.layer(seir_d_ip_ecases.mark_line())
-    # #+ 
+    # #+
     # #alt.layer(seir_P0.mark_line())
-    # #+ 
+    # #+
     # #alt.layer(seir_VNS0.mark_line())
     # #+
     # seir_V0
-    # #+ 
+    # #+
     # #alt.layer(seir_VNS1.mark_line())
     # #+ seir_V1
     # #+ seir_V2
@@ -2646,13 +2682,13 @@ seir_VNS2 = ip_census_chart(census_table_VNS2[9:len(census_table_VNS0)], plot_pr
     # #alt.layer(seir_ip_c.mark_line())
     # #+ alt.layer(seir_d_ip_c.mark_line())
     # #+ alt.layer(seir_d_ip_ecases.mark_line())
-    # #+ 
+    # #+
     # #alt.layer(seir_P0.mark_line())
-    # #+ 
+    # #+
     # #alt.layer(seir_VNS0.mark_line())
     # #+
     # #seir_V0
-    # #+ 
+    # #+
     # #alt.layer(seir_VNS1.mark_line())
     # #+ seir_V1
     # #+
@@ -2668,13 +2704,13 @@ seir_VNS2 = ip_census_chart(census_table_VNS2[9:len(census_table_VNS0)], plot_pr
     # #alt.layer(seir_ip_c.mark_line())
     # #+ alt.layer(seir_d_ip_c.mark_line())
     # #+ alt.layer(seir_d_ip_ecases.mark_line())
-    # #+ 
+    # #+
     # #alt.layer(seir_P0.mark_line())
-    # #+ 
+    # #+
     # #alt.layer(seir_VNS0.mark_line())
     # #+
     # seir_V0
-    # #+ 
+    # #+
     # #+alt.layer(seir_VNS1.mark_line())
     # + seir_V1
     # + seir_V2
@@ -2690,7 +2726,7 @@ st.altair_chart(
     #alt.layer(seir_ip_c.mark_line())
     #+ alt.layer(seir_d_ip_c.mark_line())
     #+ alt.layer(seir_d_ip_ecases.mark_line())
-    #+ 
+    #+
     #alt.layer(seir_P0.mark_line())
     #+
     alt.layer(seir_VNS0.mark_line())
@@ -2701,21 +2737,21 @@ st.altair_chart(
     + alt.layer(erie_lines_ip)
     + alt.layer(vertical1)
     , use_container_width=True)
-    
-    
-    
+
+
+
 #############################################################################
 # Changes 7/21/21
 
 
-    
-    
+
+
 ############################### prevalence and incidence ###########################
 # https://www.tandfonline.com/doi/full/10.1057/hs.2015.2
 ####################################################################################
 st.subheader("Prevalence and Incidence Across Time")
 
-st.markdown("""Incidence is measured as the number of new cases daily, (from compartments A, I) prevalence is measured
+st.markdown("""Incidence is measured as the number of new cases daily, (from compartments A, I, J, R, D) prevalence is measured
 as the population infected with the disease (A,I,J) daily.""")
 
 #st.dataframe(census_table_P0)
@@ -2728,37 +2764,13 @@ as the population infected with the disease (A,I,J) daily.""")
 #dispositions_inc = pd.DataFrame(data=dispositions_inc).T
 #st.write(dispositions_inc)
 #st.dataframe(dispositions_inc)
-#dispositions_inc = pd.DataFrame(dispositions_inc, columns=['newcases']) 
+#dispositions_inc = pd.DataFrame(dispositions_inc, columns=['newcases'])
 # dispositions_inc2 = dispositions_inc.iloc[:-1, :] - dispositions_inc.shift(1)
 # dispositions_inc2["day"] = range(dispositions_inc2.shape[0])
 # dispositions_inc2["TotalCases"]=S_vNS
 # dispositions_inc2.at[0,'newcases']=0
 # dispositions_inc2["incidencerate"]=dispositions_inc2['newcases']/dispositions_inc2['TotalCases']
 
-### incidence
-dispositions_inc= (A_vNS + I_vNS + J_vNS + R_vNS + D_vNS)
-#st.write(dispositions_inc)
-dispositions_inc=pd.DataFrame(dispositions_inc, columns=['newcases']) 
-dispositions_inc2 = dispositions_inc.iloc[:-1, :] - dispositions_inc.shift(1)
-dispositions_inc2["day"] = range(dispositions_inc2.shape[0])
-dispositions_inc2["TotalCases"]=S_vNS
-dispositions_inc2.at[0,'newcases']=195
-dispositions_inc2["incidencerate"]=dispositions_inc2['newcases']/dispositions_inc2['TotalCases']
-
-st.dataframe(dispositions_inc2)
-
-## total number of new cases daily/total number of people disease free at the start of the day
-
-## prevalence
-
-dispositions_prev=(A_vNS + I_vNS + J_vNS)
-dispositions_prev=pd.DataFrame(dispositions_prev, columns=['cumucases']) 
-dispositions_prev["day"] = range(dispositions_prev.shape[0])    
-dispositions_prev["TotalCases"]=1400000.0
-dispositions_prev["pointprevalencerate"]=dispositions_prev['cumucases']/dispositions_prev['TotalCases']
-#total number of infected people during that day/ total number in population
-
-st.dataframe(dispositions_prev)
 
 def additional_projections_chart2(i, p)  -> alt.Chart:
     dat = pd.DataFrame({"Incidence Rate":i,"Prevalence Rate":p})
@@ -2771,10 +2783,17 @@ def additional_projections_chart2(i, p)  -> alt.Chart:
         .encode(
             x=alt.X("index", title="Days from initial infection"),
             y=alt.Y("value:Q", title="Case Volume"),
-            tooltip=["key:N", "value:Q"], 
+            tooltip=["key:N", "value:Q"],
             color="key:N"
         )
         .interactive()
     )
 
 st.altair_chart(additional_projections_chart2(dispositions_inc2["incidencerate"], dispositions_prev["pointprevalencerate"]), use_container_width=True)
+
+
+
+
+st.dataframe(dispositions_inc2)
+
+st.dataframe(dispositions_prev)

@@ -952,9 +952,9 @@ p_m8 = (st.sidebar.number_input(
 phi8 = (st.sidebar.number_input(
 "Vaccination Rate 8 (%)", 0.0, 100.0, value=0.1 ,step=0.5, format="%f")/100.0)
 fracNS8 = (st.sidebar.number_input(
-"Percent of Population with new strain 8 (%)", 0.0, 100.0, value=100.0, step=5.0, format="%f")/100.0)
+"Percent of Population with new strain 8 (%)", 0.0, 100.0, value=70.0, step=5.0, format="%f")/100.0)
 new_strain8 = (st.sidebar.number_input(
-"New Strain Increased Transmission w.r.t. Old Strain 8 (%)", 0.0, 1000.0, value=80.0 ,step=5.0, format="%f")/100.0)
+"New Strain Increased Transmission w.r.t. Old Strain 8 (%)", 0.0, 1000.0, value=100.0 ,step=5.0, format="%f")/100.0)
 
 
 intervention8 = st.sidebar.date_input(
@@ -967,9 +967,9 @@ p_m9 = (st.sidebar.number_input(
 phi9 = (st.sidebar.number_input(
 "Vaccination Rate 9 (%)", 0.0, 100.0, value=0.3 ,step=0.5, format="%f")/100.0)
 fracNS9 = (st.sidebar.number_input(
-"Percent of Population with new strain 9 (%)", 0.0, 100.0, value=100.0, step=5.0, format="%f")/100.0)
+"Percent of Population with new strain 9 (%)", 0.0, 100.0, value=90.0, step=5.0, format="%f")/100.0)
 new_strain9 = (st.sidebar.number_input(
-"New Strain Increased Transmission w.r.t. Old Strain 9 (%)", 0.0, 1000.0, value=80.0 ,step=5.0, format="%f")/100.0)
+"New Strain Increased Transmission w.r.t. Old Strain 9 (%)", 0.0, 1000.0, value=100.0 ,step=5.0, format="%f")/100.0)
 
 
 
@@ -1891,7 +1891,7 @@ R0_n=beta_j* (((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(a
 
 ######
 
-S_vNS, V_v,NSE_vNS,P_vNS,A_vNS, I_vNS,J_vNS, R_vNS, D_vNS, RH_vNS=sim_svepaijrdNS_decay_ode(S0, V0,E0, P0,A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
+S_vNS, V_v, NSE_vNS, P_vNS, A_vNS, I_vNS, J_vNS, R_vNS, D_vNS, RH_vNS=sim_svepaijrdNS_decay_ode(S0, V0,E0, P0,A0,I0,J0, R0, D0, beta_j,gamma2, gamma_hosp, alpha, n_days,
                                                       decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta,
                                                       fatal_hosp, asymptomatic, hosp_rate, q,  l, x,
                                                       p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, delta_p, sigma, phi5, phi6, phi7, phi8, phi9, new_strain6, new_strain7, new_strain8, new_strain9, fracNS6, fracNS7, fracNS8, fracNS9)
@@ -1930,24 +1930,27 @@ hospitalized_VNS0, icu_VNS0, ventilated_VNS0 = (
 # 8/22/21 - Gabe
 
 ### Incidence
-dispositions_inc= (A_vNS + I_vNS + J_vNS + R_vNS + D_vNS)
-#st.write(dispositions_inc)
-dispositions_inc=pd.DataFrame(dispositions_inc, columns=['newcases'])
+dispositions_inc= (P_vNS)
+dispositions_inc= pd.DataFrame(dispositions_inc, columns=['newcases'])
 dispositions_inc2 = dispositions_inc.iloc[:-1, :] - dispositions_inc.shift(1)
+dispositions_inc2['newcases'] = np.where(dispositions_inc2 <0, dispositions_inc2*(-1.0), dispositions_inc2)
 dispositions_inc2["day"] = range(dispositions_inc2.shape[0])
 dispositions_inc2["TotalCases"]=S_vNS
-dispositions_inc2.at[0,'newcases']=195
-dispositions_inc2["incidencerate"]=dispositions_inc2['newcases']/dispositions_inc2['TotalCases']
+dispositions_inc2.at[0,'newcases']=21
+dispositions_inc2["incidencerate"]=(dispositions_inc2['newcases']/dispositions_inc2['TotalCases'])*100000
 ## total number of new cases daily/total number of people disease free at the start of the day
 
-## Prevalence
-dispositions_prev=(A_vNS + I_vNS + J_vNS)
-dispositions_prev=pd.DataFrame(dispositions_prev, columns=['cumucases'])
-dispositions_prev["day"] = range(dispositions_prev.shape[0])
-dispositions_prev["Population"]=1400000.0
-dispositions_prev["pointprevalencerate"]=dispositions_prev['cumucases']/dispositions_prev['Population']
-#total number of infected people during that day/ total number in population
+#st.write(dispositions_inc)
+#st.write(dispositions_inc2)
 
+## Prevalence
+dispositions_prev=(P_vNS + A_vNS + I_vNS + J_vNS)
+dispositions_prev=pd.DataFrame(dispositions_prev, columns=['Total Prevalent Cases'])
+dispositions_prev["day"] = range(dispositions_prev.shape[0])
+dispositions_prev["Total Cases"]=S_vNS
+#dispositions_prev["Population"]=1400000.0
+dispositions_prev["pointprevalencerate"]=(dispositions_prev['Total Prevalent Cases']/dispositions_prev['Total Cases'])*100000
+#total number of infected people during that day/ total number in population
 
 ##################################################################
 ## SEIR model with phase adjusted R_0 and Disease Related Fatality,
@@ -1973,13 +1976,13 @@ l=0.717
 #decay6=0.10
 #p_m7=0.15
 #decay7=0.10
-#fracNS8 =
-#new_strain8 =
-#p_m9 = 0.05
-#decay9 = 0.05
-#fracNS9 = 1
-#new_strain9 = 0.8
-#phi9 = 0.03
+#fracNS8 = 1
+#new_strain8 = 0.8
+p_m9 = 0.05
+decay9 = 0.05
+fracNS9 = 1
+new_strain9 = 0.9
+phi9 = 0.03
 gamma_hosp=1/hosp_lag
 AAA=beta4*(1/gamma2)*S
 beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
@@ -2730,8 +2733,8 @@ st.altair_chart(
     #alt.layer(seir_P0.mark_line())
     #+
     alt.layer(seir_VNS0.mark_line())
-    #+
-    #alt.layer(seir_VNS1.mark_line())
+    +
+    alt.layer(seir_VNS1.mark_line())
     #+
     #alt.layer(seir_VNS2.mark_line())
     + alt.layer(erie_lines_ip)
@@ -2751,7 +2754,7 @@ st.altair_chart(
 ####################################################################################
 st.subheader("Prevalence and Incidence Across Time")
 
-st.markdown("""Incidence is measured as the number of new cases daily, (from compartments A, I, J, R, D) prevalence is measured
+st.markdown("""Incidence is measured as the number of new cases daily, (from compartment P) prevalence is measured
 as the population infected with the disease (A,I,J) daily.""")
 
 #st.dataframe(census_table_P0)

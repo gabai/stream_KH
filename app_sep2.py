@@ -958,14 +958,14 @@ new_strain8 = (st.sidebar.number_input(
 
 
 intervention8 = st.sidebar.date_input(
-    "Date of change 9", datetime(2021,9,1))
+    "Date of change 9", datetime(2021,8,15))
 int8_delta = (intervention8 - start_date).days
 decay9 = st.sidebar.number_input(
     "Social distancing 9 - Percent", 0, 100, value=20, step=5, format="%i")/100.0
 p_m9 = (st.sidebar.number_input(
 "Mask-wearing 9", 0.0, 100.0, value=30.0 ,step=5.0, format="%f")/100.0)
 phi9 = (st.sidebar.number_input(
-"Vaccination Rate 9 (%)", 0.0, 100.0, value=0.3 ,step=0.5, format="%f")/100.0)
+"Vaccination Rate 9 (%)", 0.0, 100.0, value=0.1 ,step=0.5, format="%f")/100.0)
 fracNS9 = (st.sidebar.number_input(
 "Percent of Population with new strain 9 (%)", 0.0, 100.0, value=90.0, step=5.0, format="%f")/100.0)
 new_strain9 = (st.sidebar.number_input(
@@ -1978,11 +1978,11 @@ l=0.717
 #decay7=0.10
 #fracNS8 = 1
 #new_strain8 = 0.8
-p_m9 = 0.05
-decay9 = 0.05
-fracNS9 = 1
-new_strain9 = 0.9
-phi9 = 0.03
+p_m9 = 0.25
+decay9 = 0.15
+fracNS9 = 0.9
+new_strain9 = 1
+phi9 = 0.001
 gamma_hosp=1/hosp_lag
 AAA=beta4*(1/gamma2)*S
 beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))
@@ -2055,6 +2055,11 @@ l=0.717
 #fracNS9 = 1
 #new_strain8 = 0.5
 #new_strain9 = 0.5
+p_m9 = 0.15
+decay9 = 0.1
+fracNS9 = 1
+new_strain9 = 0.9
+phi9 = 0.003
 gamma_hosp=1/hosp_lag
 AAA=beta4*(1/gamma2)*S
 beta_j=AAA*(1/(((1-asymptomatic)*1/gamma2)+(asymptomatic*q/(gamma2+hosp_rate))+(asymptomatic*hosp_rate*l/((gamma2+hosp_rate)*gamma_hosp))))

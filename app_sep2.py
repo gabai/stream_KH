@@ -233,36 +233,6 @@ def gen_seir(
         s, e, i, r = seir(s, e, i, r, beta, gamma, alpha, n)
 # phase-adjusted https://www.nature.com/articles/s41421-020-0148-0
 
-# def sim_seir_decay(
-    # s: float, e:float, i: float, r: float, beta: float, gamma: float, alpha: float, n_days: int,
-    # decay1:float, decay2:float, decay3: float
-    # ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    # """Simulate the SIR model forward in time."""
-    # s, e, i, r = (float(v) for v in (s, e, i, r))
-    # n = s + e + i + r
-    # s_v, e_v, i_v, r_v = [s], [e], [i], [r]
-    # for day in range(n_days):
-        # if start_day<=day<=int1_delta:
-            # beta_decay=beta*(1-decay1)
-        # elif int1_delta<=day<=int2_delta:
-            # beta_decay=beta*(1-decay2)
-        # elif int2_delta<=day<=int3_delta:
-            # beta_decay=beta*(1-decay3)
-        # elif int3_delta<=day<=n_days:
-            # beta_decay=beta*(1-decay4)
-        # s, e, i, r = seir(s, e, i, r, beta_decay, gamma, alpha, n)
-        # s_v.append(s)
-        # e_v.append(e)
-        # i_v.append(i)
-        # r_v.append(r)
-
-    # return (
-        # np.array(s_v),
-        # np.array(e_v),
-        # np.array(i_v),
-        # np.array(r_v),
-    # )
-
 def seird(
     s: float, e: float, i: float, r: float, d: float, beta: float, gamma: float, alpha: float, n: float, fatal: float
     ) -> Tuple[float, float, float, float]:
@@ -286,112 +256,6 @@ def seird(
     scale = n / (s_n + e_n+ i_n + r_n + d_n)
     return s_n * scale, e_n * scale, i_n * scale, r_n * scale, d_n * scale
 
-# def sim_seird_decay(
-        # s: float, e:float, i: float, r: float, d: float, beta: float, gamma: float, alpha: float, n_days: int,
-        # decay1:float, decay2:float, decay3: float, decay4: float, step1_delta: int, fatal: float
-        # ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-        # """Simulate the SIR model forward in time."""
-        # s, e, i, r, d= (float(v) for v in (s, e, i, r, d))
-        # n = s + e + i + r + d
-        # s_v, e_v, i_v, r_v, d_v = [s], [e], [i], [r], [d]
-        # for day in range(n_days):
-            # if start_day<=day<=int1_delta:
-                # beta_decay=beta*(1-decay1)
-            # elif int1_delta<=day<=int2_delta:
-                # beta_decay=beta*(1-decay2)
-            # elif int2_delta<=day<=step1_delta:
-                # beta_decay=beta*(1-decay3)
-            # else:
-                # beta_decay=beta*(1-decay4)
-            # s, e, i, r,d = seird(s, e, i, r, d, beta_decay, gamma, alpha, n, fatal)
-            # s_v.append(s)
-            # e_v.append(e)
-            # i_v.append(i)
-            # r_v.append(r)
-            # d_v.append(d)
-
-        # return (
-            # np.array(s_v),
-            # np.array(e_v),
-            # np.array(i_v),
-            # np.array(r_v),
-            # np.array(d_v)
-        # )
-
-
-# # Model with high social distancing
-# def sim_seird_decay_social(
-    # s: float, e:float, i: float, r: float, d: float, beta: float, gamma: float, alpha: float, n_days: int,
-    # decay1:float, decay2:float, decay3: float, decay4: float, step1_delta: int, fatal: float
-    # ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    # """Simulate the SIR model forward in time."""
-    # s, e, i, r, d= (float(v) for v in (s, e, i, r, d))
-    # n = s + e + i + r + d
-    # s_v, e_v, i_v, r_v, d_v = [s], [e], [i], [r], [d]
-    # for day in range(n_days):
-        # if start_day<=day<=int1_delta:
-            # beta = (alpha+(2 ** (1 / 2) - 1))*((2 ** (1 / 2) - 1) + (1/infectious_period)) / (alpha*S)
-            # beta_decay=beta*(1-.02)
-        # elif int1_delta<=day<=int2_delta:
-            # beta = (alpha+(2 ** (1 / 2) - 1))*((2 ** (1 / 2) - 1)+ (1/infectious_period)) / (alpha*S)
-            # beta_decay=beta*(1-.52)
-        # elif int2_delta<=day<=step1_delta:
-            # beta = (alpha+(2 ** (1 / 2) - 1))*((2 ** (1 / 2) - 1)+ (1/infectious_period)) / (alpha*S)
-            # beta_decay=beta*(1-.83)
-        # else:
-            # beta = (alpha+(2 ** (1 / 2) - 1))*((2 ** (1 / 2) - 1)+ (1/infectious_period)) / (alpha*S)
-            # beta_decay=beta*(1-.73)
-        # s, e, i, r,d = seird(s, e, i, r, d, beta_decay, gamma, alpha, n, fatal)
-        # s_v.append(s)
-        # e_v.append(e)
-        # i_v.append(i)
-        # r_v.append(r)
-        # d_v.append(d)
-
-    # return (
-        # np.array(s_v),
-        # np.array(e_v),
-        # np.array(i_v),
-        # np.array(r_v),
-        # np.array(d_v)
-    # )
-
-# # Model with dynamic doubling time
-# def sim_seird_decay_erie(
-    # s: float, e:float, i: float, r: float, d: float, beta: float, gamma: float, alpha: float, n_days: int,
-    # decay1:float, decay2:float, decay3: float, decay4: float, step1_delta: int, fatal: float
-    # ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    # """Simulate the SIR model forward in time."""
-    # s, e, i, r, d= (float(v) for v in (s, e, i, r, d))
-    # n = s + e + i + r + d
-    # s_v, e_v, i_v, r_v, d_v = [s], [e], [i], [r], [d]
-    # for day in range(n_days):
-        # if start_day<=day<=int1_delta:
-            # beta = (alpha+(2 ** (1 / 1.61) - 1))*((2 ** (1 / 1.61) - 1) + (1/infectious_period)) / (alpha*S)
-            # beta_decay=beta*(1-.3)
-        # elif int1_delta<=day<=int2_delta:
-            # beta = (alpha+(2 ** (1 / 2.65) - 1))*((2 ** (1 / 2.65) - 1)+ (1/infectious_period)) / (alpha*S)
-            # beta_decay=beta*(1-.3)
-        # elif int2_delta<=day<=step1_delta:
-            # beta = (alpha+(2 ** (1 / 5.32) - 1))*((2 ** (1 / 5.32) - 1)+ (1/infectious_period)) / (alpha*S)
-            # beta_decay=beta*(1-.5)
-        # else:
-            # beta = (alpha+(2 ** (1 / 9.70) - 1))*((2 ** (1 / 9.70) - 1)+ (1/infectious_period)) / (alpha*S)
-            # beta_decay=beta*(1-.30)
-        # s, e, i, r,d = seird(s, e, i, r, d, beta_decay, gamma, alpha, n, fatal)
-        # s_v.append(s)
-        # e_v.append(e)
-        # i_v.append(i)
-        # r_v.append(r)
-        # d_v.append(d)
-
-    # return (
-        # np.array(s_v),
-        # np.array(e_v),
-        # np.array(i_v),
-        # np.array(r_v),
-        # np.array(d_v)
-    # )
 
 def seijcrd(
     s: float, e: float, i: float, j:float, c:float, r: float, d: float, beta: float, gamma: float, alpha: float, n: float, fatal_hosp: float, hosp_rate:float, icu_rate:float, icu_days:float,crit_lag:float, death_days:float
@@ -422,65 +286,6 @@ def seijcrd(
     scale = n / (s_n + e_n+ i_n + j_n+ c_n+ r_n + d_n)
     return s_n * scale, e_n * scale, i_n * scale, j_n* scale, c_n*scale, r_n * scale, d_n * scale
 
-# def sim_seijcrd_decay(
-    # s: float, e:float, i: float, j:float, c: float, r: float, d: float, beta: float, gamma: float, alpha: float, n_days: int,
-    # decay1:float, decay2:float, decay3: float, decay4: float, step1_delta: int, fatal_hosp: float, hosp_rate: float, icu_rate: float, icu_days:float, crit_lag: float, death_days:float
-    # ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    # """Simulate the SIR model forward in time."""
-    # s, e, i, j, c, r, d= (float(v) for v in (s, e, i, c, j, r, d))
-    # n = s + e + i + j+r + d
-    # s_v, e_v, i_v, j_v, c_v, r_v, d_v = [s], [e], [i], [j], [c], [r], [d]
-    # for day in range(n_days):
-        # if 0<=day<=21:
-            # beta = (alpha+(2 ** (1 / 1.61) - 1))*((2 ** (1 / 1.61) - 1) + (1/infectious_period)) / (alpha*S)
-            # beta_decay=beta*(1-decay1)
-        # elif 22<=day<=28:
-            # beta = (alpha+(2 ** (1 / 2.65) - 1))*((2 ** (1 / 2.65) - 1)+ (1/infectious_period)) / (alpha*S)
-            # beta_decay=beta*(1-decay2)
-        # elif 29<=day<=step1_delta:
-            # beta = (alpha+(2 ** (1 / 5.32) - 1))*((2 ** (1 / 5.32) - 1)+ (1/infectious_period)) / (alpha*S)
-            # beta_decay=beta*(1-decay3)
-        # else:
-            # beta = (alpha+(2 ** (1 / 9.70) - 1))*((2 ** (1 / 9.70) - 1)+ (1/infectious_period)) / (alpha*S)
-            # beta_decay=beta*(1-decay4)
-        # s, e, i,j, c, r,d = seijcrd(s, e, i,j, c, r, d, beta_decay, gamma, alpha, n, fatal_hosp, hosp_rate, icu_rate, icu_days, crit_lag, death_days)
-        # s_v.append(s)
-        # e_v.append(e)
-        # i_v.append(i)
-        # j_v.append(j)
-        # c_v.append(c)
-        # r_v.append(r)
-        # d_v.append(d)
-
-    # return (
-        # np.array(s_v),
-        # np.array(e_v),
-        # np.array(i_v),
-        # np.array(j_v),
-        # np.array(c_v),
-        # np.array(r_v),
-        # np.array(d_v)
-    # )
-
-
-# def betanew(t,beta):
-    # if start_day<= t <= int1_delta:
-        # beta_decay=beta*(1-decay1)
-    # elif int1_delta<=t<int2_delta:
-        # beta_decay=beta*(1-decay2)
-    # elif int2_delta<=t<int3_delta:
-        # beta_decay=beta*(1-decay3)
-    # elif int3_delta<=t<=int4_delta:
-        # beta_decay=beta*(1-decay4)
-    # elif int4_delta<=t<=int5_delta:
-        # beta_decay=beta*(1-decay5)
-    # elif int5_delta<=t<=int6_delta:
-        # beta_decay=beta*(1-decay6)
-    # elif int6_delta<=t<=int7_delta:
-        # beta_decay=beta*(1-decay7)
-    # elif int7_delta<=t<=int8_delta:
-        # beta_decay=beta*(1-decay8)
-    # return beta_decay
 
 #The SIR model differential equations with ODE solver.
 def derivdecay(y, t, N, beta, gamma1, gamma2, alpha, p, hosp, q, l, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, decay10,
@@ -511,18 +316,8 @@ def sim_seaijrd_decay_ode(
     return (S_n, E_n, A_n, I_n,J_n, R_n, D_n, RH_n)
 
 
-####The SIR model differential equations with ODE solver. Presymptomatic and masks
-# def betanew2(t, beta, x, p_m1, pm_2, p_m3):
-    # beta_decay = 0
-    # if start_day<=t<= int1_delta:
-        # beta_decay=beta*(1-decay1)*(1-(x*p_m1))**2
-    # elif int1_delta<t<=int2_delta:
-        # beta_decay=beta*(1-decay2)*(1-(x*p_m2))**2
-    # elif int2_delta<t<=n_days:
-        # beta_decay=beta*(1-decay3)*(1-(x*p_m3))**2
-    # return beta_decay
-
 # Modified 9/22/21
+# Old beta decay, prior to new strain and vaccines (see betanew3)
 def betanew2(t, beta, x, p_m1, pm_2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, p_m10):
     beta_decay = 0.0
     if start_day<=t<=int1_delta:
@@ -548,29 +343,7 @@ def betanew2(t, beta, x, p_m1, pm_2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, p
     return beta_decay
 
 
-### changing up new_strain
-# def betanew3(t, beta, x, p_m1, pm_2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, p_m10, new_strain, fracNS):
-    # beta_decay = 0.0
-    # if start_day<=t<=int1_delta:
-        # beta_decay=beta*(1-decay1)*(1-(x*p_m1))**2
-    # elif int1_delta<t<=int2_delta:
-        # beta_decay=beta*(1-decay2)*(1-(x*p_m2))**2
-    # elif int2_delta<t<=int3_delta:
-        # beta_decay=beta*(1-decay3)*(1-(x*p_m3))**2
-    # elif int3_delta<t<=int4_delta:
-        # beta_decay=beta*(1-decay4)*(1-(x*p_m4))**2
-    # elif int4_delta<t<=int5_delta:
-        # beta_decay=beta*(1-decay5)*(1-(x*p_m5))**2
-    # elif int5_delta<t<=int6_delta:
-        # beta_decay=((1-fracNS)*beta*(1-decay6)*(1-(x*p_m6))**2)+(fracNS*(1+new_strain)*beta*(1-decay6)*(1-(x*p_m6))**2)
-    # elif int6_delta<t<=int7_delta, int8_delta:
-        # beta_decay=((1-fracNS)*beta*(1-decay7)*(1-(x*p_m7))**2)+(fracNS*(1+new_strain)*beta*(1-decay7)*(1-(x*p_m7))**2)
-    # else:
-        # beta_decay=((1-fracNS)*beta*(1-decay8, decay9, decay10,)*(1-(x*p_m8, p_m9, p_m10,))**2)+(fracNS*(1+new_strain)*beta*(1-decay8, decay9, decay10,)*(1-(x*p_m8, p_m9, p_m10,))**2)
-    # return beta_decay
 
-
-# Modified 9/22/21
 # Adding period specific changes to tranmission or percentage of population
 def betanew3(t, beta, x, p_m1, pm_2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, p_m10, 
                 new_strain6, new_strain7, new_strain8, new_strain9, new_strain10, 
@@ -600,25 +373,7 @@ def betanew3(t, beta, x, p_m1, pm_2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, p
 
 
 
-####### what if we want to do this for vaccination!
-
-# def phinew2(t, phi):
-    # phi_decay = 0.0
-    # if start_day<=t<=int1_delta:
-        # phi_decay = 0
-    # elif int1_delta<t<=int4_delta:
-        # phi_decay = 0
-    # elif int4_delta<t<=int5_delta:
-        # phi_decay = 0.003
-    # elif int5_delta<t<=int6_delta:
-        # phi_decay = 0.003
-    # elif int6_delta<t<=int7_delta:
-        # phi_decay = 0.003
-    # else:
-        # phi_decay = phi
-    # return phi_decay
-
-
+# Vaccine rate at different timepoints
 # Modified 9/22/21 # Addind additional timepoint - now at 10
 def phinew2(t, phi5, phi6, phi7, phi8, phi9, phi10):
     phi_decay = 0.0
@@ -641,19 +396,6 @@ def phinew2(t, phi5, phi6, phi7, phi8, phi9, phi10):
     return phi_decay
 
 
-# def betanewstrain(t, beta, x, p_m1, pm_2, p_m3, p_m4, p_m5):
-    # beta_decay = 0.0
-    # if start_day<=t<=int1_delta:
-        # beta_decay=beta*(1-decay1)*(1-(x*p_m1))**2
-    # elif int1_delta<t<=int2_delta:
-        # beta_decay=beta*(1-decay2)*(1-(x*p_m2))**2
-    # elif int2_delta<t<=int3_delta:
-        # beta_decay=beta*(1-decay3)*(1-(x*p_m3))**2
-    # elif int3_delta<t<=int4_delta:
-        # beta_decay=beta*(1-decay4)*(1-(x*p_m4))**2
-    # else:
-        # beta_decay=beta*(1-decay5)*(1-(x*p_m5))**2
-    # return beta_decay
 
 
 def derivdecayP(y, t, beta, gamma1, gamma2, alpha, sym, hosp, q, l, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, decay10,
@@ -713,7 +455,7 @@ def derivdecayVtime(y, t, beta, gamma1, gamma2, alpha, sym, hosp, q, l, n_days, 
     counter = (1-fatal_hosp)*gamma2 * J
     return dSdt, dVdt,dEdt,dPdt,dAdt, dIdt, dJdt, dRdt, dDdt, counter
 
-###add in New Strain
+### Add in New Strain
 def derivdecayVNS(y, t, beta, gamma1, gamma2, alpha, sym, hosp, q, l, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, decay10,
                 start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta, int9_delta,
                 fatal_hosp, x, p_m1, p_m2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, p_m10, delta_p, sigma, 
@@ -775,6 +517,9 @@ def sim_svepaijrd_decay_ode(
 
     return (S_n, V_n,E_n,P_n,A_n, I_n,J_n, R_n, D_n, RH_n)
 
+####################################
+# To add a new timepoint, you need to add the new variables for facemask, social distancing, vaccine rate, variante etc (such as decay11, int10_delta, p_m11, phi11, new_strain11, fracNS11)
+####################################
 def sim_svepaijrdNS_decay_ode(
     s,v, e,p,a,i, j,r, d, beta, gamma1, gamma2, alpha, n_days, decay1, decay2, decay3, decay4, decay5, decay6, decay7, decay8, decay9, decay10,
     start_day, int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta, int9_delta,
@@ -863,8 +608,9 @@ known_cases = erie_df['Admissions'].iloc[-1]
 regional_hosp_share = 1.0
 S = erie
 
-
-# Widgets
+###############################################
+# Widgets -Sidebar
+###############################################
 current_hosp = st.sidebar.number_input(
     "Total Hospitalized Cases", value=known_cases, step=1.0, format="%f")
 
@@ -1134,8 +880,9 @@ erie_icu_line = alt.Chart(erie_df).mark_line(color='orange', point=True).encode(
 
 
 
-
+##################
 # Slider and Date
+##################
 n_days = st.slider("Number of days to project", 30, 500, 450, 1, "%i")
 as_date = st.checkbox(label="Present result as dates", value=True)
 
@@ -1882,13 +1629,17 @@ hospitalized_V2, icu_V2, ventilated_V2 = (
 
 
 
-# S_Curve
+
+##################################################################
+##################################################################
+# MAIN Model 10/2021 - VNS0
+##################################################################
 ##################################################################
 ## SEIR model with phase adjusted R_0 and Disease Related Fatality,
 ## Asymptomatic, Hospitalization, Presymptomatic, and masks
-# Vaccination Curve + New strain 2/3/20
-# Last modified - Gabe - 8/5/21
-# Last modified - Gabe - 9/22/21
+# Vaccination Curve + New strain
+##################################################################
+##################################################################
 E0=667
 V0=0
 A0=195
@@ -1977,11 +1728,17 @@ dispositions_prev["Total Cases"]=S_vNS
 dispositions_prev["pointprevalencerate"]=(dispositions_prev['Total Prevalent Cases']/dispositions_prev['Total Cases'])*100000
 #total number of infected people during that day/ total number in population
 
+
+##################################################################
+##################################################################
+# MAIN Model 10/2021 - Comparison Curve VNS1
+##################################################################
 ##################################################################
 ## SEIR model with phase adjusted R_0 and Disease Related Fatality,
 ## Asymptomatic, Hospitalization, Presymptomatic, and masks
-# Vaccination Curve + New strain 2/3/20
-# Last Modified - Gabe - 8/5/21 - Added extra curve with/without delta variant
+# Vaccination Curve + New strain
+##################################################################
+##################################################################
 E0=667
 V0=0
 A0=195
@@ -2052,11 +1809,18 @@ hospitalized_VNS1, icu_VNS1, ventilated_VNS1 = (
             i_ventilated_VNS)
 
 
+
+
+##################################################################
+##################################################################
+# MAIN Model 10/2021 - Comparison Curve VNS2
+##################################################################
 ##################################################################
 ## SEIR model with phase adjusted R_0 and Disease Related Fatality,
 ## Asymptomatic, Hospitalization, Presymptomatic, and masks
 # Vaccination Curve + New strain
-# Modification - Add population and transmission to effectiveness of vaccine. 2/15/21
+##################################################################
+##################################################################
 E0=667
 V0=0
 A0=195
@@ -2129,61 +1893,8 @@ hospitalized_VNS2, icu_VNS2, ventilated_VNS2 = (
             i_ventilated_VNS)
 
 
-
-
 # Projection days
 plot_projection_days = n_days - 10
-
-
-#############
-# # SIR Model
-# # New cases
-#projection_admits = build_admissions_df(dispositions)
-# # Census Table
-#census_table = build_census_df(projection_admits)
-# ############################
-
-############
-# SEIR Model
-# New cases
-#projection_admits_e = build_admissions_df(dispositions_e)
-# Census Table
-#census_table_e = build_census_df(projection_admits_e)
-
-#############
-# SEIR Model with phase adjustment
-# New cases
-#projection_admits_R = build_admissions_df(dispositions_R)
-# Census Table
-#census_table_R = build_census_df(projection_admits_R)
-
-#############
-# SEIR Model with phase adjustment and Disease Fatality
-# New cases
-#projection_admits_D = build_admissions_df(dispositions_D)
-# Census Table
-#census_table_D = build_census_df(projection_admits_D)
-
-#############
-# SEIR Model with phase adjustment and Disease Fatality
-# New cases - using high social distancing
-#projection_admits_D_socialcases = build_admissions_df(dispositions_D_socialcases)
-# Census Table
-#census_table_D_socialcases = build_census_df(projection_admits_D_socialcases)
-
-#############
-# SEIR Model with phase adjustment and Disease Fatality
-# New cases - using dynamic doubling time and social distancing
-#projection_admits_D_ecases = build_admissions_df(dispositions_D_ecases)
-# Census Table
-#census_table_D_ecases = build_census_df(projection_admits_D_ecases)
-
-#############
-# SEAIJRD Model
-# New Cases
-#projection_admits_A_ecases = build_admissions_df_n(dispositions_A_ecases)
-## Census Table
-#census_table_A_ecases = build_census_df(projection_admits_A_ecases)
 
 #############
 # SEPAIJRD Model
@@ -2213,8 +1924,7 @@ projection_admits_P3 = build_admissions_df_n(dispositions_P3)
 ## Census Table
 census_table_P3 = build_census_df(projection_admits_P3)
 
-
- #SVEPAIJRD Model
+#SVEPAIJRD Model
 # Base model
 # New Cases
 projection_admits_V0 = build_admissions_df_n(dispositions_V0)
@@ -2225,14 +1935,17 @@ census_table_V0 = build_census_df(projection_admits_V0)
 census_table_V1 = build_census_df(projection_admits_V1)
 census_table_V2 = build_census_df(projection_admits_V2)
 
- #SVEPAIJRD Model +New Strain
+#####################################################################
+#####################################################################
+# SVEPAIJRD Model +New Strain
+#####################################################################
+#####################################################################
 # Base model
 # New Cases
 projection_admits_VNS0 = build_admissions_df_n(dispositions_VNS0)
 projection_admits_VNS1 = build_admissions_df_n(dispositions_VNS1)
 projection_admits_VNS2 = build_admissions_df_n(dispositions_VNS2)
-#st.dataframe(dispositions_P0)
-#st.dataframe(projection_admits_P0)
+
 ## Census Table
 census_table_VNS0 = build_census_df(projection_admits_VNS0)
 census_table_VNS1 = build_census_df(projection_admits_VNS1)
@@ -2278,21 +1991,6 @@ def regional_admissions_chart(
 # , scale=alt.Scale(domain=[0, 3250])
 
 
-#Comparison of Single line graph - Hospitalized, ICU, Vent and All
-# if model_options == "Inpatient":
-    # columns_comp = {"hosp": "Hospitalized"}
-    # fold_comp = ["Hospitalized"]
-    # capacity_col = {"total_county_beds":"Inpatient Beds"}
-    # capacity_fol = ["Inpatient Beds"]
-# if model_options == "ICU":
-    # columns_comp = {"icu": "ICU"}
-    # fold_comp = ["ICU"]
-    # capacity_col = {"total_county_icu": "ICU Beds"}
-    # capacity_fol = ["ICU Beds"]
-# if model_options == "Ventilated":
-    # columns_comp = {"vent": "Ventilated"}
-    # fold_comp = ["Ventilated"]
-
 def ip_chart(
     projection_admits: pd.DataFrame,
     plot_projection_days: int,
@@ -2331,7 +2029,10 @@ def ip_chart(
 
 
 ###################### Vertical Lines Graph ###################
-vertical = pd.DataFrame({'day': [int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta, int9_delta]})
+# Timepoints
+###############################################################
+
+vertical = pd.DataFrame({'day': [int1_delta, int2_delta, int3_delta, int4_delta, int5_delta, int6_delta, int7_delta, int8_delta, int9_delta]}) # add here for additional time-point
 
 def vertical_chart(
     projection_admits: pd.DataFrame,
@@ -2359,60 +2060,14 @@ def vertical_chart(
 vertical1 = vertical_chart(vertical, as_date=as_date)
 
 
-
 ##############################
-#4/3/20 First Projection Graph - Admissions
 ##############################
-#st.header("""Projected Admissions Models for Erie County""")
-#st.subheader("Projected number of **daily** COVID-19 admissions for Erie County: SEIR -Phase Adjusted R_0 with Case Fatality and Asymptomatic Component")
-#admits_graph_seir = regional_admissions_chart(projection_admits_e,
-#        plot_projection_days,
-#        as_date=as_date)
-#admits_graph = regional_admissions_chart(projection_admits_D,
-#        plot_projection_days,
-#        as_date=as_date)
-### High Social Distancing
-#admits_graph_highsocial = regional_admissions_chart(projection_admits_D_socialcases,
-#        plot_projection_days,
-#        as_date=as_date)
-### Dynamic Doubling Time
-#admits_graph_ecases = regional_admissions_chart(projection_admits_D_ecases,
-#        plot_projection_days,
-#        as_date=as_date)
-### SEAIJRD
-#admits_graph_A= regional_admissions_chart(projection_admits_A_ecases,
-#        plot_projection_days,
-#        as_date=as_date)
-### SEPAIJRD
+# Admissions Graphs
+##############################
+##############################
 admits_graph_P= regional_admissions_chart(projection_admits_P0,
         plot_projection_days,
         as_date=as_date)
-
-# st.altair_chart(
-    # #admits_graph_seir
-    # #+
-    # #admits_graph
-    # #+
-    # vertical1
-    # #+ admits_graph_ecases
-    # + admits_graph_A
-    # #+ admits_graph_highsocial
-    # #+ erie_admit24_line
-    # , use_container_width=True)
-
-# st.subheader("Projected number of **daily** COVID-19 admissions for Erie County: SEIR - Phase Adjusted R_0 with Case Fatality with Asymptomatic, Pre-Symptomatic, and Mask-use")
-# st.altair_chart(
-    # #admits_graph_seir
-    # #+
-    # #admits_graph
-    # #+
-    # vertical1
-    # #+ admits_graph_ecases
-    # + admits_graph_P
-    # #+ admits_graph_highsocial
-    # + erie_admit24_line
-    # , use_container_width=True)
-
 
 if st.checkbox("Show more about the assumptions and specifications of the SEIR model"):
     st.subheader(
@@ -2440,49 +2095,11 @@ admits_graph_V= regional_admissions_chart(projection_admits_V0,
         plot_projection_days,
         as_date=as_date)
 
-# st.altair_chart(
-    # #admits_graph_seir
-    # #+
-    # #admits_graph
-    # #+
-    # vertical1
-    # #+ admits_graph_ecases
-    # + admits_graph_A
-    # #+ admits_graph_highsocial
-    # #+ erie_admit24_line
-    # , use_container_width=True)
-
-# st.subheader("Projected number of **daily** COVID-19 admissions for Erie County: SEIR - Phase Adjusted R_0 with Case Fatality with Asymptomatic, Pre-Symptomatic, Vaccinations, and Mask-use")
-# st.altair_chart(
-    # #admits_graph_seir
-    # #+
-    # #admits_graph
-    # #+
-    # vertical1
-    # #+ admits_graph_ecases
-    # + admits_graph_V
-    # #+ admits_graph_highsocial
-    # + erie_admit24_line
-    # , use_container_width=True)
-
-
 ##### with vaccinations +New Strain
     ### SEPAIJRD
 admits_graph_VNS= regional_admissions_chart(projection_admits_VNS0,
         plot_projection_days,
         as_date=as_date)
-
-# st.altair_chart(
-    # #admits_graph_seir
-    # #+
-    # #admits_graph
-    # #+
-    # vertical1
-    # #+ admits_graph_ecases
-    # + admits_graph_A
-    # #+ admits_graph_highsocial
-    # #+ erie_admit24_line
-    # , use_container_width=True)
 
 st.subheader("Projected number of **daily** COVID-19 admissions for Erie County: SEIR - Phase Adjusted R_0 with Case Fatality with Asymptomatic, Pre-Symptomatic, Vaccinations, New Strain transmissibility, and Mask-use")
 st.altair_chart(
@@ -2497,21 +2114,6 @@ st.altair_chart(
     + erie_admit24_line
     , use_container_width=True)
 
-
-
-#sir = regional_admissions_chart(projection_admits, plot_projection_days, as_date=as_date)
-#seir = regional_admissions_chart(projection_admits_e, plot_projection_days, as_date=as_date)
-#seir_r = regional_admissions_chart(projection_admits_R, plot_projection_days, as_date=as_date)
-#seir_d = regional_admissions_chart(projection_admits_D, plot_projection_days, as_date=as_date)
-
-
-# if st.checkbox("Show Graph of Erie County Projected Admissions with Model Comparison of Social Distancing"):
-    # st.subheader("Projected number of **daily** COVID-19 admissions for Erie County: Model Comparison (Left: 0% Social Distancing, Right: Step-Wise Social Distancing)")
-    # st.altair_chart(
-        # alt.layer(seir.mark_line())
-        # + alt.layer(seir_d.mark_line())
-        # + alt.layer(vertical1.mark_rule())
-        # , use_container_width=True)
 
 def hospital_admissions_chart(
     projection_admits: pd.DataFrame,
@@ -2553,21 +2155,6 @@ def hospital_admissions_chart(
 ################################################
 st.header("""Projected Census Models for Erie County""")
 
-
-# Comparison of Census Single line graph - Hospitalized, ICU, Vent
-# if model_options == "Inpatient":
-    # columns_comp_census = {"hosp": "Hospital Census"}
-    # fold_comp_census = ["Hospital Census"]
-    # graph_selection = erie_lines_ip
-# if model_options == "ICU":
-    # columns_comp_census = {"icu": "ICU Census"}
-    # fold_comp_census = ["ICU Census"]
-    # graph_selection = erie_lines_icu
-# if model_options == "Ventilated":
-    # columns_comp_census = {"vent": "Ventilated Census"}
-    # fold_comp_census = ["Ventilated Census"]
-    # graph_selection = erie_lines_vent
-
 def ip_census_chart(
     census: pd.DataFrame,
     plot_projection_days: int,
@@ -2603,6 +2190,8 @@ def ip_census_chart(
         .interactive()
     )
 
+
+# Used to set scale when comparing graphs
 # on y axi
 # , scale=alt.Scale(domain=[0, 250])
 
@@ -2611,27 +2200,11 @@ def ip_census_chart(
     # scale=alt.Scale(domain=[-5, 9000])
 
 
-
-#sir_ip_c = ip_census_chart(census_table, plot_projection_days, as_date=as_date)
-#seir_ip_c = ip_census_chart(census_table_e, plot_projection_days, as_date=as_date)
-#seir_r_ip_c = ip_census_chart(census_table_R, plot_projection_days, as_date=as_date)
-#seir_d_ip_c = ip_census_chart(census_table_D, plot_projection_days, as_date=as_date)
-###
-
-### 4/20/20 for high social distancing model
-#seir_d_ip_highsocial = ip_census_chart(census_table_D_socialcases, plot_projection_days, as_date=as_date)
-### 4/17/20 for stepwise SD/DT model
-#seir_d_ip_ecases = ip_census_chart(census_table_D_ecases, plot_projection_days, as_date=as_date)
-### 4/22/20 seaijrd
-#seir_A_ip_ecases = ip_census_chart(census_table_A_ecases, plot_projection_days, as_date=as_date)
-### 4/22/20 sepaijrd
-#seir_P_ip_ecases = ip_census_chart(census_table_P_ecases, plot_projection_days, as_date=as_date)
-### 6/22/20 sepaijrd
+# Census Curves
 seir_P0 = ip_census_chart(census_table_P0[9:len(census_table_P0)], plot_projection_days, as_date=as_date)
 seir_P1 = ip_census_chart(census_table_P1[9:len(census_table_P1)], plot_projection_days, as_date=as_date)
 seir_P2 = ip_census_chart(census_table_P2[9:len(census_table_P2)], plot_projection_days, as_date=as_date)
 seir_P3 = ip_census_chart(census_table_P3, plot_projection_days, as_date=as_date)
-
 # Vaccine Curve
 seir_V0 = ip_census_chart(census_table_V0[9:len(census_table_V0)], plot_projection_days, as_date=as_date)
 seir_V1 = ip_census_chart(census_table_V1[9:len(census_table_V0)], plot_projection_days, as_date=as_date)
@@ -2641,115 +2214,12 @@ seir_VNS0 = ip_census_chart(census_table_VNS0[9:len(census_table_VNS0)], plot_pr
 seir_VNS1 = ip_census_chart(census_table_VNS1[9:len(census_table_VNS0)], plot_projection_days, as_date=as_date)
 seir_VNS2 = ip_census_chart(census_table_VNS2[9:len(census_table_VNS0)], plot_projection_days, as_date=as_date)
 
-# Chart of Model Comparison for SEIR and Adjusted with Erie County Data
-#st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs Model (SEAIJRD)")
-#st.altair_chart(
-    #alt.layer(seir_ip_c.mark_line())
-    #+ alt.layer(seir_d_ip_c.mark_line())
-    #+ alt.layer(seir_d_ip_ecases.mark_line())
-    #+
-    #alt.layer(seir_A_ip_ecases.mark_line())
-    #+ alt.layer(seir_d_ip_highsocial.mark_line())
-    #+ alt.layer(graph_selection)
-    #+ alt.layer(vertical1)
-    #, use_container_width=True)
 
-# Main Graph - GA
-# Active as of 10/5/20
-# st.subheader("Comparison of COVID-19 admissions for Erie County: Data vs Model (SEPAIJRD)")
-# st.altair_chart(
-    # #alt.layer(seir_ip_c.mark_line())
-    # #+ alt.layer(seir_d_ip_c.mark_line())
-    # #+ alt.layer(seir_d_ip_ecases.mark_line())
-    # #+
-    # alt.layer(seir_P0.mark_line())
-    # #+ alt.layer(seir_d_ip_highsocial.mark_line())
-    # + alt.layer(erie_lines_ip)
-    # + alt.layer(vertical1)
-    # , use_container_width=True)
-
-# V_Graph
-# Main Graph - VACCINATIONS + strain
-# Active as of 2/3/21
-# st.subheader("Comparison of COVID-19 hospital admissions for Erie County: Model Comparison - Vaccine (SVEPAIJRD)")
-# st.altair_chart(
-    # #alt.layer(seir_ip_c.mark_line())
-    # #+ alt.layer(seir_d_ip_c.mark_line())
-    # #+ alt.layer(seir_d_ip_ecases.mark_line())
-    # #+
-    # alt.layer(seir_P0.mark_line())
-    # +
-    # seir_V0
-    # #+alt.layer(seir_VNS0.mark_line())
-    # #+ alt.layer(seir_d_ip_highsocial.mark_line())
-    # + alt.layer(erie_lines_ip)
-    # + alt.layer(vertical1)
-    # , use_container_width=True)
-
-# Main Graph - VACCINATIONS
-# Active as of 2/3/21
-# st.subheader("Comparison of COVID-19 hospital admissions for Erie County: Model Comparison - Vaccine Only")
-# st.altair_chart(
-    # #alt.layer(seir_ip_c.mark_line())
-    # #+ alt.layer(seir_d_ip_c.mark_line())
-    # #+ alt.layer(seir_d_ip_ecases.mark_line())
-    # #+
-    # #alt.layer(seir_P0.mark_line())
-    # #+
-    # #alt.layer(seir_VNS0.mark_line())
-    # #+
-    # seir_V0
-    # #+
-    # #alt.layer(seir_VNS1.mark_line())
-    # #+ seir_V1
-    # #+ seir_V2
-    # + alt.layer(erie_lines_ip)
-    # + alt.layer(vertical1)
-    # , use_container_width=True)
-
-
-# Main Graph - VACCINATIONS
-# Active as of 2/3/21
-# st.subheader("Comparison of COVID-19 hospital admissions for Erie County: Model Comparison - Vaccine and Vaccine with half FM/SD")
-# st.altair_chart(
-    # #alt.layer(seir_ip_c.mark_line())
-    # #+ alt.layer(seir_d_ip_c.mark_line())
-    # #+ alt.layer(seir_d_ip_ecases.mark_line())
-    # #+
-    # #alt.layer(seir_P0.mark_line())
-    # #+
-    # #alt.layer(seir_VNS0.mark_line())
-    # #+
-    # #seir_V0
-    # #+
-    # #alt.layer(seir_VNS1.mark_line())
-    # #+ seir_V1
-    # #+
-    # seir_V2
-    # + alt.layer(erie_lines_ip)
-    # + alt.layer(vertical1)
-    # , use_container_width=True)
-
-# Main Graph - VACCINATIONS
-# Active as of 2/3/21
-# st.subheader("Comparison of COVID-19 hospital admissions for Erie County: Model Comparison - Vaccine with Variant and half FM/SD")
-# st.altair_chart(
-    # #alt.layer(seir_ip_c.mark_line())
-    # #+ alt.layer(seir_d_ip_c.mark_line())
-    # #+ alt.layer(seir_d_ip_ecases.mark_line())
-    # #+
-    # #alt.layer(seir_P0.mark_line())
-    # #+
-    # #alt.layer(seir_VNS0.mark_line())
-    # #+
-    # seir_V0
-    # #+
-    # #+alt.layer(seir_VNS1.mark_line())
-    # + seir_V1
-    # + seir_V2
-    # + alt.layer(erie_lines_ip)
-    # + alt.layer(vertical1)
-    # , use_container_width=True)
+#########################################
+#########################################
+# MAIN GRAPH
+#########################################
+#########################################
 
 # S_Graph
 # Main Graph - VACCINATIONS + strain
@@ -2772,13 +2242,6 @@ st.altair_chart(
     , use_container_width=True)
 
 
-
-#############################################################################
-# Changes 7/21/21
-
-
-
-
 ############################### prevalence and incidence ###########################
 # https://www.tandfonline.com/doi/full/10.1057/hs.2015.2
 ####################################################################################
@@ -2786,24 +2249,6 @@ st.subheader("Prevalence and Incidence Across Time")
 
 st.markdown("""Incidence is measured as the number of new cases daily, (from compartment P) prevalence is measured
 as the population infected with the disease (A,I,J) daily.""")
-
-#st.dataframe(census_table_P0)
-
-#S_vNS, V_v,NSE_vNS,P_vNS,A_vNS, I_vNS,J_vNS, R_vNS, D_vNS, RH_vNS
-
-## incidence
-#frame = [A_vNS, I_vNS, J_vNS, R_vNS, D_vNS]
-#dispositions_inc = np.array(frame)
-#dispositions_inc = pd.DataFrame(data=dispositions_inc).T
-#st.write(dispositions_inc)
-#st.dataframe(dispositions_inc)
-#dispositions_inc = pd.DataFrame(dispositions_inc, columns=['newcases'])
-# dispositions_inc2 = dispositions_inc.iloc[:-1, :] - dispositions_inc.shift(1)
-# dispositions_inc2["day"] = range(dispositions_inc2.shape[0])
-# dispositions_inc2["TotalCases"]=S_vNS
-# dispositions_inc2.at[0,'newcases']=0
-# dispositions_inc2["incidencerate"]=dispositions_inc2['newcases']/dispositions_inc2['TotalCases']
-
 
 def additional_projections_chart2(i, p)  -> alt.Chart:
     dat = pd.DataFrame({"Incidence Rate":i,"Prevalence Rate":p})
@@ -2826,7 +2271,7 @@ st.altair_chart(additional_projections_chart2(dispositions_inc2["incidencerate"]
 
 
 
+# Tables showing prevalence 
+#st.dataframe(dispositions_inc2)
 
-st.dataframe(dispositions_inc2)
-
-st.dataframe(dispositions_prev)
+#st.dataframe(dispositions_prev)

@@ -857,7 +857,7 @@ intervention10 = st.sidebar.date_input(
     "Date of change 11", datetime(2021, 11, 23))
 int10_delta = (intervention10 - start_date).days
 decay11 = st.sidebar.number_input(
-    "Social distancing 11 - Percent", 0, 100, value=15, step=5, format="%i") / 100.0
+    "Social distancing 11 - Percent", 0, 100, value=5, step=5, format="%i") / 100.0
 p_m11 = (st.sidebar.number_input(
     "Mask-wearing 11", 0.0, 100.0, value=25.0, step=5.0, format="%f") / 100.0)
 phi11 = (st.sidebar.number_input(
@@ -869,7 +869,7 @@ new_strain11 = (st.sidebar.number_input(
     format="%f") / 100.0)
 
 intervention11 = st.sidebar.date_input(
-    "Date of change 12", datetime(2021, 12, 1))
+    "Date of change 12", datetime(2021, 12, 31))
 int11_delta = (intervention11 - start_date).days
 decay12 = st.sidebar.number_input(
     "Social distancing 12 - Percent", 0, 100, value=15, step=5, format="%i") / 100.0

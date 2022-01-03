@@ -409,7 +409,7 @@ def betanew3(t, beta, x, p_m1, pm_2, p_m3, p_m4, p_m5, p_m6, p_m7, p_m8, p_m9, p
                     fracNS11 * (1 + new_strain11) * beta * (1 - decay11) * (1 - (x * p_m11)) ** 2)
     elif int11_delta < t < n_days:
         beta_decay = ((1 - fracNS12) * beta * (1 - decay12) * (1 - (x * p_m12)) ** 2) + (
-                    fracNS11 * (1 + new_strain12) * beta * (1 - decay12) * (1 - (x * p_m12)) ** 2)
+                    fracNS12 * (1 + new_strain12) * beta * (1 - decay12) * (1 - (x * p_m12)) ** 2)
     return beta_decay
 
 

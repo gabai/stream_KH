@@ -842,7 +842,7 @@ intervention9 = st.sidebar.date_input(
     "Date of change 10", datetime(2021, 10, 15))
 int9_delta = (intervention9 - start_date).days
 decay10 = st.sidebar.number_input(
-    "Social distancing 10 - Percent", 0, 100, value=5.0, step=5, format="%i") / 100.0
+    "Social distancing 10 - Percent", 0, 100, value=5, step=5, format="%i") / 100.0
 p_m10 = (st.sidebar.number_input(
     "Mask-wearing 10", 0.0, 100.0, value=25.0, step=5.0, format="%f") / 100.0)
 phi10 = (st.sidebar.number_input(
